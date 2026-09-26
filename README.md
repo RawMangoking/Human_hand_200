@@ -1537,3 +1537,497 @@ MuJoCo vertical      = Z
 5. The current `Hand_forearm.xml` is the correct hand XML reference for the project; do not replace it with older manually modified variants unless intentionally revisiting the orientation decision.
 
 6. The combined `Hand_Door.xml` should remain a separate simulation-specific file so the clean hand and door exports can always be regenerated independently.
+
+
+# 32. Latest Session — 2026-09-26: Combined Hand + Door Scene
+
+## 32.1 Coordinate convention
+
+The project uses two coordinate-system conventions depending on the tool:
+
+```text
+SolidWorks:
+  Vertical = Y
+
+sw2robot / MuJoCo:
+  Vertical = Z
+```
+
+Therefore, whenever the project documentation refers to **vertical** in the MuJoCo scene, it means the **MuJoCo Z axis**, even though the corresponding SolidWorks direction is Y.
+
+The hand's current root orientation is retained from the validated hand export. The door was rotated as a complete root assembly by +90 degrees about the MuJoCo X axis so that its physical vertical direction is aligned with MuJoCo Z:
+
+```xml
+<body name="base_link" pos="0 0 0.09" euler="1.57079632679 0 0">
+```
+
+This is a scene-orientation correction; it does not change the underlying SolidWorks CAD.
+
+## 32.2 Door physical dimensions and mass sanity check
+
+The physical door slab dimensions provided for the simulation are:
+
+```text
+Length    = 2.00 m
+Width     = 0.80 m
+Thickness = 0.04 m
+```
+
+Volume:
+
+```text
+2.00 × 0.80 × 0.04 = 0.064 m³
+```
+
+The selected custom wood density is:
+
+```text
+600 kg/m³
+```
+
+Therefore the expected door-slab mass is:
+
+```text
+0.064 × 600 = 38.4 kg
+```
+
+The current MuJoCo door XML contains:
+
+```xml
+mass="38.4"
+```
+
+for `door_1`.
+
+The very large mass previously shown for `base_1` is not treated as the door-slab mass. `base_1` is part of the fixed/base structure and should not be interpreted as the physical door itself.
+
+## 32.3 Door SolidWorks mate extraction
+
+The top-level door assembly is:
+
+```text
+Door/Full_door_v3.SLDASM
+```
+
+Components:
+
+```text
+base-1
+frame-1
+door-1
+handle-1
+```
+
+The complete top-level door mate list extracted by the macro is:
+
+```text
+Coincident2
+Coincident3
+Coincident4
+Coincident5
+Coincident10
+Coincident11
+LimitAngle2
+LimitAngle3
+Coincident12
+Coincident13
+```
+
+Total:
+
+```text
+10 top-level mates
+```
+
+### Detailed `LimitAngle2`
+
+The detailed mate/entity macro returned:
+
+```text
+ENTITY 0
+Component = door-1
+Reference type = face
+Point = (1970.350043, 4248.670834, 3703.899707) mm
+Vector = (0.997344679, 0, 0.072825756)
+
+ENTITY 1
+Component = frame-1
+Reference type = face
+Point = (1970.350043, 4248.670834, 3703.899707) mm
+Vector = (1, 0, 0)
+```
+
+This is one of the angular constraints associated with the door/frame mechanism.
+
+### Detailed `LimitAngle3` — handle
+
+The detailed mate/entity macro returned:
+
+```text
+ENTITY 0
+Component = door-1
+Reference type = face
+Point = (1172.474300, 4248.670834, 3645.639102) mm
+Vector = (0.997344679, 0, 0.072825756)
+
+ENTITY 1
+Component = handle-1
+Reference type = face
+Point = (1322.498557, 3242.175566, 3656.593820) mm
+Vector = (0, 1, 0)
+```
+
+The important handle result is:
+
+```text
+SolidWorks handle-axis vector = (0, 1, 0)
+```
+
+This is SolidWorks Y, which is the vertical convention for the CAD model and corresponds to MuJoCo Z for the project coordinate mapping.
+
+The handle joint limits extracted into the sw2robot configuration are:
+
+```yaml
+lower: -1.57080
+upper: 0.00000
+```
+
+which corresponds to approximately:
+
+```text
+-90° to 0°
+```
+
+## 32.4 Door sw2robot extraction
+
+The door was extracted from:
+
+```text
+C:\Users\naren\Documents\Capstone\Human_Hand_200mm\Door\Full_door_v3.SLDASM
+```
+
+The extraction reported:
+
+```text
+4 components
+2 limit-mate joints
+4 meshes exported
+5 meshes verified
+```
+
+The generated kinematic tree is:
+
+```text
+base/frame structure
+    |
+    +-- door_1       revolute
+            |
+            +-- handle_1   revolute
+```
+
+The active handle is the handle side used for the current hand-door interaction task. The opposite-side handle does not need independent interaction/control in the first simulation.
+
+## 32.5 Door MJCF
+
+Current door model name:
+
+```text
+Full_door_v3
+```
+
+Current dynamic joints:
+
+```text
+frame_1__door_1
+    type = hinge
+    range = -1.64369  1.49791 rad
+
+ door_1__handle_1
+    type = hinge
+    range = -1.5708  0 rad
+```
+
+Current door actuators:
+
+```text
+frame_1__door_1_act
+ door_1__handle_1_act
+```
+
+The door root includes:
+
+```xml
+euler="1.57079632679 0 0"
+```
+
+so the door is vertical in MuJoCo Z.
+
+## 32.6 Combined Hand + Door MJCF
+
+A separate combined scene was created:
+
+```text
+Mujoko/Hand_Door/Hand_Door.xml
+```
+
+The scene contains both articulated systems in a single MuJoCo world.
+
+Conceptual structure:
+
+```text
+world
+├── door_base
+│   └── door_1
+│       └── handle_1
+│
+└── hand_base
+    └── Hand_forearm hierarchy
+        ├── thumb
+        ├── index
+        ├── middle
+        ├── ring
+        └── pinky
+```
+
+Current combined model contents:
+
+```text
+Door meshes  = 8 STL files
+Hand meshes  = 36 STL files
+Total meshes = 44
+
+Door joints       = 2
+Hand joints       = 15
+Total joints      = 17
+
+Door actuators    = 2
+Hand actuators    = 15
+Total actuators   = 17
+```
+
+The hand model remains the validated `Hand_forearm` XML structure with 15 joints and 15 position actuators.
+
+## 32.7 Mesh asset structure for combined scene
+
+The combined MJCF uses separate asset folders so door and hand meshes do not conflict:
+
+```text
+Mujoko/
+└── Hand_Door/
+    ├── Hand_Door.xml
+    └── assets/
+        ├── door/
+        │   ├── frame_1_0.stl
+        │   ├── base_1_1.stl
+        │   ├── frame_1_2.stl
+        │   ├── base_1_3.stl
+        │   ├── door_1_4.stl
+        │   ├── door_1_5.stl
+        │   ├── handle_1_6.stl
+        │   └── handle_1_7.stl
+        │
+        └── hand/
+            ├── fore_arm_1_0.stl
+            ├── wrist_1_1.stl
+            ├── human_hand_v3__Palm_1_2.stl
+            ├── ...
+            └── wrist_1_4.stl
+```
+
+The current working folder contains all 8 door meshes and all 36 hand meshes copied from the individual sw2robot packages.
+
+## 32.8 Combined-MJCF duplicate-name fix
+
+The first combined XML attempt produced a MuJoCo error because both the door and hand root bodies contained geometry names such as:
+
+```text
+base_link_visual0
+base_link_visual1
+base_link_collision0
+base_link_collision1
+```
+
+The door root geometry was renamed to:
+
+```text
+door_base_visual0
+door_base_visual1
+door_base_collision0
+door_base_collision1
+```
+
+The hand root geometry was then given distinct names:
+
+```text
+hand_base_visual0
+hand_base_visual1
+hand_base_visual2
+hand_base_collision0
+hand_base_collision1
+hand_base_collision2
+```
+
+This avoids duplicate MuJoCo element names while leaving mesh filenames unchanged.
+
+## 32.9 Current combined-scene placement status
+
+The combined scene now loads both models in the same MuJoCo window.
+
+The current issue is spatial placement: the hand and door currently intersect in the initial pose.
+
+This is a **placement problem**, not a SolidWorks geometry problem.
+
+The intended next change is to adjust only the `hand_base` world `pos` (and, if necessary, its final orientation) so that the hand begins near the active handle without intersecting the door.
+
+Do not remodel the SolidWorks door or hand for this placement issue.
+
+## 32.10 Collision intent
+
+The physical task requires:
+
+```text
+Hand ↔ active handle       important contact
+Hand ↔ door                possible contact
+Handle ↔ frame             must not pass through frame
+Door ↔ frame               must not block intended hinge motion
+```
+
+The door/frame CAD overlap is acceptable in the CAD representation. MuJoCo collision filtering/contact settings will be used to prevent irrelevant contacts from blocking the intended hinge movement.
+
+## 32.11 Current hand control plan
+
+The hand retains all 15 physical joint DOFs in the MJCF, but the high-level controller is intended to expose three control groups:
+
+```text
+Group 1 → Index
+    Index MCP/PIP/DIP
+
+Group 2 → Middle + Ring + Pinky
+    corresponding MCP commands shared
+    corresponding PIP commands shared
+    corresponding DIP commands shared
+
+Group 3 → Thumb
+    Thumb CMC
+    Thumb MCP
+    Thumb IP
+```
+
+The three physical fingers in Group 2 remain separate bodies in the physics simulation.
+
+## 32.12 Current project state at end of session
+
+```text
+[x] Human hand CAD complete for current scope
+[x] Wrist/forearm assembly complete
+[x] Hand mate hierarchy extracted
+[x] Hand exported to MuJoCo
+[x] Door CAD complete for current scope
+[x] Door mate hierarchy extracted
+[x] Detailed door mate/entity macro completed
+[x] Door exported to MuJoCo
+[x] Door set vertically in MuJoCo
+[x] Door material density set to custom wood approximation
+[x] Door slab mass verified at 38.4 kg
+[x] Hand and door combined into one MJCF
+[x] Door STL assets copied
+[x] Hand STL assets copied
+[x] Duplicate combined-MJCF geometry names fixed
+[ ] Position hand correctly relative to active handle
+[ ] Verify handle/hand contact
+[ ] Tune collision groups and contacts
+[ ] Tune friction/damping for door manipulation
+[ ] Couple the high-level hand controls
+[ ] Implement door push/pull controller
+[ ] Begin RL task setup
+```
+
+# 33. Git Commands — Commit Latest Changes
+
+Run these commands from the repository root:
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm"
+```
+
+Check what changed:
+
+```powershell
+git status
+```
+
+Add the updated README and combined simulation:
+
+```powershell
+git add README.md
+
+git add Mujoko/Hand_Door/
+```
+
+Review what will be committed:
+
+```powershell
+git status
+```
+
+Commit:
+
+```powershell
+git commit -m "Add combined hand and door MuJoCo scene"
+```
+
+Push to the main branch:
+
+```powershell
+git push origin main
+```
+
+Verify the commit after pushing:
+
+```powershell
+git log -1 --oneline
+```
+
+## If the asset folder is ignored or not staged
+
+Check:
+
+```powershell
+git status --ignored
+```
+
+If the STL files are intentionally part of the repository and are not ignored, they can be added with:
+
+```powershell
+git add Mujoko/Hand_Door/assets/
+git commit -m "Add Hand Door MuJoCo mesh assets"
+git push origin main
+```
+
+Do not force-add files merely to bypass `.gitignore` without first checking whether the repository is intended to track generated STL assets.
+
+# 34. Reproducible Combined-Scene Launch
+
+From the combined scene directory:
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\Mujoko\Hand_Door"
+```
+
+Launch:
+
+```powershell
+python -m mujoco.viewer --mjcf ".\Hand_Door.xml"
+```
+
+Required folder layout:
+
+```text
+Hand_Door/
+├── Hand_Door.xml
+└── assets/
+    ├── door/
+    └── hand/
+```
+
+If MuJoCo reports a missing mesh, first verify the corresponding STL exists in the correct `assets` subfolder before changing the MJCF mesh paths.
