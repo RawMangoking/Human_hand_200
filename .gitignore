@@ -1,0 +1,5 @@
+# SolidWorks temporary/lock files
+~$*
+
+# Vim swap files
+*.swp
