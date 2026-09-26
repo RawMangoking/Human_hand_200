@@ -1,49 +1,16 @@
-# Human Hand + Door — CAD and MuJoCo Documentation
+# Human Hand + Wrist + Forearm + Door — CAD and MuJoCo Documentation
 
 ## 1. Project Overview
 
-This repository contains the SolidWorks CAD models and planned MuJoCo simulation structure for a human hand interacting with a door.
+The project contains a modular SolidWorks model of a human hand, a wrist/forearm mounting structure, and a physical-door-based CAD model. The intended next stage is a MuJoCo scene containing the hand interacting with the door.
 
-The project currently contains two major CAD systems:
-
-1. Human hand
-2. Door assembly
-
-The long-term goal is to port both systems into MuJoCo while preserving the important kinematic relationships from SolidWorks and using physically meaningful collision/contact behavior.
+The CAD is being used as the source for geometry, reference axes, assembly relationships, and joint limits. MuJoCo will provide the final physics, contact, and control implementation.
 
 ---
 
-# 2. Repository Structure
+# 2. Current CAD Structure
 
-```text
-Human_Hand_200mm/
-├── 00_Master/
-├── 01_Palm/
-├── 02_Index/
-├── 03_Middle/
-├── 04_Ring/
-├── 05_Pinky/
-├── 06_Thumb/
-├── 07_Assembly/
-├── Door/
-├── Macro/
-├── README.md
-├── human hand v1.SLDASM
-├── human hand v2.SLDASM
-└── human hand v3.SLDASM
-```
-
-Current door assembly:
-
-```text
-Door/Full_door_v3.SLDASM
-```
-
----
-
-# 3. Human Hand CAD
-
-The physical CAD model contains five separate fingers:
+The hand remains a modular five-finger model:
 
 ```text
 Palm
@@ -54,21 +21,75 @@ Palm
 └── Thumb
 ```
 
-The planned MuJoCo controller uses **three independent control groups**:
+The new integrated assembly adds a wrist and forearm:
 
 ```text
-Control Group 1 → Index
-Control Group 2 → Middle + Ring + Pinky
-Control Group 3 → Thumb
+Forearm
+  ↓
+Wrist
+  ↓
+Palm
+  ↓
+Hand
 ```
 
-The three physical fingers in Group 2 remain separate bodies in the simulation, but corresponding joint commands are coupled.
+Integrated assembly:
+
+```text
+Hand_forearm.SLDASM
+├── wrist-1
+└── human hand v3-2
+```
+
+The latest SolidWorks mate-tree extraction identifies the integrated assembly file as `Hand_forearm.SLDASM` and the two direct top-level components as `wrist-1` and `human hand v3-2`. fileciteturn1file0L5-L32
+
+---
+
+# 3. Wrist + Forearm Assembly
+
+## Integrated Assembly
+
+File:
+
+```text
+Hand_forearm.SLDASM
+```
+
+Top-level mates:
+
+```text
+Coincident5
+Coincident6
+Coincident7
+LimitAngle3
+LimitAngle5
+```
+
+Total top-level mates in the integrated hand/forearm assembly: **5**. The extracted report shows these five mates before the direct `wrist-1` and `human hand v3-2` components and before entering the nested hand assembly. fileciteturn1file0L9-L32
+
+## MuJoCo intent
+
+The forearm is intended to act as the fixed support/base for the first MuJoCo version:
+
+```text
+world
+  ↓
+forearm       fixed
+  ↓
+wrist
+  ↓
+palm
+  ↓
+hand
+```
+
+For the initial simulation, the wrist/forearm structure should be treated as the mounting structure rather than introducing a new wrist control DOF. The exact meaning and limits of `LimitAngle3` and `LimitAngle5` should be verified from detailed mate-entity data before deciding whether either represents a true wrist joint.
 
 ---
 
 # 4. Human Hand Mate Hierarchy
 
-The extracted SolidWorks mate hierarchy contains **43 mate features**:
+The previously extracted hand hierarchy contains **43 mate features** across the main hand assembly and its nested finger/thumb assemblies.
 
 | Assembly | Mates |
 |---|---:|
@@ -80,9 +101,15 @@ The extracted SolidWorks mate hierarchy contains **43 mate features**:
 | Thumb assembly | 4 |
 | **Total** | **43** |
 
-## Main hand assembly
+## 4.1 Main Hand Assembly
 
-`human hand v3.SLDASM`
+Assembly:
+
+```text
+human hand v3.SLDASM
+```
+
+Mates:
 
 ```text
 Coincident2
@@ -102,17 +129,12 @@ LimitAngle10
 Coincident17
 ```
 
-## Index
+These establish the Palm-to-finger/thumb subassembly relationships.
 
-`02_Index/index_assem.SLDASM`
+## 4.2 Index Assembly
 
 ```text
-Coincident1
-Coincident2
-LimitAngle2
-Coincident4
-LimitAngle5
-Coincident6
+02_Index/index_assem.SLDASM
 ```
 
 Components:
@@ -123,17 +145,41 @@ Index_Middle
 Index_Distal
 ```
 
-## Middle
-
-`03_Middle/Middle_Finger.SLDASM`
+Mates:
 
 ```text
-Coincident11
-Coincident13
+Coincident1
+Coincident2
 LimitAngle2
-Coincident15
-LimitAngle4
-Coincident18
+Coincident4
+LimitAngle5
+Coincident6
+```
+
+Intended structure:
+
+```text
+Palm
+  |
+  +-- Index Proximal
+        |
+        +-- MCP
+             |
+             +-- Index Middle
+                   |
+                   +-- PIP
+                        |
+                        +-- Index Distal
+                              |
+                              +-- DIP
+```
+
+The current assembly has explicit angular-limit mates for MCP and PIP. A dedicated DIP angular limit is not currently documented.
+
+## 4.3 Middle Assembly
+
+```text
+03_Middle/Middle_Finger.SLDASM
 ```
 
 Components:
@@ -144,17 +190,21 @@ Middle_Middle
 Middle_Distal
 ```
 
-## Ring
-
-`04_Ring/Ring_finger.SLDASM`
+Mates:
 
 ```text
-Coincident1
-Coincident2
-LimitAngle1
-Coincident3
-Coincident4
+Coincident11
+Coincident13
 LimitAngle2
+Coincident15
+LimitAngle4
+Coincident18
+```
+
+## 4.4 Ring Assembly
+
+```text
+04_Ring/Ring_finger.SLDASM
 ```
 
 Components:
@@ -165,9 +215,7 @@ Ring_Middle
 Ring_Distal
 ```
 
-## Pinky
-
-`05_Pinky/Pinky_finger.SLDASM`
+Mates:
 
 ```text
 Coincident1
@@ -178,6 +226,12 @@ Coincident4
 LimitAngle2
 ```
 
+## 4.5 Pinky Assembly
+
+```text
+05_Pinky/Pinky_finger.SLDASM
+```
+
 Components:
 
 ```text
@@ -186,15 +240,21 @@ Pinky_Middle
 Pinky_Distal
 ```
 
-## Thumb
-
-`06_Thumb/Thumb_finger.SLDASM`
+Mates:
 
 ```text
+Coincident1
 Coincident2
-Coincident3
 LimitAngle1
+Coincident3
 Coincident4
+LimitAngle2
+```
+
+## 4.6 Thumb Assembly
+
+```text
+06_Thumb/Thumb_finger.SLDASM
 ```
 
 Components:
@@ -205,22 +265,33 @@ Thumb_Proximal
 Thumb_Distal_v2
 ```
 
-The thumb also has two CMC reference axes:
+Mates:
+
+```text
+Coincident2
+Coincident3
+LimitAngle1
+Coincident4
+```
+
+Thumb CMC reference axes:
 
 ```text
 Thumb_CMC_Axis_1
 Thumb_CMC_Axis_2
 ```
 
-A dummy/intermediate body can be used in MuJoCo if two independent CMC rotational DOFs are retained.
+A dummy/intermediate MuJoCo body can be used if both CMC rotational DOFs are retained.
 
 ---
 
 # 5. Planned Human Hand MuJoCo Control
 
+The physical simulation keeps five separate fingers, but the controller exposes **three high-level finger groups**.
+
 ### Group 1 — Index
 
-Independent:
+Independent control:
 
 ```text
 Index_MCP
@@ -230,7 +301,7 @@ Index_DIP
 
 ### Group 2 — Middle + Ring + Pinky
 
-Corresponding commands are shared:
+The corresponding joint commands are coupled:
 
 ```text
 middle_MCP = ring_MCP = pinky_MCP
@@ -238,9 +309,11 @@ middle_PIP = ring_PIP = pinky_PIP
 middle_DIP = ring_DIP = pinky_DIP
 ```
 
-The physical fingers remain separate.
+Middle, Ring, and Pinky remain separate bodies so their different geometry and contact surfaces are preserved.
 
 ### Group 3 — Thumb
+
+Independent thumb control:
 
 ```text
 Thumb_CMC
@@ -248,13 +321,13 @@ Thumb_MCP
 Thumb_IP
 ```
 
-The CMC may use two rotational DOFs depending on the final MuJoCo implementation.
+The CMC can be represented with one or two rotational DOFs depending on the final implementation.
 
 ---
 
 # 6. Door CAD
 
-Current assembly:
+Current door assembly:
 
 ```text
 Door/Full_door_v3.SLDASM
@@ -269,9 +342,53 @@ door-1
 handle-1
 ```
 
-The door was modeled from the user's physical door, so the current CAD dimensions are intended to represent the physical door.
+The door model is based on the user's physical door, so the dimensions are intended to represent the real door.
 
-The SolidWorks tree contains hinge and handle reference geometry, including:
+---
+
+# 7. Door Mate Hierarchy
+
+Top-level Door assembly:
+
+```text
+Door/Full_door_v3.SLDASM
+```
+
+Extracted top-level mates:
+
+```text
+Coincident2
+Coincident3
+Coincident4
+Coincident5
+Coincident10
+Coincident11
+LimitAngle2
+LimitAngle3
+Coincident12
+Coincident13
+```
+
+Total top-level door mates: **10**.
+
+The associated main components are:
+
+```text
+base-1
+frame-1
+door-1
+handle-1
+```
+
+The exact component/reference association and exact values for `LimitAngle2` and `LimitAngle3` still need detailed mate-entity extraction before assigning final MuJoCo joint limits.
+
+---
+
+# 8. Door Reference Geometry
+
+The SolidWorks door/frame assembly contains dedicated hinge and handle reference geometry.
+
+Examples in the frame include:
 
 ```text
 frame hinge
@@ -308,59 +425,13 @@ Axis1
 Axis2
 ```
 
-These references should be used when defining the MuJoCo joint frames.
+These axes and points should be used to define MuJoCo joint frames instead of choosing arbitrary mesh coordinates.
 
 ---
 
-# 7. Door Mate Hierarchy
+# 9. Door Kinematic Intent
 
-The top-level Door assembly was inspected using the same SolidWorks mate-tree extraction method.
-
-Assembly:
-
-```text
-Door/Full_door_v3.SLDASM
-```
-
-Mate group:
-
-```text
-Mates
-```
-
-Extracted top-level mates:
-
-```text
-Coincident2
-Coincident3
-Coincident4
-Coincident5
-Coincident10
-Coincident11
-LimitAngle2
-LimitAngle3
-Coincident12
-Coincident13
-```
-
-**Total top-level door mates: 10**
-
-The associated assembly components are:
-
-```text
-base-1
-frame-1
-door-1
-handle-1
-```
-
-The exact component/reference association and exact limits for `LimitAngle2` and `LimitAngle3` still need detailed mate-entity extraction before assigning their final MuJoCo meaning.
-
----
-
-# 8. Door Kinematic Intent
-
-The intended physical structure is:
+The intended structure is:
 
 ```text
 Frame
@@ -374,38 +445,34 @@ Frame
         +-- Handle
 ```
 
-The frame is fixed.
-
-The door rotates around the physical hinge axis.
-
-The handle is a separate component and represents the push/pull mechanism.
+The frame is fixed. The door rotates about the physical hinge axis. The handle is a separate component representing the push/pull mechanism.
 
 ---
 
-# 9. Door Collision Requirements
+# 10. Door Collision Requirements
 
-The CAD model is based on the physical door, and **door/frame geometric intersection is acceptable for the current CAD representation**.
+The door was designed from the physical door, and the **door may geometrically intersect/overlap the frame in the CAD representation**.
 
-Therefore, in MuJoCo, the door and frame should not automatically be treated as a hard collision pair everywhere. Collision geometry should instead be selected/configured to permit the intended hinge motion.
+For MuJoCo, this means door/frame mesh overlap should not automatically become a hard collision constraint that blocks normal hinge motion.
 
-The handle is different:
+The handle has a separate requirement:
 
 **The active handle must not intersect/pass through the frame.**
 
-The handle geometry on the two sides is oriented in opposite directions. One side functions as the relevant locking/handle side for the current task.
+The two handle sides are oriented in opposite directions. One side is the side intended for the current interaction task; the opposite side is not being used for the current task.
 
-For the current simulation, **only one side of the door is being used for interaction**. The opposite side does not need to be an independently controlled interaction mechanism in the first MuJoCo version.
+Therefore the initial MuJoCo collision setup should focus on the active handle side and avoid unnecessary interaction/control complexity from the unused side.
 
 ---
 
-# 10. Door Push/Pull Task
+# 11. Door Push/Pull Task
 
 The active side of the door is intended to support both:
 
 - pushing the door
 - pulling the door
 
-The interaction chain is:
+Interaction chain:
 
 ```text
 Hand
@@ -419,11 +486,9 @@ Hinge
 Frame
 ```
 
-The unused opposite-side handle should not introduce unnecessary collision/control complexity in the first simulation.
-
 ---
 
-# 11. Planned MuJoCo Door Structure
+# 12. Planned MuJoCo Door Model
 
 Conceptually:
 
@@ -437,100 +502,56 @@ world
 │   ├── door mesh
 │   └── door_hinge
 │
-└── handle
+└── active_handle
     └── handle_joint
 ```
 
-The exact body nesting can be changed depending on whether the handle is treated as a separate actuated lever or as a rigid part of the door.
-
-Because the SolidWorks model contains a separate `handle` component, retaining it as a separate MuJoCo body is useful if handle motion is required.
+Whether the handle is an independently moving lever or a rigid part of the door can be finalized during the MuJoCo implementation.
 
 ---
 
-# 12. Hand + Door MuJoCo Scene
+# 13. Combined Hand + Door MuJoCo Scene
 
-The final simulation is intended to combine both systems:
-
-```text
-                         HAND
-                           |
-                           v
-                    +-------------+
-                    |   HANDLE    |
-                    +-------------+
-                           |
-                           v
-                    +-------------+
-                    |    DOOR     |
-                    +-------------+
-                           ||
-                           || hinge
-                           ||
-                    +-------------+
-                    |    FRAME    |
-                    +-------------+
-```
-
-Hand control:
+The intended scene is:
 
 ```text
-Index
-Middle/Ring/Pinky
-Thumb
+world
+├── forearm                    fixed
+│    ↓
+│   wrist
+│    ↓
+│   palm
+│    ├── index
+│    ├── middle
+│    ├── ring
+│    ├── pinky
+│    └── thumb
+│
+└── door
+     ├── frame
+     ├── door hinge
+     └── active handle
 ```
 
-Door dynamics:
+The high-level hand controls are:
 
 ```text
-Door Hinge
-Active Handle
+Control 1 → Index
+Control 2 → Middle + Ring + Pinky
+Control 3 → Thumb
 ```
 
----
-
-# 13. Collision Strategy
-
-Collision should be designed separately from the SolidWorks mate system.
-
-Important intended contacts:
-
-```text
-Hand ↔ Handle        ENABLE
-Hand ↔ Door          ENABLE where relevant
-Hand ↔ Frame         ENABLE only where physically relevant
-
-Door ↔ Frame         selectively handled
-Handle ↔ Frame       must not pass through frame
-```
-
-The CAD overlap between the door and frame should not automatically become a simulation collision constraint.
+The door provides its own hinge and handle dynamics.
 
 ---
 
 # 14. CAD Mates vs MuJoCo Joints
 
-SolidWorks mates should be treated as the source of the mechanical relationships, not as a one-to-one list of MuJoCo joints.
+The CAD mate system should not be copied one-to-one into MuJoCo.
 
-SolidWorks provides:
+SolidWorks mates describe assembly relationships such as positioning, alignment, orientation, and limits. MuJoCo requires an explicit physics model consisting of bodies, joints, axes, limits, meshes, collision pairs, contacts, and actuators.
 
-- positioning
-- alignment
-- orientation
-- limits
-- assembly relationships
-
-MuJoCo requires explicit:
-
-- bodies
-- joint types
-- joint positions
-- joint axes
-- joint limits
-- collision geometries
-- actuators
-- contact settings
-
-Therefore the final MuJoCo model will be constructed from the CAD kinematic information rather than mechanically copying every CAD mate.
+The CAD mates therefore act as the source of the intended mechanical relationships, while the MuJoCo model is built specifically for simulation.
 
 ---
 
@@ -555,10 +576,20 @@ Therefore the final MuJoCo model will be constructed from the CAD kinematic info
 - [x] 43 hand mates identified
 - [x] Three-group MuJoCo control concept defined
 
+## Wrist / Forearm
+
+- [x] Wrist added
+- [x] Forearm added as support structure
+- [x] Integrated `Hand_forearm.SLDASM` assembly created
+- [x] Top-level integrated mate tree extracted
+- [x] 5 top-level integrated assembly mates identified
+- [ ] Verify detailed entity data for `LimitAngle3` and `LimitAngle5`
+- [ ] Finalize whether any wrist DOF is required
+
 ## Door
 
 - [x] Door CAD modeled
-- [x] Door dimensions based on the physical door
+- [x] Door based on physical door dimensions
 - [x] Frame modeled
 - [x] Door modeled
 - [x] Handle modeled
@@ -578,119 +609,54 @@ Therefore the final MuJoCo model will be constructed from the CAD kinematic info
 
 ---
 
-# 16. Next Steps
+# 16. Mate-Tree Extraction Notes
 
-## Step 1 — Detailed Door Mate Extraction
-
-Extract for all 10 door mates:
+The latest integrated extraction was run on:
 
 ```text
-Mate name
-Mate type
-Component 1
-Component 2
-Reference type
-Reference geometry
-Position
-Direction
-Limits
-Alignment
+Hand_forearm.SLDASM
 ```
 
-This will determine exactly which `LimitAngle` controls the hinge and which controls the handle mechanism.
+The first section of the report is the actual top-level integrated assembly. It lists the five integrated mates and then the direct components `wrist-1` and `human hand v3-2`. fileciteturn1file0L9-L32
 
-## Step 2 — Finalize Door Joints
-
-Create:
-
-```text
-door_hinge
-handle_joint
-```
-
-with the correct axes and limits.
-
-## Step 3 — Export Geometry
-
-Prepare separate MuJoCo meshes for:
-
-```text
-Palm
-Index Proximal
-Index Middle
-Index Distal
-Middle Proximal
-Middle Middle
-Middle Distal
-Ring Proximal
-Ring Middle
-Ring Distal
-Pinky Proximal
-Pinky Middle
-Pinky Distal
-Thumb Base
-Thumb Proximal
-Thumb Distal
-
-Door Frame
-Door
-Active Handle
-```
-
-The unused handle side can be excluded from active interaction or retained as visual geometry depending on the final scene.
-
-## Step 4 — Build MuJoCo Kinematic Tree
-
-Construct the hand and door as separate articulated systems in the same world.
-
-## Step 5 — Add Actuators
-
-Hand:
-
-```text
-Index controls
-Middle/Ring/Pinky shared controls
-Thumb controls
-```
-
-Door:
-
-```text
-Door hinge
-Handle/lever
-```
-
-## Step 6 — Add Contact
-
-Tune contact so that:
-
-- the hand can physically interact with the active handle
-- the handle cannot pass through the frame
-- the door can rotate normally around its hinge
-- irrelevant door/frame CAD overlap does not prevent the desired motion
+The extraction then recursively enters `human hand v3.SLDASM` and its nested Index, Pinky, Ring, Thumb, and Middle assemblies. The raw recursive report can therefore show the same nested assembly more than once because the traversal is enumerating component trees recursively. The repeated text does **not** mean extra physical fingers or extra physical joints exist.
 
 ---
 
-# 17. Final High-Level System
+# 17. MuJoCo Starting Point
+
+The CAD phase is now ready to transition toward MuJoCo.
+
+The first simulation should prioritize:
+
+1. Correct mesh placement and scale.
+2. Correct body hierarchy.
+3. Correct joint axes.
+4. Correct hinge/handle behavior.
+5. Correct hand-to-handle contact.
+6. Correct door/frame collision filtering.
+7. Three high-level hand control groups.
+
+Target starting structure:
 
 ```text
-                    MUJOCO WORLD
-                         |
-          +--------------+--------------+
-          |                             |
-         HAND                          DOOR
-          |                             |
-    +-----+------+                +-----+------+
-    |     |      |                |            |
-  Index  M/R/P  Thumb           Hinge       Handle
+world
+│
+├── forearm                   fixed
+│    ↓
+│   wrist
+│    ↓
+│   palm
+│    ├── index
+│    ├── middle
+│    ├── ring
+│    ├── pinky
+│    └── thumb
+│
+└── door
+     ├── frame
+     ├── door_hinge
+     └── active_handle
 ```
 
-Where:
-
-```text
-M/R/P = Middle + Ring + Pinky
-```
-
-The hand has **three high-level control groups**, while the door is a separate articulated object with a hinge and active handle interaction.
-
-The SolidWorks CAD remains the source geometry and mechanical reference, while MuJoCo provides the final physics, contacts, joints, and control system.
+The next concrete step is to extract the **detailed mate entities/axes/limits** for the integrated forearm assembly and the door, then use those values to define the MuJoCo joint frames before final mesh import.
