@@ -50,16 +50,16 @@
       <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="fore_arm_1_0" rgba="0.894117647 0.894117647 0.894117647 1" name="base_link_visual0" />
       <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="fore_arm_1_1" rgba="0.4 0.4 0.4 1" name="base_link_collision0" />
       <body name="wrist_1" pos="-0.0174187597 0.21 -0.0185985164" quat="1 0 0 0">
-        <joint name="fore_arm_1__wrist_1" pos="0 0 0" axis="0 1 0" type="hinge" range="-0.6 0.6" damping="3.18471338" />
+        <joint name="fore_arm_1__wrist_1" pos="0 0 0" axis="0 1 0" type="hinge" range="-0.17453 0.17453" damping="3.18471338" />
         <inertial pos="-3.12250226e-17 0 9.02056208e-17" mass="0.113097" diaginertia="4.0715e-05 4.0715e-05 4.0715e-05" quat="-0 0 -0.707106781 0.707106781" />
         <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="wrist_1_2" rgba="0.894117647 0.894117647 0.894117647 1" name="wrist_1_visual0" />
         <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="wrist_1_3" rgba="0.4 0.4 0.4 1" name="wrist_1_collision0" />
-        <body name="human_hand_v3_2__Palm_1" pos="-2.19426456e-06 0.0553974242 1.59257974e-05" quat="1 0 0 0">
-          <joint name="wrist_1__human_hand_v3_2__Palm_1" pos="0 0 0" axis="0.136491042 0 -0.990641305" type="hinge" range="-1 1" damping="3.18471338" />
-          <inertial pos="0.000250354687 0.0305062621 -0.00181705438" mass="0.146725" diaginertia="8.6166947e-05 0.000126512174 0.000204755979" quat="-0.442846972 0.556897198 0.508046583 -0.485428409" />
+        <body name="human_hand_v3_2__Palm_1" pos="-3.47999684e-07 0.029999556 -2.32492646e-07" quat="1 0 0 0">
+          <joint name="wrist_1__human_hand_v3_2__Palm_1" pos="0 0 0" axis="0 1 0" type="hinge" range="-1 1" damping="3.18471338" />
+          <inertial pos="0.000248508422 0.0559041303 -0.00180089609" mass="0.146725" diaginertia="8.6166947e-05 0.000126512174 0.000204755979" quat="-0.442846972 0.556897198 0.508046583 -0.485428409" />
           <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="human_hand_v3__Palm_1_4" rgba="0.894117647 0.894117647 0.894117647 1" name="human_hand_v3_2__Palm_1_visual0" />
           <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="human_hand_v3__Palm_1_5" rgba="0.4 0.4 0.4 1" name="human_hand_v3_2__Palm_1_collision0" />
-          <body name="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1" pos="-0.00505016951 0.00340473831 0.0366537282" quat="1 0 0 0">
+          <body name="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1" pos="-0.00505201577 0.0288026065 0.0366698865" quat="1 0 0 0">
             <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1" pos="0 0 0" axis="0 1 0" type="hinge" range="0 1" damping="3.18471338" />
             <inertial pos="-0.00653645209 0.0205272469 0.00495336418" mass="0.0146302" diaginertia="8.05766527e-07 3.18179044e-06 3.27284303e-06" quat="-0.141575759 0.849168462 0.421200035 -0.285411558" />
             <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="Thumb_finger__Thumb_Base_1_6" rgba="0.894117647 0.894117647 0.894117647 1" name="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1_visual0" />
@@ -77,7 +77,7 @@
               </body>
             </body>
           </body>
-          <body name="human_hand_v3_2__index_assem_2__Index_Proximal_1" pos="-0.0038217499 0.0786025758 0.0277379564" quat="1 0 0 0">
+          <body name="human_hand_v3_2__index_assem_2__Index_Proximal_1" pos="-0.00382359616 0.104000444 0.0277541147" quat="1 0 0 0">
             <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__index_assem_2__Index_Proximal_1" pos="0 0 0" axis="0.13649107 0 -0.990641301" type="hinge" range="0 1.57" damping="3.18471338" />
             <inertial pos="-0.0129939243 0.0131166702 -0.00179030928" mass="0.00857536" diaginertia="3.1185078e-07 1.2361772e-06 1.23618002e-06" quat="0.921443597 0.0344429264 -0.0666199515 -0.381204886" />
             <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="index_assem__Index_Proximal_1_12" rgba="0.894117647 0.894117647 0.894117647 1" name="human_hand_v3_2__index_assem_2__Index_Proximal_1_visual0" />
@@ -95,7 +95,7 @@
               </body>
             </body>
           </body>
-          <body name="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5" pos="-0.00116017408 0.0786025758 0.00842045106" quat="1 0 0 0">
+          <body name="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5" pos="-0.00116202034 0.104000444 0.00843660935" quat="1 0 0 0">
             <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5" pos="0 0 0" axis="0.13649107 0 -0.990641301" type="hinge" range="0 1.57" damping="3.18471338" />
             <inertial pos="-0.0150460018 0.0151881327 -0.0020730462" mass="0.0112897" diaginertia="4.68646351e-07 2.12932927e-06 2.12933437e-06" quat="0.307859986 0.234473351 0.652765995 0.651261109" />
             <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="Middle_Finger__Middle_Proximal_5_18" rgba="0.894117647 0.894117647 0.894117647 1" name="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5_visual0" />
@@ -113,7 +113,7 @@
               </body>
             </body>
           </body>
-          <body name="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1" pos="0.00150184627 0.0786021318 -0.0108971583" quat="1 0 0 0">
+          <body name="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1" pos="0.0015 0.104 -0.010881" quat="1 0 0 0">
             <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Ring_finger_1__Ring_Proximal_1" pos="0 0 0" axis="0.136491042 0 -0.990641305" type="hinge" range="0 1.57" damping="3.18471338" />
             <inertial pos="-0.0136607194 0.013789769 -0.00188201557" mass="0.00901512" diaginertia="3.27843762e-07 1.41903389e-06 1.41903435e-06" quat="0.922009372 -0.011973404 -0.047351169 -0.384074501" />
             <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="Ring_finger__Ring_Proximal_1_24" rgba="0.894117647 0.894117647 0.894117647 1" name="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1_visual0" />
@@ -131,7 +131,7 @@
               </body>
             </body>
           </body>
-          <body name="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1" pos="0.00395784627 0.0786021318 -0.0287281583" quat="1 0 0 0">
+          <body name="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1" pos="0.003956 0.104 -0.028712" quat="1 0 0 0">
             <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1" pos="0 0 0" axis="0.136491042 0 -0.990641305" type="hinge" range="0 1.57" damping="3.18471338" />
             <inertial pos="-0.0105658347 0.0106664973 -0.00145628452" mass="0.00524416" diaginertia="1.42027765e-07 5.14705627e-07 5.14709608e-07" quat="0.921817418 0.0223036187 -0.0615941035 -0.3820489" />
             <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="Pinky_finger__Pinky_Proximal_1_30" rgba="0.894117647 0.894117647 0.894117647 1" name="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1_visual0" />
@@ -154,7 +154,7 @@
     </body>
   </worldbody>
   <actuator>
-    <position name="fore_arm_1__wrist_1_act" joint="fore_arm_1__wrist_1" kp="50" ctrlrange="-0.6 0.6" forcerange="-10 10" />
+    <position name="fore_arm_1__wrist_1_act" joint="fore_arm_1__wrist_1" kp="50" ctrlrange="-0.17453 0.17453" forcerange="-10 10" />
     <position name="wrist_1__human_hand_v3_2__Palm_1_act" joint="wrist_1__human_hand_v3_2__Palm_1" kp="50" ctrlrange="-1 1" forcerange="-10 10" />
     <position name="human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1_act" joint="human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1" kp="50" ctrlrange="0 1" forcerange="-10 10" />
     <position name="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1_act" joint="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1" kp="50" ctrlrange="0 1" forcerange="-10 10" />

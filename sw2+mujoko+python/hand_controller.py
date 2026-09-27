@@ -271,8 +271,9 @@ class PadLogic:
 
 
 class Sweep:
-    """Moves each joint home -> closed/+limit -> home, one after another."""
-    def __init__(self, hand, period=2.0):
+    """Moves each joint through its WHOLE range (home -> upper limit -> lower limit -> home),
+    one joint after another, and prints the limits it is going to."""
+    def __init__(self, hand, period=4.0):
         self.h, self.T, self.t, self.cur = hand, period, 0.0, -1
 
     def update(self, dt):
@@ -280,15 +281,16 @@ class Sweep:
         self.t += dt
         k = int(self.t // self.T) % len(h.names)
         n = h.names[k]
+        j = h.J[n]
+        lo, hi = j["range"]
         if k != self.cur:
             self.cur = k
             h.reset_targets()
-            j = h.J[n]
-            print(f"[sweep] {n:<34} group={j['group']:<8} role={j['role']}")
-        j = h.J[n]
-        end = j["closed"] if j["role"] == "flex" else j["range"][1]
-        p = (self.t % self.T) / self.T
-        h.target[n] = h.home(n) + (end - h.home(n)) * (0.5 - 0.5 * math.cos(2 * math.pi * p))
+            print(f"[sweep] {n:<40} {j['group']:<7} {j['role']:<6} "
+                  f"range [{math.degrees(lo):6.1f}, {math.degrees(hi):6.1f}] deg")
+        home = h.home(n)
+        s = math.sin(2 * math.pi * (self.t % self.T) / self.T)      # 0 -> +1 -> 0 -> -1 -> 0
+        h.target[n] = home + s * (hi - home) if s >= 0 else home + s * (home - lo)
 
 
 class Demo:

@@ -12,22 +12,27 @@ FILE: C:\Users\naren\Documents\Capstone\Human_Hand_200mm\Hand_forearm.SLDASM
 ------------------------------------------------------------
 MATE GROUP: Mates
 
-MATE: Coincident5
+MATE: Coincident1
 TYPE: MateCoincident
 
-MATE: Coincident6
+MATE: Coincident2
 TYPE: MateCoincident
 
-MATE: Coincident7
+MATE: LimitAngle1
+TYPE: MateLimitPlanarAngleDim
+
+MATE: Coincident3
+TYPE: MateCoincident
+
+MATE: Coincident4
 TYPE: MateCoincident
 
 MATE: LimitAngle3
 TYPE: MateLimitPlanarAngleDim
 
-MATE: LimitAngle5
-TYPE: MateLimitPlanarAngleDim
-
     COMPONENT: wrist-1
+
+    COMPONENT: fore arm-1
 
     COMPONENT: human hand v3-2
 
@@ -82,6 +87,11 @@ TYPE: MateLimitPlanarAngleDim
     MATE: Coincident17
     TYPE: MateCoincident
 
+    MATE: Perpendicular1
+    TYPE: MatePerpendicular
+
+        COMPONENT: Palm-1
+
         COMPONENT: index_assem-2
 
         ------------------------------------------------------------
@@ -110,17 +120,15 @@ TYPE: MateLimitPlanarAngleDim
 
             COMPONENT: Index_Middle-1
 
-            COMPONENT: Index_Distal-1
-
             COMPONENT: Index_Proximal-1
+
+            COMPONENT: Index_Distal-1
 
         COMPONENT: index_assem-2/Index_Middle-1
 
-        COMPONENT: index_assem-2/Index_Distal-1
-
         COMPONENT: index_assem-2/Index_Proximal-1
 
-        COMPONENT: Palm-1
+        COMPONENT: index_assem-2/Index_Distal-1
 
         COMPONENT: Pinky_finger-1
 
@@ -148,17 +156,55 @@ TYPE: MateLimitPlanarAngleDim
         MATE: LimitAngle2
         TYPE: MateLimitPlanarAngleDim
 
-            COMPONENT: Pinky_Proximal-1
-
             COMPONENT: Pinky_Middle-1
+
+            COMPONENT: Pinky_Proximal-1
 
             COMPONENT: Pinky_Distal-1
 
-        COMPONENT: Pinky_finger-1/Pinky_Proximal-1
-
         COMPONENT: Pinky_finger-1/Pinky_Middle-1
 
+        COMPONENT: Pinky_finger-1/Pinky_Proximal-1
+
         COMPONENT: Pinky_finger-1/Pinky_Distal-1
+
+        COMPONENT: Thumb_finger-1
+
+        ------------------------------------------------------------
+        ASSEMBLY
+        FILE: C:\Users\naren\Documents\Capstone\Human_Hand_200mm\06_Thumb\Thumb_finger.SLDASM
+        ------------------------------------------------------------
+        MATE GROUP: Mates
+
+        MATE: Coincident2
+        TYPE: MateCoincident
+
+        MATE: LimitAngle3
+        TYPE: MateLimitPlanarAngleDim
+
+        MATE: LimitAngle1
+        TYPE: MateLimitPlanarAngleDim
+
+        MATE: Coincident4
+        TYPE: MateCoincident
+
+        MATE: Coincident5
+        TYPE: MateCoincident
+
+        MATE: LimitAngle2
+        TYPE: MateLimitPlanarAngleDim
+
+            COMPONENT: Thumb_Base-1
+
+            COMPONENT: Thumb_Proximal-1
+
+            COMPONENT: Thumb_Distal_v2-1
+
+        COMPONENT: Thumb_finger-1/Thumb_Base-1
+
+        COMPONENT: Thumb_finger-1/Thumb_Proximal-1
+
+        COMPONENT: Thumb_finger-1/Thumb_Distal_v2-1
 
         COMPONENT: Ring_finger-1
 
@@ -188,47 +234,15 @@ TYPE: MateLimitPlanarAngleDim
 
             COMPONENT: Ring_Proximal-1
 
-            COMPONENT: Ring_Distal-1
-
             COMPONENT: Ring_Middle-1
+
+            COMPONENT: Ring_Distal-1
 
         COMPONENT: Ring_finger-1/Ring_Proximal-1
 
-        COMPONENT: Ring_finger-1/Ring_Distal-1
-
         COMPONENT: Ring_finger-1/Ring_Middle-1
 
-        COMPONENT: Thumb_finger-1
-
-        ------------------------------------------------------------
-        ASSEMBLY
-        FILE: C:\Users\naren\Documents\Capstone\Human_Hand_200mm\06_Thumb\Thumb_finger.SLDASM
-        ------------------------------------------------------------
-        MATE GROUP: Mates
-
-        MATE: Coincident2
-        TYPE: MateCoincident
-
-        MATE: Coincident3
-        TYPE: MateCoincident
-
-        MATE: LimitAngle1
-        TYPE: MateLimitPlanarAngleDim
-
-        MATE: Coincident4
-        TYPE: MateCoincident
-
-            COMPONENT: Thumb_Base-1
-
-            COMPONENT: Thumb_Distal_v2-1
-
-            COMPONENT: Thumb_Proximal-1
-
-        COMPONENT: Thumb_finger-1/Thumb_Base-1
-
-        COMPONENT: Thumb_finger-1/Thumb_Distal_v2-1
-
-        COMPONENT: Thumb_finger-1/Thumb_Proximal-1
+        COMPONENT: Ring_finger-1/Ring_Distal-1
 
         COMPONENT: Middle_Finger-1
 
@@ -250,7 +264,7 @@ TYPE: MateLimitPlanarAngleDim
         MATE: Coincident15
         TYPE: MateCoincident
 
-        MATE: LimitAngle4
+        MATE: LimitAngle3
         TYPE: MateLimitPlanarAngleDim
 
         MATE: Coincident18
@@ -267,6 +281,8 @@ TYPE: MateLimitPlanarAngleDim
         COMPONENT: Middle_Finger-1/Middle_Distal-4
 
         COMPONENT: Middle_Finger-1/Middle_Middle-4
+
+    COMPONENT: human hand v3-2/Palm-1
 
     COMPONENT: human hand v3-2/index_assem-2
 
@@ -296,17 +312,15 @@ TYPE: MateLimitPlanarAngleDim
 
         COMPONENT: Index_Middle-1
 
-        COMPONENT: Index_Distal-1
-
         COMPONENT: Index_Proximal-1
+
+        COMPONENT: Index_Distal-1
 
     COMPONENT: human hand v3-2/index_assem-2/Index_Middle-1
 
-    COMPONENT: human hand v3-2/index_assem-2/Index_Distal-1
-
     COMPONENT: human hand v3-2/index_assem-2/Index_Proximal-1
 
-    COMPONENT: human hand v3-2/Palm-1
+    COMPONENT: human hand v3-2/index_assem-2/Index_Distal-1
 
     COMPONENT: human hand v3-2/Pinky_finger-1
 
@@ -334,17 +348,55 @@ TYPE: MateLimitPlanarAngleDim
     MATE: LimitAngle2
     TYPE: MateLimitPlanarAngleDim
 
-        COMPONENT: Pinky_Proximal-1
-
         COMPONENT: Pinky_Middle-1
+
+        COMPONENT: Pinky_Proximal-1
 
         COMPONENT: Pinky_Distal-1
 
-    COMPONENT: human hand v3-2/Pinky_finger-1/Pinky_Proximal-1
-
     COMPONENT: human hand v3-2/Pinky_finger-1/Pinky_Middle-1
 
+    COMPONENT: human hand v3-2/Pinky_finger-1/Pinky_Proximal-1
+
     COMPONENT: human hand v3-2/Pinky_finger-1/Pinky_Distal-1
+
+    COMPONENT: human hand v3-2/Thumb_finger-1
+
+    ------------------------------------------------------------
+    ASSEMBLY
+    FILE: C:\Users\naren\Documents\Capstone\Human_Hand_200mm\06_Thumb\Thumb_finger.SLDASM
+    ------------------------------------------------------------
+    MATE GROUP: Mates
+
+    MATE: Coincident2
+    TYPE: MateCoincident
+
+    MATE: LimitAngle3
+    TYPE: MateLimitPlanarAngleDim
+
+    MATE: LimitAngle1
+    TYPE: MateLimitPlanarAngleDim
+
+    MATE: Coincident4
+    TYPE: MateCoincident
+
+    MATE: Coincident5
+    TYPE: MateCoincident
+
+    MATE: LimitAngle2
+    TYPE: MateLimitPlanarAngleDim
+
+        COMPONENT: Thumb_Base-1
+
+        COMPONENT: Thumb_Proximal-1
+
+        COMPONENT: Thumb_Distal_v2-1
+
+    COMPONENT: human hand v3-2/Thumb_finger-1/Thumb_Base-1
+
+    COMPONENT: human hand v3-2/Thumb_finger-1/Thumb_Proximal-1
+
+    COMPONENT: human hand v3-2/Thumb_finger-1/Thumb_Distal_v2-1
 
     COMPONENT: human hand v3-2/Ring_finger-1
 
@@ -374,47 +426,15 @@ TYPE: MateLimitPlanarAngleDim
 
         COMPONENT: Ring_Proximal-1
 
-        COMPONENT: Ring_Distal-1
-
         COMPONENT: Ring_Middle-1
+
+        COMPONENT: Ring_Distal-1
 
     COMPONENT: human hand v3-2/Ring_finger-1/Ring_Proximal-1
 
-    COMPONENT: human hand v3-2/Ring_finger-1/Ring_Distal-1
-
     COMPONENT: human hand v3-2/Ring_finger-1/Ring_Middle-1
 
-    COMPONENT: human hand v3-2/Thumb_finger-1
-
-    ------------------------------------------------------------
-    ASSEMBLY
-    FILE: C:\Users\naren\Documents\Capstone\Human_Hand_200mm\06_Thumb\Thumb_finger.SLDASM
-    ------------------------------------------------------------
-    MATE GROUP: Mates
-
-    MATE: Coincident2
-    TYPE: MateCoincident
-
-    MATE: Coincident3
-    TYPE: MateCoincident
-
-    MATE: LimitAngle1
-    TYPE: MateLimitPlanarAngleDim
-
-    MATE: Coincident4
-    TYPE: MateCoincident
-
-        COMPONENT: Thumb_Base-1
-
-        COMPONENT: Thumb_Distal_v2-1
-
-        COMPONENT: Thumb_Proximal-1
-
-    COMPONENT: human hand v3-2/Thumb_finger-1/Thumb_Base-1
-
-    COMPONENT: human hand v3-2/Thumb_finger-1/Thumb_Distal_v2-1
-
-    COMPONENT: human hand v3-2/Thumb_finger-1/Thumb_Proximal-1
+    COMPONENT: human hand v3-2/Ring_finger-1/Ring_Distal-1
 
     COMPONENT: human hand v3-2/Middle_Finger-1
 
@@ -436,7 +456,7 @@ TYPE: MateLimitPlanarAngleDim
     MATE: Coincident15
     TYPE: MateCoincident
 
-    MATE: LimitAngle4
+    MATE: LimitAngle3
     TYPE: MateLimitPlanarAngleDim
 
     MATE: Coincident18
@@ -453,8 +473,6 @@ TYPE: MateLimitPlanarAngleDim
     COMPONENT: human hand v3-2/Middle_Finger-1/Middle_Distal-4
 
     COMPONENT: human hand v3-2/Middle_Finger-1/Middle_Middle-4
-
-    COMPONENT: fore arm-1
 
 ============================================================
 END OF REPORT

@@ -5,6 +5,10 @@
     "fore_arm_1__wrist_1",
     "wrist_1__human_hand_v3_2__Palm_1"
   ],
+  "wrist_axes": {
+    "flex": "wrist_1__human_hand_v3_2__Palm_1",
+    "deviation": "fore_arm_1__wrist_1"
+  },
   "fingers": {
     "thumb": [
       "human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1",
@@ -32,7 +36,9 @@
       "human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1__human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1"
     ]
   },
-  "spread": [],
+  "spread": [
+    "human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1_abd"
+  ],
   "stage_weights": [
     1.0,
     1.0,
@@ -44,15 +50,15 @@
       "group": "wrist",
       "role": "wrist",
       "range": [
-        -0.6,
-        0.6
+        -0.17453,
+        0.17453
       ],
-      "open": 0.0,
-      "closed": 0.6,
+      "open": -0.17453,
+      "closed": 0.17453,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.977874,
-      "force": 0.488937
+      "kp": 11.755586,
+      "force": 5.877793
     },
     "wrist_1__human_hand_v3_2__Palm_1": {
       "actuator": "act_wrist_1__human_hand_v3_2__Palm_1",
@@ -62,12 +68,12 @@
         -1.0,
         1.0
       ],
-      "open": 0.0,
+      "open": -1.0,
       "closed": 1.0,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 5.283104,
-      "force": 2.641552
+      "kp": 8.4429,
+      "force": 4.22145
     },
     "human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1": {
       "actuator": "act_human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1",
@@ -75,14 +81,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.0
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.0,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.210559,
-      "force": 0.105279
+      "kp": 0.191696,
+      "force": 0.095848
     },
     "human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1": {
       "actuator": "act_human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1",
@@ -90,14 +96,29 @@
       "role": "flex",
       "range": [
         0.0,
-        1.0
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.0,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.094565,
-      "force": 0.047283
+      "kp": 0.09899,
+      "force": 0.049495
+    },
+    "human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1_abd": {
+      "actuator": "act_human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1_abd",
+      "group": "thumb",
+      "role": "spread",
+      "range": [
+        -0.7854,
+        0.7854
+      ],
+      "open": -0.7854,
+      "closed": 0.7854,
+      "neutral": 0.0,
+      "sign": 1,
+      "kp": 0.09899,
+      "force": 0.049495
     },
     "human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1__human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1": {
       "actuator": "act_human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1__human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1",
@@ -105,10 +126,10 @@
       "role": "flex",
       "range": [
         0.0,
-        1.4
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.4,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
       "kp": 0.02,
@@ -120,14 +141,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.57
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.57,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.208093,
-      "force": 0.104047
+      "kp": 0.221552,
+      "force": 0.110776
     },
     "human_hand_v3_2__index_assem_2__Index_Proximal_1__human_hand_v3_2__index_assem_2__Index_Middle_1": {
       "actuator": "act_human_hand_v3_2__index_assem_2__Index_Proximal_1__human_hand_v3_2__index_assem_2__Index_Middle_1",
@@ -135,14 +156,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.75
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.75,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.040234,
-      "force": 0.020117
+      "kp": 0.04156,
+      "force": 0.02078
     },
     "human_hand_v3_2__index_assem_2__Index_Middle_1__human_hand_v3_2__index_assem_2__Index_Distal_1": {
       "actuator": "act_human_hand_v3_2__index_assem_2__Index_Middle_1__human_hand_v3_2__index_assem_2__Index_Distal_1",
@@ -150,10 +171,10 @@
       "role": "flex",
       "range": [
         0.0,
-        1.22
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.22,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
       "kp": 0.02,
@@ -165,14 +186,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.57
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.57,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.3095,
-      "force": 0.15475
+      "kp": 0.331297,
+      "force": 0.165648
     },
     "human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5__human_hand_v3_2__Middle_Finger_1__Middle_Middle_4": {
       "actuator": "act_human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5__human_hand_v3_2__Middle_Finger_1__Middle_Middle_4",
@@ -180,14 +201,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.75
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.75,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.063006,
-      "force": 0.031503
+      "kp": 0.065375,
+      "force": 0.032688
     },
     "human_hand_v3_2__Middle_Finger_1__Middle_Middle_4__human_hand_v3_2__Middle_Finger_1__Middle_Distal_4": {
       "actuator": "act_human_hand_v3_2__Middle_Finger_1__Middle_Middle_4__human_hand_v3_2__Middle_Finger_1__Middle_Distal_4",
@@ -195,10 +216,10 @@
       "role": "flex",
       "range": [
         0.0,
-        1.22
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.22,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
       "kp": 0.02,
@@ -210,14 +231,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.57
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.57,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.228283,
-      "force": 0.114141
+      "kp": 0.243014,
+      "force": 0.121507
     },
     "human_hand_v3_2__Ring_finger_1__Ring_Proximal_1__human_hand_v3_2__Ring_finger_1__Ring_Middle_1": {
       "actuator": "act_human_hand_v3_2__Ring_finger_1__Ring_Proximal_1__human_hand_v3_2__Ring_finger_1__Ring_Middle_1",
@@ -225,14 +246,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.75
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.75,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.045822,
-      "force": 0.022911
+      "kp": 0.047168,
+      "force": 0.023584
     },
     "human_hand_v3_2__Ring_finger_1__Ring_Middle_1__human_hand_v3_2__Ring_finger_1__Ring_Distal_1": {
       "actuator": "act_human_hand_v3_2__Ring_finger_1__Ring_Middle_1__human_hand_v3_2__Ring_finger_1__Ring_Distal_1",
@@ -240,10 +261,10 @@
       "role": "flex",
       "range": [
         0.0,
-        1.22
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.22,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
       "kp": 0.02,
@@ -255,14 +276,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.57
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.57,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.102107,
-      "force": 0.051054
+      "kp": 0.108991,
+      "force": 0.054496
     },
     "human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1__human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1": {
       "actuator": "act_human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1__human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1",
@@ -270,14 +291,14 @@
       "role": "flex",
       "range": [
         0.0,
-        1.75
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.75,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.02,
-      "force": 0.01
+      "kp": 0.020651,
+      "force": 0.010325
     },
     "human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1__human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1": {
       "actuator": "act_human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1__human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1",
@@ -285,10 +306,10 @@
       "role": "flex",
       "range": [
         0.0,
-        1.22
+        1.5708
       ],
       "open": 0.0,
-      "closed": 1.22,
+      "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
       "kp": 0.02,

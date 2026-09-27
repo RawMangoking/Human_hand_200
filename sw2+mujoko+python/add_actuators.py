@@ -209,6 +209,142 @@ def analyse(m, extra_names):
     return palm, joints, fingers, wrist, spread, skipped, wrist_axes
 
 
+# --------------------------------------------------------------------------- anatomical joint frames
+def anatomical_setup(root, m, palm, fingers, wrist_axes, flex_lo, flex_hi, fix_wrist, ang,
+                     cmc_lo=0.0, cmc_hi=math.pi / 2, straight_tol=math.radians(10)):
+    """Make every finger/thumb flexion joint read as an anatomical angle:
+         * axis flipped where needed so that POSITIVE = flexion (toward the palm)
+         * ref = the bend the CAD pose already has  ->  q = 0 means STRAIGHT
+         * range = [flex_lo, flex_hi]
+       The bend is measured between the parent bone (previous joint -> this joint)
+       and the child bone (this joint -> next joint / fingertip centre of mass).
+       Optionally rebuild the two wrist axes from the hand: flexion parallel to the
+       knuckle axes, deviation (tilt) perpendicular to the knuckles and the hand length."""
+    d = mujoco.MjData(m)
+    mujoco.mj_forward(m, d)
+    jid = lambda n: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, n)
+
+    def body_anchor(b):
+        for j in range(m.njnt):
+            if m.jnt_bodyid[j] == b and int(m.jnt_type[j]) == HINGE:
+                return np.array(d.xanchor[j])
+        return np.array(d.xipos[b])
+
+    rows, info, confident = [], {}, []
+    cmc = None
+    for g, names in fingers.items():
+        for k, n in enumerate(names):
+            j = jid(n)
+            b = m.jnt_bodyid[j]
+            a = np.array(d.xaxis[j])
+            p0 = np.array(d.xanchor[j])
+            if g.startswith("thumb") and k == 0:
+                cmc = (n, j, a, p0, np.array(d.xanchor[jid(names[1])]) if len(names) > 1
+                       else np.array(d.subtree_com[b]))
+                continue
+            par = body_anchor(m.body_parentid[b])
+            tip = np.array(d.xanchor[jid(names[k + 1])]) if k + 1 < len(names) else np.array(d.subtree_com[b])
+            pd, cd = p0 - par, tip - p0
+            pp, cp = pd - a * (pd @ a), cd - a * (cd @ a)
+            if np.linalg.norm(pp) < 0.4 * np.linalg.norm(pd) or np.linalg.norm(cp) < 0.4 * np.linalg.norm(cd):
+                rows.append((n, "kept (bone runs along the axis)"))
+                continue
+            beta = math.atan2(float(a @ np.cross(pp, cp)), float(pp @ cp))
+            info[n] = dict(j=j, a=a, r=tip - p0, beta=beta)
+            if abs(beta) > math.radians(8):
+                info[n]["s"] = 1.0 if beta > 0 else -1.0
+                confident.append(n)
+
+    # joints that are (almost) straight in CAD: pick the sign that moves them to the palm side
+    if confident:
+        P = np.mean([unit3(np.cross(info[n]["s"] * info[n]["a"], info[n]["r"])) for n in confident], axis=0)
+    for n, v in info.items():
+        if "s" not in v:
+            v["s"] = 1.0 if (not confident or float(np.cross(v["a"], v["r"]) @ P) >= 0) else -1.0
+
+    for n, v in info.items():
+        s, j = v["s"], v["j"]
+        phi0 = s * v["beta"]                       # bend already present in the CAD pose (flexion +)
+        snapped = abs(phi0) < straight_tol
+        if snapped:                                # nearly straight in CAD (e.g. faces concentric):
+            phi0 = 0.0                             # the CAD pose IS the straight pose - don't re-zero
+        lo, hi = min(flex_lo, phi0), max(flex_hi, phi0)
+        el = find_joint_elem(root, n)
+        el.set("axis", fmt(*(s * np.array(m.jnt_axis[j]))))
+        el.set("ref", fmt(ang(phi0)))
+        el.set("range", fmt(ang(lo), ang(hi)))
+        el.set("limited", "true")
+        bend_txt = (f"CAD bend {math.degrees(s * v['beta']):5.1f} deg < {math.degrees(straight_tol):.0f} "
+                    f"-> CAD pose kept as straight" if snapped else
+                    f"CAD bend {math.degrees(phi0):6.1f} deg -> 0 = straight")
+        rows.append((n, f"{'axis flipped, ' if s < 0 else ''}{bend_txt}, range "
+                        f"[{math.degrees(lo):.0f}, {math.degrees(hi):.0f}]"))
+
+    # thumb CMC: its axis runs along the hand, so measure the thumb against the PALM PLANE
+    # (the plane of the hand length and the knuckle line): 0 = in the palm plane, + = away from it
+    if cmc is not None:
+        n, j, a, p0, tip = cmc
+        mcps = [nm[0] for gg, nm in fingers.items() if not gg.startswith("thumb") and nm[0] in info]
+        if mcps:
+            K = np.sum([info[q]["s"] * info[q]["a"] for q in mcps], axis=0)
+            e, c = K - a * (K @ a), (tip - p0) - a * ((tip - p0) @ a)
+            if np.linalg.norm(e) > 1e-9 and np.linalg.norm(c) > 1e-9:
+                if e @ c < 0:
+                    e = -e
+                beta = math.atan2(float(a @ np.cross(e, c)), float(e @ c))
+                s_ = 1.0 if beta >= 0 else -1.0
+                phi0 = abs(beta)
+                lo, hi = min(cmc_lo, phi0), max(cmc_hi, phi0)
+                el = find_joint_elem(root, n)
+                el.set("axis", fmt(*(s_ * np.array(m.jnt_axis[j]))))
+                el.set("ref", fmt(ang(phi0)))
+                el.set("range", fmt(ang(lo), ang(hi)))
+                el.set("limited", "true")
+                rows.insert(0, (n, f"{'axis flipped, ' if s_ < 0 else ''}CMC: {math.degrees(phi0):5.1f} deg from "
+                                   f"the palm plane in CAD -> 0 = in palm plane, range [{math.degrees(lo):.0f}, "
+                                   f"{math.degrees(hi):.0f}]"))
+            else:
+                rows.insert(0, (n, "kept (thumb CMC: could not measure against the palm plane)"))
+        else:
+            rows.insert(0, (n, "kept (thumb CMC: no finger MCPs to define the palm plane)"))
+
+    print("\n[anatomical] finger / thumb joints")
+    for n, txt in rows:
+        print(f"   {n:<44} {txt}")
+
+    # wrist: rebuild axes from the hand geometry
+    if fix_wrist and "flex" in wrist_axes and "deviation" in wrist_axes:
+        mcps = [names[0] for g, names in fingers.items() if not g.startswith("thumb") and names[0] in info]
+        if len(mcps) >= 2:
+            K = unit3(np.sum([info[n]["s"] * info[n]["a"] for n in mcps], axis=0))
+            A = np.mean([d.xanchor[jid(n)] for n in mcps], axis=0)
+            wf, wd = jid(wrist_axes["flex"]), jid(wrist_axes["deviation"])
+            L = unit3(A - np.array(d.xanchor[wf]))
+            Kp = unit3(K - L * (K @ L))
+            N = unit3(np.cross(L, Kp))
+            print("\n[wrist] current axes vs the hand (0 deg = parallel):")
+            for role, jj in (("flex", wf), ("deviation", wd)):
+                ax = np.array(d.xaxis[jj])
+                dg = lambda v: math.degrees(math.acos(min(1.0, abs(float(ax @ v)))))
+                print(f"   {role:<10} {m.joint(jj).name:<36} to knuckles {dg(Kp):5.1f}  "
+                      f"to palm normal {dg(N):5.1f}  to hand length {dg(L):5.1f}")
+            for jj, world in ((wf, Kp), (wd, N)):
+                R = np.array(d.xmat[m.jnt_bodyid[jj]]).reshape(3, 3)
+                find_joint_elem(root, m.joint(jj).name).set("axis", fmt(*(R.T @ world)))
+            c = np.array(d.xipos[m.jnt_bodyid[wd]])
+            off = max(np.linalg.norm(np.array(d.xanchor[wf]) - c), np.linalg.norm(np.array(d.xanchor[wd]) - c))
+            print(f"   -> set: flexion parallel to the knuckles, tilt perpendicular to palm plane "
+                  f"(pivots are {off * 1000:.1f} mm from the wrist-ball centre)")
+        else:
+            print("[wrist] not enough finger MCP joints to rebuild the wrist axes - skipped")
+
+
+def unit3(v):
+    v = np.asarray(v, float)
+    n = np.linalg.norm(v)
+    return v / n if n > 1e-12 else v
+
+
 # --------------------------------------------------------------------------- orientation
 def quat_mul(a, b):
     w1, x1, y1, z1 = a
@@ -231,12 +367,17 @@ def quat_from_to(u, v):
     return q / np.linalg.norm(q)
 
 
+def start_value(info):
+    """The controller's start pose: fingers/thumb open, wrist and lateral axes centred."""
+    return info["open"] if info["role"] == "flex" else info["neutral"]
+
+
 def open_pose_data(m, joints):
     d = mujoco.MjData(m)
     for n, info in joints.items():
         j = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, n)
         if j >= 0:
-            d.qpos[m.jnt_qposadr[j]] = info["open"]
+            d.qpos[m.jnt_qposadr[j]] = start_value(info)
     mujoco.mj_forward(m, d)
     return d
 
@@ -269,12 +410,22 @@ def point_up(tree, root, out, m, joints, palm_name):
     if el is None or not name:
         print("[point-up] could not find the robot's root body - skipped")
         return m
-    # centre of mass of the forearm -> centre of mass of the whole hand
-    # (body origins come from CAD part origins and can all sit at one point)
+    # the forearm's own long axis = its minimum-inertia principal axis (a cylinder's centre line),
+    # pointed toward the hand. Fallback: forearm centre of mass -> hand centre of mass.
     d = open_pose_data(m, joints)
-    direction = d.subtree_com[palm] - d.xipos[root_id]
+    to_hand = d.subtree_com[palm] - d.xipos[root_id]
+    I = np.array(m.body_inertia[root_id])
+    order = np.argsort(I)
+    if I[order[0]] < 0.8 * I[order[1]]:
+        direction = np.array(d.ximat[root_id]).reshape(3, 3)[:, order[0]]
+        if direction @ to_hand < 0:
+            direction = -direction
+        how = "forearm long axis"
+    else:
+        direction = to_hand
+        how = "forearm -> hand centre of mass"
     if np.linalg.norm(direction) < 1e-6:
-        print("[point-up] forearm and hand centres coincide - skipped")
+        print("[point-up] could not find an up direction - skipped")
         return m
     q_add = quat_from_to(direction, np.array([0.0, 0.0, 1.0]))
     q_new = quat_mul(q_add, m.body_quat[root_id])
@@ -293,9 +444,12 @@ def point_up(tree, root, out, m, joints, palm_name):
     tree.write(out)
     m = mujoco.MjModel.from_xml_path(out)
     d = open_pose_data(m, joints)
-    up = d.subtree_com[palm] - d.xipos[root_id]
-    print(f"[point-up] forearm -> palm now {np.round(up / np.linalg.norm(up), 3).tolist()} "
-          f"(was {np.round(direction / np.linalg.norm(direction), 3).tolist()}); "
+    R = np.array(d.ximat[root_id]).reshape(3, 3)
+    now = R[:, order[0]] if how == "forearm long axis" else d.subtree_com[palm] - d.xipos[root_id]
+    now = now * np.sign(now[2] or 1.0)
+    tilt = math.degrees(math.acos(min(1.0, abs(now[2]) / np.linalg.norm(now))))
+    print(f"[point-up] {how} now {np.round(now / np.linalg.norm(now), 3).tolist()} "
+          f"(tilt from vertical {tilt:.2f} deg; was {np.round(direction / np.linalg.norm(direction), 3).tolist()}); "
           f"arm base at z = {lowest_robot_z(m, d, root_id) * 1000:.1f} mm")
     return m
 
@@ -322,6 +476,17 @@ def main():
     ap.add_argument("--zeta", type=float, default=1.0, help="damping ratio (1 = critical)")
     ap.add_argument("--force-margin", type=float, default=0.5,
                     help="force limit = kp * this, i.e. error [rad] at which the actuator saturates")
+    ap.add_argument("--no-anatomical", action="store_true",
+                    help="keep the exported joint zero/axis sign (default: 0 = straight finger, + = flexion)")
+    ap.add_argument("--flex-range", nargs=2, type=float, default=[0.0, 90.0], metavar=("LO", "HI"),
+                    help="finger/thumb flexion range in degrees, 0 = straight (default 0 90)")
+    ap.add_argument("--straight-tol", type=float, default=10.0, metavar="DEG",
+                    help="a joint bent less than this in CAD is taken as straight as-is (default 10)")
+    ap.add_argument("--cmc-range", nargs=2, type=float, default=[0.0, 90.0], metavar=("LO", "HI"),
+                    help="thumb CMC range in degrees, 0 = thumb in the palm plane (default 0 90)")
+    ap.add_argument("--fix-wrist", action="store_true",
+                    help="rebuild the 2 wrist axes from the hand: flexion parallel to the knuckles, "
+                         "tilt perpendicular to the palm")
     ap.add_argument("--point-up", action="store_true",
                     help="rotate the whole model so forearm -> palm points up (+Z) and rest it on the floor")
     ap.add_argument("--keep-contacts", action="store_true",
@@ -418,6 +583,13 @@ def main():
 
     m1 = compile_tree(tree, workdir)
     palm, joints, fingers, wrist, spread, skipped, wrist_axes = analyse(m1, extra_names)
+    if not args.no_anatomical or args.fix_wrist:
+        lo_f, hi_f = (math.radians(v) for v in args.flex_range)
+        anatomical_setup(root, m1, palm, fingers if not args.no_anatomical else {}, wrist_axes,
+                         lo_f, hi_f, args.fix_wrist, ang, *(math.radians(v) for v in args.cmc_range),
+                         math.radians(args.straight_tol))
+        m1 = compile_tree(tree, workdir)
+        palm, joints, fingers, wrist, spread, skipped, wrist_axes = analyse(m1, extra_names)
     if not joints:
         sys.exit("No hinge/slide joints found - check the joint types in the sw2robot editor (key 't').")
 
@@ -439,7 +611,8 @@ def main():
                   f"Set real limits in SolidWorks / the sw2robot editor.")
         neutral = min(max(0.0, lo), hi)
         closed = hi if abs(hi - neutral) >= abs(lo - neutral) else lo
-        info.update(range=[lo, hi], neutral=neutral, open=neutral, closed=closed)
+        opened = lo if closed == hi else hi          # the OTHER limit -> trigger covers the full range
+        info.update(range=[lo, hi], neutral=neutral, open=opened, closed=closed)
         if info["role"] == "flex" and abs(abs(hi - neutral) - abs(lo - neutral)) < 1e-3 and hi - lo > 1e-6:
             print(f"[warn] '{n}' range is symmetric about 0 - guessed +limit as 'closed'. "
                   f"Check with --sweep and edit 'closed' in hand_config.json if it bends backwards.")
@@ -447,7 +620,7 @@ def main():
     # 5. gains from the load each joint carries, evaluated in the open pose
     d1 = mujoco.MjData(m1)
     for n, info in joints.items():
-        d1.qpos[m1.jnt_qposadr[info["id"]]] = info["open"]
+        d1.qpos[m1.jnt_qposadr[info["id"]]] = start_value(info)
     mujoco.mj_forward(m1, d1)
     g = float(np.linalg.norm(m1.opt.gravity)) or 9.81
     for n, info in joints.items():
@@ -522,7 +695,7 @@ def main():
     if not args.keep_contacts:
         d2 = mujoco.MjData(m2)
         for n, info in joints.items():
-            d2.qpos[m2.jnt_qposadr[mujoco.mj_name2id(m2, mujoco.mjtObj.mjOBJ_JOINT, n)]] = info["open"]
+            d2.qpos[m2.jnt_qposadr[mujoco.mj_name2id(m2, mujoco.mjtObj.mjOBJ_JOINT, n)]] = start_value(info)
         mujoco.mj_forward(m2, d2)
         pairs = set()
         for i in range(d2.ncon):
