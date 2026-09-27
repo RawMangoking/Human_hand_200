@@ -1,6 +1,6 @@
 # Human Hand + Door — SolidWorks, sw2robot, and MuJoCo Documentation
 
-> **Project status (2026-09-27):** Hand re-exported through sw2robot with **all 17 CAD joints** (18 links), wrist rebuilt as a **2-DOF ball-centre joint** (tilt + flexion), thumb MCP lateral motion added as an extra MuJoCo hinge → **18 position actuators**, gamepad controller working. Door exported and combined Hand + Door scene prepared earlier (the combined scene still uses the old 15-joint hand and must be regenerated — see §35.8).
+> **Project status (2026-09-27, evening):** Current model **`Mujoko/Hand_forearm_v5`** (updated dimensions): all **17 CAD joints** + thumb MCP sideways hinge = **18 position actuators**; 2-DOF ball-centre wrist; thumb MCP modelled as a **universal joint** (Perpendicular mate) with its bend axis from CAD; every finger/thumb joint reads **0° = straight → 90° = bent**; forearm stands vertical. Control by gamepad, sliders, saved poses and a **keyboard mode that moves the whole arm** (§8.3). The combined Hand + Door scene still uses the old 15-joint hand and must be regenerated (§35.8).
 >
 > **Pipeline:** SolidWorks → sw2robot (extract + build) → `drop_angle_mates.py` / `fix_axes.py` → MJCF → `add_actuators.py` → `hand_controller.py`. Full commands in §35.3.
 >
@@ -409,6 +409,40 @@ world
 
 The earlier v3 export (15 hinge joints, sw2robot's default `kp = 50` actuators) is superseded. How the model is produced: §35.3. Actuator list: §35.5.
 
+## 7.1 Degrees of freedom per joint
+
+Every joint is a single-axis **hinge (revolute, 1 DOF)**. The thumb MCP carries **two** hinges on the same pivot (a universal joint), so it has 2 DOF. Angles: 0° = straight / neutral, + = toward the palm (flexion).
+
+| Joint | Anatomical name | Between (parent → child) | Type | DOF | Motion | Range | Axis from |
+|---|---|---|---|:-:|---|---|---|
+| Wrist tilt | radial / ulnar deviation | fore_arm → wrist ball | hinge | 1 | side-to-side | −10° … +10° | CAD (ball centre) |
+| Wrist flex | flexion / extension | wrist ball → palm | hinge | 1 | forward / back | −57° … +57°* | CAD (ball centre) |
+| Thumb CMC | carpometacarpal | palm → Thumb_Base | hinge | 1 | thumb out of the palm plane | 0° (in palm plane) … 90° | CAD |
+| Thumb MCP bend | metacarpophalangeal flexion | Thumb_Base → Thumb_Proximal | hinge | 1 | bend | 0° … 90° | Perpendicular mate (base axis), squared to bone |
+| Thumb MCP sideways | MCP abduction / adduction | Thumb_Base → Thumb_Proximal (2nd hinge) | hinge | 1 | sideways | −45° … +45° | added in MuJoCo (`--add-axis`) |
+| Thumb IP | interphalangeal | Thumb_Proximal → Thumb_Distal | hinge | 1 | bend | 0° … 90° | CAD |
+| Index MCP / PIP / DIP | knuckle / middle / tip joint | palm → proximal → middle → distal | hinge ×3 | 3 | bend | 0° … 90° each | CAD |
+| Middle MCP / PIP / DIP | | palm → proximal → middle → distal | hinge ×3 | 3 | bend | 0° … 90° each | CAD |
+| Ring MCP / PIP / DIP | | palm → proximal → middle → distal | hinge ×3 | 3 | bend | 0° … 90° each | CAD reference axes (`fix_axes.py`) |
+| Pinky MCP / PIP / DIP | | palm → proximal → middle → distal | hinge ×3 | 3 | bend | 0° … 90° each | CAD reference axes (`fix_axes.py`) |
+
+\* placeholder until the wrist-flexion LimitAngle values are entered in the yaml.
+
+**DOF totals**
+
+| Group | DOF | Joints |
+|---|:-:|---|
+| Wrist | 2 | tilt, flexion |
+| Thumb | 4 | CMC, MCP bend, MCP sideways, IP |
+| Index | 3 | MCP, PIP, DIP |
+| Middle | 3 | MCP, PIP, DIP |
+| Ring | 3 | MCP, PIP, DIP |
+| Pinky | 3 | MCP, PIP, DIP |
+| **Hand + wrist (actuated)** | **18** | 18 position actuators, one per DOF |
+| Moving base in keyboard mode | +6 | free joint of the forearm (x, y, z, 3 rotations), moved by the keyboard target, not actuated |
+
+For comparison, a human hand is usually modelled with 21–27 DOF: the extra ones are finger MCP sideways spread (4), a second thumb-CMC axis, and forearm twist. They can be added later with `--add-axis` (e.g. `--add-axis "Index_Proximal_1@-15,15"` for index spread).
+
 # 8. Human Hand MuJoCo Control Design
 
 ## 8.1 Planned high-level groups
@@ -443,6 +477,45 @@ Xbox layout (PlayStation / Switch pads are remapped automatically by SDL).
 Without a gamepad the viewer's *Control* panel gives one slider per actuator.
 
 The 3-group coupling of §8.1 (index separate from middle+ring+pinky) is not yet mapped to the gamepad — currently the right trigger drives all four fingers together. Next step in §35.8.
+
+## 8.3 Keyboard mode — move the whole arm (`--keyboard`)
+
+```powershell
+python hand_controller.py "<model>\mjcf\Hand_forearm_actuated.xml" --keyboard
+```
+
+A small **"Hand keyboard control"** window opens next to the viewer — **click it first**; the keys go to that window (inside the MuJoCo viewer W/S/A/D/P are display shortcuts).
+
+| Key | Action |
+|---|---|
+| W / S | move arm forward / back (world +Y / −Y) |
+| A / D | move arm left / right (−X / +X) |
+| + / − (also PgUp / PgDn) | move arm up / down |
+| Num8 / Num2 (↑ / ↓) | tilt forward / back |
+| Num4 / Num6 (← / →) | tilt left / right |
+| Num7 / Num9 (Q / E) | twist about the arm's own axis |
+| Shift / Ctrl (hold) | 4× faster / 4× finer |
+| R | reset the arm to its start position |
+| P | bring up the saved pose (P again → open hand) |
+| 0 | open hand |
+| 1 – 9 | saved poses in the order they were saved |
+| N | save what the hand shows now (e.g. after using the sliders) as a new pose `pose_<n>` |
+| Esc | quit |
+
+How it works: the forearm gets a free joint and is held by a **soft weld** to an invisible target (small green sphere) that the keys move, so the arm still collides and pushes physically (important for the door). Tilt and twist pivot about the **wrist ball** (`--pivot base` to use the forearm origin). A 5 cm **leash** keeps the target from running away when the arm is blocked (floor, door). The model files are not changed — the movable version is built in memory at start. Options: `--p-pose NAME` (pose for P; default = last saved), `--move-speed` (m/s, 0.15), `--turn-speed` (deg/s, 60), `--fixed-base` (poses only, arm fixed), `--load-pose NAME` (start in that pose). The Control sliders stay usable between pose recalls.
+
+## 8.4 Saved poses
+
+Poses are stored **by joint name** in `poses.json` next to the model, so they survive rebuilds (copy `poses.json` into a new model folder to keep them).
+
+```powershell
+python hand_controller.py <model> --save-pose NAME                  # set sliders, CLOSE the window -> saved
+python hand_controller.py <model> --save-pose NAME --ctrl "v1,v2,…"  # from Control-panel values (radians, panel order)
+python hand_controller.py <model> --load-pose NAME                  # hold it
+python hand_controller.py <model> --list-poses
+```
+
+Re-using a name overwrites that pose.
 
 # 9. Door CAD
 
@@ -1224,6 +1297,8 @@ MuJoCo     = simulation implementation
 - [x] Thumb MCP lateral axis added in MuJoCo
 - [x] Model stands upright in MuJoCo (`--point-up`)
 - [x] Gamepad controller + joint sweep (`hand_controller.py`)
+- [x] Saved poses, keyboard control of the whole arm (§8.3–8.4)
+- [x] Thumb MCP universal joint (Perpendicular mate), anatomical 0–90° ranges, DOF table (§7.1)
 - [ ] Re-extract after the wrist rebuild and confirm both wrist joints come out as CAD axes (§35.3)
 - [ ] Enter the real wrist-flexion and thumb-lateral limits from the CAD LimitAngles
 - [ ] Sweep check: every finger curls toward the palm, fingers start straight
@@ -1929,40 +2004,48 @@ sw2robot version: **0.4.4** (`python -m pip install sw2robot`, Python 3.12). The
 | 8 | Palm tilt and thumb lateral motion missing | URDF allows **one axis per joint**; the second LimitAngle on a joint cannot become a joint | Wrist: second hinge made in CAD (forearm↔ball). Thumb: `--add-axis "Thumb_Proximal_1@LO,HI"` adds a second hinge at the same pivot in MuJoCo |
 | 9 | First guessed wrist axis duplicated the forearm→wrist axis | Heuristic "parallel to next joint" picked the thumb CMC axis | Replaced by the CAD ball-centre wrist; `--reset` drops old overrides |
 | 10 | "Available committed memory is critically low" with 16 GB RAM free | Commit limit = RAM + page file; page file was only 2 GB and sw2robot keeps a **hidden second SolidWorks** running | Page file set to 16 384 – 32 768 MB on C:; close the extra `SLDWORKS.exe` / the sw2robot editor when not extracting |
+| 11 | Thumb Base→Proximal looked **twisted** | Point-only mate (ball joint) → bend axis was only estimated (∥ IP), so straightening/bending rotated about a slightly wrong axis | **Perpendicular mate** in `Thumb_finger.SLDASM` between `thumb_proxiam_pip+right` (base) and `Thumb Proximal_pip+front` (proximal) = universal joint; `fix_axes.py` reads the bend axis from it; `add_actuators.py --square-axis Thumb_Proximal_1` makes that axis exactly ⟂ to the proximal bone |
+| 12 | CAD changes had no effect | The sw2robot editor started from `sw2+mujoko+python` writes to **`sw2+mujoko+python\output\`**, while the commands still read the old Temp package; also only **Save All** saves sub-assembly mates | Always use the `output\` paths of §35.3; check `graph.json`'s time after extracting |
+| 13 | Fingers started at 45° and bent backwards | Joint 0 = extraction pose; hinge axes point either way | `add_actuators.py` measures each joint's CAD bend, flips axes so + = flexion and sets `ref` → **0° = straight, 90° = bent** |
+| 14 | Thumb bent backwards (changes with dimensions) | Thumb joints are straight in CAD, so their direction is guessed from the fingers | `--flip NAME` per thumb joint (check `--pose 45` after every rebuild) |
+| 15 | Whole arm tilted | `--point-up` aimed forearm→hand centre of mass | Now uses the forearm cylinder's own long axis |
 
 ## 35.3 Pipeline (run every time the CAD changes)
 
 ```powershell
-# 0. SolidWorks: File → Save All, then close SolidWorks (only one SLDWORKS.exe should run)
-# 1. sw2robot editor: open Hand_forearm.SLDASM → "drop meshes & re-extract"
-
+# 0. SolidWorks: File -> Save All (Save All, so sub-assembly mates are saved too), then close SolidWorks
+# 1. start the editor FROM the scripts folder (so it writes to sw2+mujoko+python\output):
 cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
-$pkg = "C:\Users\naren\AppData\Local\Temp\sw2robot\output\Hand_forearm"
-$mj  = "C:\Users\naren\AppData\Local\Temp\sw2robot\output\Hand_forearm_mjcf"
-$dst = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\Mujoko\Hand_forearm_v4"
+sw2robot-web.exe      # browser: open Hand_forearm.SLDASM -> "drop meshes & re-extract"; then Ctrl+C here
+
+# 2. new PowerShell window
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
+$pkg = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\output\Hand_forearm"
+$mj  = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\output\Hand_forearm_mjcf"
+$dst = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\Mujoko\Hand_forearm_v5"     # new folder per model version
 $yml = "$pkg\Hand_forearm.joints.yaml"
+(Get-Item "$pkg\graph.json").LastWriteTime                  # must be the extraction you just did
 
-# 2. make the axes resolvable
-python drop_angle_mates.py $pkg              # removes LimitAngle records (backup: graph.json.bak)
-python fix_axes.py $pkg --reset              # report: every joint should be OK or have a proposal
-python fix_axes.py $pkg --reset --write      # overrides only for the joints still marked FIX
+# 3. make the axes resolvable
+Copy-Item ".\Hand_forearm.joints.yaml" $yml -Force          # the repo copy has the expand list + limits
+python drop_angle_mates.py $pkg
+python fix_axes.py $pkg --reset --write                      # thumb MCP: "Perpendicular mate ... = BEND axis"
 
-# 3. build URDF + MJCF (absolute path!)
+# 4. build URDF + MJCF (absolute path!)
 python -m sw2robot.exporter.build $pkg --config $yml --mujoco --mujoco-fixed-base
 
-# 4. copy the model into the repo (only the v4 folder is replaced)
-if (Test-Path $dst) { Remove-Item -Recurse -Force $dst }
-New-Item -ItemType Directory $dst | Out-Null
-Copy-Item "$mj\*" $dst -Recurse
+# 5. copy the model into the repo
+New-Item -ItemType Directory $dst -Force | Out-Null
+Copy-Item "$mj\*" $dst -Recurse -Force
 Copy-Item $yml ".\Hand_forearm.joints.yaml" -Force
 
-# 5. actuators, upright pose, thumb lateral axis
-python add_actuators.py "$dst\mjcf\Hand_forearm.xml" --point-up --add-axis "Thumb_Proximal_1@-20,20"
-
-# 6. check every joint, then drive it
+# 6. actuators (final options), then check
+python add_actuators.py "$dst\mjcf\Hand_forearm.xml" --point-up --fix-wrist --square-axis Thumb_Proximal_1 --add-axis "Thumb_Proximal_1@-45,45"
+python hand_controller.py "$dst\mjcf\Hand_forearm_actuated.xml" --pose 45     # every joint toward the palm? thumb not twisted?
 python hand_controller.py "$dst\mjcf\Hand_forearm_actuated.xml" --sweep
-python hand_controller.py "$dst\mjcf\Hand_forearm_actuated.xml"
 ```
+
+If a thumb joint bends backwards at `--pose 45`, add `--flip Thumb_Base_1`, `--flip Thumb_Proximal_1` or `--flip Thumb_Distal_v2_1` to step 6 and rerun it (this can change when dimensions change). Copy `poses.json` from the previous model folder to keep saved poses. `sw2+mujoko+python/output/` is generated — it is in `.gitignore`.
 
 `--reset` matters: `axis_point` / `axis_dir` overrides are **world coordinates**. If the CAD moved (e.g. the palm straightened by ~8° after the wrist rebuild), old overrides point at the wrong place.
 
@@ -1970,8 +2053,11 @@ Expected results:
 
 ```text
 build          : expanding sub-assembly … ×6, "17 revolute", "18 links, 17 joints", no "no CAD axis" notes
-fix_axes       : fore_arm_1 -> wrist_1 and wrist_1 -> …Palm_1 = OK (CAD axes through the ball centre)
-add_actuators  : [add-axis] …Thumb_Proximal…_abd, [point-up] forearm -> palm now [0, 0, 1],
+fix_axes       : wrist joints through the ball centre (wrist points near Y 1032, not 1062);
+                 Thumb_Base_1 -> Thumb_Proximal_1: "Perpendicular mate (universal joint) ... = BEND axis",
+                 bend axis ~0 deg to the IP hinge, sideways axis ~90 deg
+add_actuators  : [square-axis] …, [add-axis] …Thumb_Proximal…_abd, [anatomical] 0 = straight lines,
+                 [wrist] pivots 0.0 mm from the ball centre, [point-up] forearm long axis now [0, 0, 1],
                  wrist {'flex': …, 'deviation': …}, spread [… _abd], "18 actuators"
 ```
 
@@ -1980,18 +2066,16 @@ add_actuators  : [add-axis] …Thumb_Proximal…_abd, [point-up] forearm -> palm
 ```yaml
 base: fore_arm_1
 expand: [index_assem, Middle_Finger, Ring_finger, Pinky_finger, Thumb_finger]
-joints:                                   # parent → child, type, limits (rad)
-  fore_arm_1 → wrist_1                        revolute  -0.17453 … 0.17453   wrist tilt ±10°
-  wrist_1 → human_hand_v3_2__Palm_1           revolute  -1.0 … 1.0            wrist flexion (set from LimitAngle)
-  Palm → Thumb_Base                           revolute   0.0 … 1.0            thumb CMC
-  Thumb_Base → Thumb_Proximal                 revolute   0.0 … 1.0            thumb MCP flexion
-  Thumb_Proximal → Thumb_Distal_v2            revolute   0.0 … 1.4            thumb IP
-  Palm → <finger>_Proximal                    revolute   0.0 … 1.57           MCP   (×4)
-  <finger>_Proximal → <finger>_Middle         revolute   0.0 … 1.75           PIP   (×4)
-  <finger>_Middle → <finger>_Distal           revolute   0.0 … 1.22           DIP   (×4)
+joints:                                   # parent -> child, type, limits (rad) used by sw2robot
+  fore_arm_1 -> wrist_1                       revolute  -0.17453 ... 0.17453   wrist tilt +-10 deg
+  wrist_1 -> human_hand_v3_2__Palm_1          revolute  -1.0 ... 1.0            wrist flexion (set from LimitAngle)
+  Palm -> Thumb_Base, Thumb_Base -> Thumb_Proximal, Thumb_Proximal -> Thumb_Distal_v2    revolute
+  Palm -> <finger>_Proximal -> <finger>_Middle -> <finger>_Distal                        revolute (x4 fingers)
 ```
 
-(Full link names are `human_hand_v3_2__<sub-assembly>_<n>__<part>_<n>`, e.g. `human_hand_v3_2__index_assem_2__Index_Proximal_1`.) `fix_axes.py --write` adds `axis_point` / `axis_dir` to the ring, pinky and thumb-MCP entries. Limits are measured from the pose at extraction time: `lower = LimitAngle min − angle at extraction`, `upper = LimitAngle max − angle at extraction`. If a finger bends backwards in the sweep, negate its limits (`lower: -1.57`, `upper: 0.0`).
+Full link names are `human_hand_v3_2__<sub-assembly>_<n>__<part>_<n>`, e.g. `human_hand_v3_2__index_assem_2__Index_Proximal_1`. `fix_axes.py --write` adds `axis_point` / `axis_dir` to the ring, pinky and thumb-MCP entries.
+
+The wrist limits in the yaml are used as they are. **For the fingers and thumb the MuJoCo ranges are set by `add_actuators.py`** (0 = straight, 90° = bent — `--flex-range`, `--cmc-range`), so the finger limits in the yaml only matter for the URDF / sw2robot editor.
 
 ## 35.5 Actuator list (18)
 
@@ -2001,11 +2085,11 @@ Actuator name = `act_<MJCF joint name>`; the added lateral hinge is `<thumb MCP 
 |---:|---|---|---|---|---|
 | 1 | wrist | fore_arm_1 → wrist_1 | tilt (left/right) | CAD, ball centre | ±10° |
 | 2 | wrist | wrist_1 → Palm_1 | flexion (front/back) | CAD, ball centre | from LimitAngle (yaml placeholder ±57°) |
-| 3 | thumb | Palm_1 → Thumb_Base_1 | CMC | CAD | 0 … 57° |
-| 4 | thumb | Thumb_Base_1 → Thumb_Proximal_1 | MCP flexion | fix_axes (∥ IP) | 0 … 57° |
-| 5 | thumb | Thumb_Proximal_1 (added `_abd`) | **MCP lateral** | `--add-axis`, same pivot | placeholder ±20° → set from LimitAngle |
-| 6 | thumb | Thumb_Proximal_1 → Thumb_Distal_v2_1 | IP | CAD | 0 … 80° |
-| 7–9 | index | Palm → Proximal → Middle → Distal | MCP, PIP, DIP | CAD | 0…90°, 0…100°, 0…70° |
+| 3 | thumb | Palm_1 → Thumb_Base_1 | CMC | CAD | 0° = in palm plane … 90° |
+| 4 | thumb | Thumb_Base_1 → Thumb_Proximal_1 | MCP bend | Perpendicular mate (base axis), squared to the bone | 0 … 90° |
+| 5 | thumb | Thumb_Proximal_1 (added `_abd`) | **MCP sideways** | `--add-axis`, same pivot, ⟂ bend axis | −45 … +45° (LimitAngle3) |
+| 6 | thumb | Thumb_Proximal_1 → Thumb_Distal_v2_1 | IP | CAD | 0 … 90° |
+| 7–9 | index | Palm → Proximal → Middle → Distal | MCP, PIP, DIP | CAD | 0 … 90° each (0 = straight) |
 | 10–12 | middle | Palm → Proximal_5 → Middle_4 → Distal_4 | MCP, PIP, DIP | CAD | same |
 | 13–15 | ring | Palm → Proximal → Middle → Distal | MCP, PIP, DIP | fix_axes (mated ref. axis) | same |
 | 16–18 | pinky | Palm → Proximal → Middle → Distal | MCP, PIP, DIP | fix_axes (mated ref. axis) | same |
@@ -2024,14 +2108,15 @@ See §8.2 for the gamepad mapping. `--sweep` moves one joint at a time and print
 4. Sweep: the palm rolls around the wrist ball without a gap in both flexion and tilt.
 5. Sweep: the thumb lateral hinge swings the thumb toward/away from the index finger (if it moves in the wrong plane, give an explicit axis: `--add-axis "Thumb_Proximal_1:x,y,z@LO,HI"`, body frame).
 
-## 35.8 Next steps
+## 35.8 Next steps / ideas
 
-1. Re-extract after the wrist rebuild and run the §35.3 pipeline.
-2. Enter the real wrist-flexion limits (yaml) and thumb-lateral limits (`--add-axis` `@LO,HI`) from the CAD LimitAngles.
-3. Check the palm-facing direction in MuJoCo (`--point-up` only fixes "up").
-4. Map the 3 control groups of §8.1 onto the gamepad (index separate from middle+ring+pinky).
-5. Regenerate `Hand_Door.xml` with `Hand_forearm_v4/mjcf/Hand_forearm_actuated.xml` (hand now has 18 actuators → 20 in the combined scene), keeping the `hand_base` / `door_base` naming of §32.8.
-6. Hand placement at the handle, contacts, door controller, RL task (§26).
+1. Enter the real wrist-flexion limits (yaml) from its LimitAngle (currently ±57°).
+2. Make the thumb direction automatic (always toward the palm) so `--flip` is never needed after dimension changes.
+3. Map the 3 control groups of §8.1 onto the gamepad / keyboard (index separate from middle+ring+pinky).
+4. Regenerate `Hand_Door.xml` with the v5 hand (18 + 2 = 20 actuators), `hand_base` / `door_base` naming (§32.8); use keyboard mode to bring the hand to the handle.
+5. Fingertip contact: friction / softer contact (`condim 4`, `friction`) on the distal pads for a stable grip on the handle.
+6. Pose sequences: approach → pre-shape → close → turn, played from saved poses (basis for scripted demos and RL resets).
+7. Record & replay (log `qpos`/`ctrl` to CSV) for analysis and imitation data.
 
 # 36. Tool Reference (`sw2+mujoko+python/`)
 
@@ -2054,7 +2139,7 @@ python fix_axes.py <pkg_dir> --write            write axis_point / axis_dir for 
 python fix_axes.py <pkg_dir> --reset --write    drop all old overrides first (use after a re-extract)
 ```
 
-Proposal order: mated reference axis → axis parallel to the neighbouring joint (if several axes are mated) → parallel to the next joint in the chain → perpendicular to the previous joint. Uses sw2robot's own graph loader, so it sees exactly what the build sees. The rewritten yaml loses comments.
+Universal joints (point Coincident + Perpendicular between two axes, no axis-to-axis Coincident) always take their bend axis from the mate — the axis closest to the next joint's hinge (`--uj-bend parent|child` to force one side). `--ref-axis CHILD=AXIS` takes an axis from a reference axis drawn in the top assembly; `--list-axes` lists them. Other proposal order: mated reference axis → axis parallel to the neighbouring joint (if several axes are mated) → parallel to the next joint in the chain → perpendicular to the previous joint. Uses sw2robot's own graph loader, so it sees exactly what the build sees. The rewritten yaml loses comments.
 
 ## 36.3 `add_actuators.py`
 
@@ -2063,6 +2148,13 @@ python add_actuators.py <mjcf.xml> [options]    → <name>_actuated.xml + hand_c
   --point-up                     forearm → palm along +Z, forearm resting on the floor
   --add-axis NAME[:x,y,z][@lo,hi]  second hinge in the body of NAME (part of a joint/body name),
                                  auto axis ⟂ existing axis and bone; range in degrees
+  --fix-wrist                    rebuild both wrist axes from the hand (flexion ∥ knuckles, tilt ⟂ palm)
+  --square-axis NAME             make a hinge axis exactly ⟂ to its bone (thumb MCP: removes the twist)
+  --flip NAME                    reverse a joint's bending direction
+  anatomical zero (default)      0 = straight, + = flexion; --flex-range LO HI (default 0 90), --cmc-range LO HI
+  --straight-tol DEG             joints bent less than this in CAD keep the CAD pose as 0 (default 10)
+  --keep-cad-zero NAME / --set-zero NAME=DEG / --start-cad NAME   manual control of a joint's 0 / start pose
+  --no-anatomical                keep the exported zero and axis signs
   --pivot-to-parent-center BODY  move BODY's joints to its parent's centre of mass (not needed with the CAD ball wrist)
   --weld-base                    remove a free joint if exported without --mujoco-fixed-base
   --kp / --sag / --kp-min / --zeta / --force-margin   gain tuning (§23)
@@ -2079,11 +2171,24 @@ python hand_controller.py <actuated.xml> --sweep     one joint at a time
 python hand_controller.py <actuated.xml> --demo      preset cycle
 python hand_controller.py <actuated.xml> --max-rate 90   slower motions (deg/s, default 344)
 python hand_controller.py <actuated.xml> --demo --headless 10   no window; prints tracking error
+python hand_controller.py <actuated.xml> --pose 45 [--only NAME]  hold all (or only NAME) joints at 45 deg
+python hand_controller.py <actuated.xml> --keyboard   move the whole arm + pose keys (§8.3)
+python hand_controller.py <actuated.xml> --save-pose NAME / --load-pose NAME / --list-poses   (§8.4)
 ```
 
 Reads `hand_config.json` from the model folder; edit `open` / `closed` / `sign` per joint there to change bend direction or lateral sign without rebuilding.
 
-## 36.5 PowerShell notes
+## 36.5 `check_pose.py`
+
+```text
+python check_pose.py <mjcf folder> [--pair PARENT CHILD]
+```
+
+Compares each part's rotation relative to its parent in the raw sw2robot export (CAD pose) and in the actuated model's start pose; **TWIST** = any rotation not about the joint's own hinge axes (should be 0).
+
+## 36.6 PowerShell notes
 
 - `<...>` in instructions is a placeholder — PowerShell treats `<` as an operator. Use the `$pkg` / `$dst` variables.
 - Run the scripts from `sw2+mujoko+python`, or give their full path.
+- An option like `--only "…"` only works at the end of a command, never on its own line.
+- Downloaded script files land in `Downloads` — copy them into `sw2+mujoko+python` (check with `python <script> -h`).
