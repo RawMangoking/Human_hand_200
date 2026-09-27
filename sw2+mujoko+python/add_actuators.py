@@ -211,7 +211,8 @@ def analyse(m, extra_names):
 
 # --------------------------------------------------------------------------- anatomical joint frames
 def anatomical_setup(root, m, palm, fingers, wrist_axes, flex_lo, flex_hi, fix_wrist, ang,
-                     cmc_lo=0.0, cmc_hi=math.pi / 2, straight_tol=math.radians(10)):
+                     cmc_lo=0.0, cmc_hi=math.pi / 2, straight_tol=math.radians(10), keep_zero=(),
+                     set_zero=None, flip=()):
     """Make every finger/thumb flexion joint read as an anatomical angle:
          * axis flipped where needed so that POSITIVE = flexion (toward the palm)
          * ref = the bend the CAD pose already has  ->  q = 0 means STRAIGHT
@@ -261,11 +262,20 @@ def anatomical_setup(root, m, palm, fingers, wrist_axes, flex_lo, flex_hi, fix_w
     for n, v in info.items():
         if "s" not in v:
             v["s"] = 1.0 if (not confident or float(np.cross(v["a"], v["r"]) @ P) >= 0) else -1.0
+    for n in flip:                                 # --flip: user says this one bends the wrong way
+        if n in info:
+            info[n]["s"] *= -1.0
+            info[n]["beta"] *= 1.0                 # bend value keeps its sign relative to the new axis
 
     for n, v in info.items():
         s, j = v["s"], v["j"]
         phi0 = s * v["beta"]                       # bend already present in the CAD pose (flexion +)
-        snapped = abs(phi0) < straight_tol
+        measured = phi0
+        manual = (set_zero or {}).get(n)           # --set-zero: straight is exactly DEG back from CAD
+        forced = n in keep_zero and manual is None # --keep-cad-zero: the CAD pose is the straight pose
+        snapped = forced or (manual is None and abs(phi0) < straight_tol)
+        if manual is not None:
+            phi0 = manual
         if snapped:                                # nearly straight in CAD (e.g. faces concentric):
             phi0 = 0.0                             # the CAD pose IS the straight pose - don't re-zero
         lo, hi = min(flex_lo, phi0), max(flex_hi, phi0)
@@ -274,9 +284,17 @@ def anatomical_setup(root, m, palm, fingers, wrist_axes, flex_lo, flex_hi, fix_w
         el.set("ref", fmt(ang(phi0)))
         el.set("range", fmt(ang(lo), ang(hi)))
         el.set("limited", "true")
-        bend_txt = (f"CAD bend {math.degrees(s * v['beta']):5.1f} deg < {math.degrees(straight_tol):.0f} "
-                    f"-> CAD pose kept as straight" if snapped else
-                    f"CAD bend {math.degrees(phi0):6.1f} deg -> 0 = straight")
+        if manual is not None:
+            bend_txt = (f"--set-zero: straight = {math.degrees(manual):.1f} deg back from CAD "
+                        f"(auto measured {math.degrees(measured):.1f})")
+        elif forced:
+            bend_txt = (f"measured bend {math.degrees(s * v['beta']):5.1f} deg ignored "
+                        f"(--keep-cad-zero) -> CAD pose = 0")
+        elif snapped:
+            bend_txt = (f"CAD bend {math.degrees(s * v['beta']):5.1f} deg < {math.degrees(straight_tol):.0f} "
+                        f"-> CAD pose kept as straight")
+        else:
+            bend_txt = f"CAD bend {math.degrees(phi0):6.1f} deg -> 0 = straight"
         rows.append((n, f"{'axis flipped, ' if s < 0 else ''}{bend_txt}, range "
                         f"[{math.degrees(lo):.0f}, {math.degrees(hi):.0f}]"))
 
@@ -293,7 +311,9 @@ def anatomical_setup(root, m, palm, fingers, wrist_axes, flex_lo, flex_hi, fix_w
                     e = -e
                 beta = math.atan2(float(a @ np.cross(e, c)), float(e @ c))
                 s_ = 1.0 if beta >= 0 else -1.0
-                phi0 = abs(beta)
+                if n in flip:
+                    s_ = -s_
+                phi0 = s_ * beta
                 lo, hi = min(cmc_lo, phi0), max(cmc_hi, phi0)
                 el = find_joint_elem(root, n)
                 el.set("axis", fmt(*(s_ * np.array(m.jnt_axis[j]))))
@@ -465,6 +485,10 @@ def main():
                     help="add a 2nd hinge in the same body as the joint NAME (a joint name, or part of a "
                          "joint/body name, e.g. Thumb_Base_1). No axis = auto (perpendicular to the existing "
                          "axis and to the bone). @lo,hi = range in degrees. Repeatable.")
+    ap.add_argument("--square-axis", action="append", default=[], metavar="NAME",
+                    help="make this joint's hinge axis exactly perpendicular to its bone (removes the part of "
+                         "the axis that lies along the bone, which makes bending look like a twist). "
+                         "Runs before --add-axis, so the sideways axis follows. Repeatable.")
     ap.add_argument("--pivot-to-parent-center", action="append", default=[], metavar="BODY",
                     help="move the joints of BODY (part of a body name, e.g. Palm_1) onto the centre of mass "
                          "of its parent body - for a ball wrist, so the palm rotates about the ball centre")
@@ -482,6 +506,17 @@ def main():
                     help="finger/thumb flexion range in degrees, 0 = straight (default 0 90)")
     ap.add_argument("--straight-tol", type=float, default=10.0, metavar="DEG",
                     help="a joint bent less than this in CAD is taken as straight as-is (default 10)")
+    ap.add_argument("--keep-cad-zero", action="append", default=[], metavar="NAME",
+                    help="joint (or part of its joint/body name) whose CAD pose is its straight / 0 pose - "
+                         "use when the automatic bend measurement is fooled by an angled part. Repeatable.")
+    ap.add_argument("--start-cad", action="append", default=[], metavar="NAME",
+                    help="start these joints at their SolidWorks pose instead of fully open: a group name "
+                         "(thumb, index, ...) or part of a joint/body name. Ranges are unchanged. Repeatable.")
+    ap.add_argument("--set-zero", action="append", default=[], metavar="NAME=DEG",
+                    help="the joint is straight DEG back from its SolidWorks pose (sets its 0 exactly). "
+                         "e.g. Thumb_Proximal_1=38. Repeatable.")
+    ap.add_argument("--flip", action="append", default=[], metavar="NAME",
+                    help="reverse the bending direction of this joint (part of a joint/body name). Repeatable.")
     ap.add_argument("--cmc-range", nargs=2, type=float, default=[0.0, 90.0], metavar=("LO", "HI"),
                     help="thumb CMC range in degrees, 0 = thumb in the palm plane (default 0 90)")
     ap.add_argument("--fix-wrist", action="store_true",
@@ -524,6 +559,30 @@ def main():
     if any(int(t) == FREE for t in m0.jnt_type):
         print("[warn] the model still has a FREE joint - the arm will fall. Re-export with "
               "--mujoco-fixed-base or rerun this script with --weld-base.")
+
+    # 2b. optional: square a hinge axis to its bone (bone = joint -> next joint in the child, else -> child COM)
+    for key in args.square_axis:
+        jid = resolve_joint(m0, key)
+        jname = m0.joint(jid).name
+        b = int(m0.jnt_bodyid[jid])
+        d0 = mujoco.MjData(m0)
+        mujoco.mj_forward(m0, d0)
+        kids = [j for j in range(m0.njnt) if m0.body_parentid[m0.jnt_bodyid[j]] == b
+                and int(m0.jnt_type[j]) == HINGE]
+        tip = np.array(d0.xanchor[kids[0]]) if kids else np.array(d0.xipos[b])
+        R = np.array(d0.xmat[b]).reshape(3, 3)
+        bone = R.T @ (tip - np.array(d0.xanchor[jid]))              # body frame
+        bone /= np.linalg.norm(bone)
+        a = np.array(m0.jnt_axis[jid], float)
+        before = math.degrees(math.acos(min(1.0, abs(float(a @ bone)))))
+        a_new = a - bone * (a @ bone)
+        if np.linalg.norm(a_new) < 1e-6:
+            sys.exit(f"[square-axis] '{jname}': axis runs along the bone - can't square it")
+        a_new /= np.linalg.norm(a_new)
+        find_joint_elem(root, jname).set("axis", fmt(*a_new))
+        print(f"[square-axis] {jname}: axis was {before:.1f} deg to the bone -> now 90.0 deg "
+              f"(tilted by {90 - before:.1f} deg)")
+        m0 = compile_tree(tree, workdir)
 
     # 3. optional: extra hinge axes
     extra_names = set()
@@ -585,13 +644,27 @@ def main():
     palm, joints, fingers, wrist, spread, skipped, wrist_axes = analyse(m1, extra_names)
     if not args.no_anatomical or args.fix_wrist:
         lo_f, hi_f = (math.radians(v) for v in args.flex_range)
+        keep_zero = {m1.joint(resolve_joint(m1, k)).name for k in args.keep_cad_zero}
+        flip = {m1.joint(resolve_joint(m1, k)).name for k in args.flip}
+        set_zero = {}
+        for spec in args.set_zero:
+            k, _, v = spec.partition("=")
+            set_zero[m1.joint(resolve_joint(m1, k)).name] = math.radians(float(v))
         anatomical_setup(root, m1, palm, fingers if not args.no_anatomical else {}, wrist_axes,
                          lo_f, hi_f, args.fix_wrist, ang, *(math.radians(v) for v in args.cmc_range),
-                         math.radians(args.straight_tol))
+                         math.radians(args.straight_tol), keep_zero, set_zero, flip)
         m1 = compile_tree(tree, workdir)
         palm, joints, fingers, wrist, spread, skipped, wrist_axes = analyse(m1, extra_names)
     if not joints:
         sys.exit("No hinge/slide joints found - check the joint types in the sw2robot editor (key 't').")
+
+    # --start-cad: groups (thumb, index, ...) or single joints that start at the SolidWorks pose
+    start_cad = set()
+    for key in args.start_cad:
+        grp = [n for n, i in joints.items() if i["group"].lower() == key.lower()]
+        start_cad.update(grp if grp else [m1.joint(resolve_joint(m1, key)).name])
+    if start_cad:
+        print(f"[start-cad] start at the SolidWorks pose: {sorted(start_cad)}")
 
     # 4. ranges, open / closed poses
     for n, info in joints.items():
@@ -612,6 +685,12 @@ def main():
         neutral = min(max(0.0, lo), hi)
         closed = hi if abs(hi - neutral) >= abs(lo - neutral) else lo
         opened = lo if closed == hi else hi          # the OTHER limit -> trigger covers the full range
+        if n in start_cad:                           # --start-cad: begin at the SolidWorks pose
+            cad = min(max(float(m1.qpos0[m1.jnt_qposadr[j]]), lo), hi)
+            if info["role"] == "flex":
+                opened = cad
+            else:
+                neutral = cad
         info.update(range=[lo, hi], neutral=neutral, open=opened, closed=closed)
         if info["role"] == "flex" and abs(abs(hi - neutral) - abs(lo - neutral)) < 1e-3 and hi - lo > 1e-6:
             print(f"[warn] '{n}' range is symmetric about 0 - guessed +limit as 'closed'. "

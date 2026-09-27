@@ -1,0 +1,516 @@
+<?xml version="1.0"?>
+<robot name="Hand_forearm">
+  <link name="base_link">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/fore_arm_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/fore_arm_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01741875974 0.09 -0.01859851638" rpy="0 0 0"/>
+      <mass value="2.03575"/>
+      <inertia ixx="0.00732871" ixy="2.12437e-35" ixz="0" iyy="0.00366435" iyz="-1.25125e-34" izz="0.00732871"/>
+    </inertial>
+  </link>
+  <link name="wrist_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0.01526778682 8.872137585e-05 0.009507273189" rpy="1.570796327 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/wrist_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.01526778682 8.872137585e-05 0.009507273189" rpy="1.570796327 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/wrist_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="3.479996807e-07 4.440161921e-07 2.324926481e-07" rpy="0 0 0"/>
+      <mass value="0.113097"/>
+      <inertia ixx="4.0715e-05" ixy="-3.98801e-35" ixz="2.77774e-37" iyy="4.0715e-05" iyz="4.30757e-23" izz="4.0715e-05"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Palm_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0.001426138318 0.05537682611 -0.000498123022" rpy="-1.545049717 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/human_hand_v3__Palm_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.001426138318 0.05537682611 -0.000498123022" rpy="-1.545049717 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/human_hand_v3__Palm_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.002211484387 0.0858546322 -0.002615423205" rpy="0 0 0"/>
+      <mass value="0.146725"/>
+      <inertia ixx="0.000204677" ixy="-3.0422e-06" ixz="1.22941e-07" iyy="8.66552e-05" iyz="4.04385e-06" izz="0.000126102"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Middle_Finger_1__Middle_Distal_4">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0.7596515531 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Middle_Finger__Middle_Distal_4.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0.7596515531 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Middle_Finger__Middle_Distal_4.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.006525392367 -0.006197579991 5.786876138e-05" rpy="0 0 0"/>
+      <mass value="0.00209578"/>
+      <inertia ixx="6.68999e-08" ixy="-3.36629e-08" ixz="3.12308e-10" iyy="7.03724e-08" iyz="2.96167e-10" izz="1.0234e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Middle_Finger_1__Middle_Middle_4">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-0.02574661028 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Middle_Finger__Middle_Middle_4.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-0.02574661028 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Middle_Finger__Middle_Middle_4.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.0126703486 0.000326276219 -3.029748907e-06" rpy="0 0 0"/>
+      <mass value="0.00456309"/>
+      <inertia ixx="1.25822e-07" ixy="5.72828e-09" ixz="-5.31834e-11" iyy="3.48121e-07" iyz="1.34323e-12" izz="3.4827e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-0.03099009764 0.03262701435 -0.0003029572263" rpy="2.33044788 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Middle_Finger__Middle_Proximal_5.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.03099009764 0.03262701435 -0.0003029572263" rpy="2.33044788 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Middle_Finger__Middle_Proximal_5.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01479210965 0.01557342763 -0.0001446069548" rpy="0 0 0"/>
+      <mass value="0.0112897"/>
+      <inertia ixx="1.34173e-06" ixy="8.29207e-07" ixz="-7.6992e-09" iyy="1.25633e-06" iyz="8.10665e-09" izz="2.12926e-06"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-4.244795034e-07 -5.904865708e-08 3.20757152e-08" rpy="2.3819411 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Pinky_finger__Pinky_Distal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-4.244795034e-07 -5.904865708e-08 3.20757152e-08" rpy="2.3819411 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Pinky_finger__Pinky_Distal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.004350610198 -0.004131635011 3.875222257e-05" rpy="0 0 0"/>
+      <mass value="0.000965173"/>
+      <inertia ixx="1.66674e-08" ixy="-5.91613e-09" ixz="5.51077e-11" iyy="1.72777e-08" iyz="5.23035e-11" izz="2.28975e-08"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-3.901414154e-07 -4.268587572e-07 3.346645154e-07" rpy="-3.115846043 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Pinky_finger__Pinky_Middle_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-3.901414154e-07 -4.268587572e-07 3.346645154e-07" rpy="-3.115846043 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Pinky_finger__Pinky_Middle_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.008640111521 0.0002220562721 -1.731123557e-06" rpy="0 0 0"/>
+      <mass value="0.00219107"/>
+      <inertia ixx="4.32156e-08" ixy="9.59666e-10" ixz="-8.91097e-12" iyy="8.04578e-08" iyz="2.22837e-13" izz="8.04829e-08"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="1.26247226e-08 1.407168153e-07 -2.290856509e-07" rpy="-2.33044788 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Pinky_finger__Pinky_Proximal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="1.26247226e-08 1.407168153e-07 -2.290856509e-07" rpy="-2.33044788 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Pinky_finger__Pinky_Proximal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01038792108 0.01093677163 -0.0001018051826" rpy="0 0 0"/>
+      <mass value="0.00524416"/>
+      <inertia ixx="3.37958e-07" ixy="1.86084e-07" ixz="-1.72819e-09" iyy="3.18793e-07" iyz="1.81951e-09" izz="5.14692e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Ring_finger_1__Ring_Distal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-1.240278462e-07 -3.262963546e-07 -8.528256545e-09" rpy="2.3819411 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Ring_finger__Ring_Distal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-1.240278462e-07 -3.262963546e-07 -8.528256545e-09" rpy="2.3819411 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Ring_finger__Ring_Distal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.004833774211 -0.004591465439 4.253084031e-05" rpy="0 0 0"/>
+      <mass value="0.00155249"/>
+      <inertia ixx="3.60996e-08" ixy="-1.07688e-08" ixz="9.97922e-11" iyy="3.72111e-08" iyz="9.5056e-11" izz="4.7439e-08"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Ring_finger_1__Ring_Middle_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-4.096693906e-07 1.073007281e-07 -3.271047833e-08" rpy="-3.115846043 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Ring_finger__Ring_Middle_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-4.096693906e-07 1.073007281e-07 -3.271047833e-08" rpy="-3.115846043 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Ring_finger__Ring_Middle_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01205535355 0.0003105363703 -2.915175966e-06" rpy="0 0 0"/>
+      <mass value="0.00389782"/>
+      <inertia ixx="9.82521e-08" ixy="4.15448e-09" ixz="-3.8578e-11" iyy="2.59477e-07" iyz="9.83164e-13" izz="2.59584e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="1.262472327e-08 2.720069301e-07 -5.015379001e-09" rpy="-2.33044788 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Ring_finger__Ring_Proximal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="1.262472327e-08 2.720069301e-07 -5.015379001e-09" rpy="-2.33044788 1.561511122 -1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/Ring_finger__Ring_Proximal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01342975308 0.01413940649 -0.000131293396" rpy="0 0 0"/>
+      <mass value="0.00901512"/>
+      <inertia ixx="9.01521e-07" ixy="5.44849e-07" ixz="-5.05917e-09" iyy="8.45406e-07" iyz="5.3264e-09" izz="1.41899e-06"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-0.01166339506 0.0004086776735 0.01166397009" rpy="-0.01312967241 -0.7855941081 -0.01646155362"/>
+      <geometry>
+        <mesh filename="../meshes/Thumb_finger__Thumb_Base_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.01166339506 0.0004086776735 0.01166397009" rpy="-0.01312967241 -0.7855941081 -0.01646155362"/>
+      <geometry>
+        <mesh filename="../meshes/Thumb_finger__Thumb_Base_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.0052688188 0.02072269133 0.005607004489" rpy="0 0 0"/>
+      <mass value="0.0146302"/>
+      <inertia ixx="2.74994e-06" ixy="-8.32361e-07" ixz="5.08931e-07" iyy="1.73301e-06" iyz="8.06583e-07" izz="2.77745e-06"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-0.01312967241 -0.7855941081 -0.01646155362"/>
+      <geometry>
+        <mesh filename="../meshes/Thumb_finger__Thumb_Distal_v2_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-0.01312967241 -0.7855941081 -0.01646155362"/>
+      <geometry>
+        <mesh filename="../meshes/Thumb_finger__Thumb_Distal_v2_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.0003096220051 0.01202256142 -0.0001116351525" rpy="0 0 0"/>
+      <mass value="0.00306267"/>
+      <inertia ixx="1.96289e-07" ixy="-3.56565e-09" ixz="-2.3883e-09" iyy="5.88008e-08" iyz="1.33985e-09" izz="1.96367e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-8.149017683e-09 2.542162396e-07 4.299591427e-07" rpy="-0.01312967241 -0.7855941081 -0.01646155362"/>
+      <geometry>
+        <mesh filename="../meshes/Thumb_finger__Thumb_Proximal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-8.149017683e-09 2.542162396e-07 4.299591427e-07" rpy="-0.01312967241 -0.7855941081 -0.01646155362"/>
+      <geometry>
+        <mesh filename="../meshes/Thumb_finger__Thumb_Proximal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.000373396063 0.01449946792 -0.0001342021969" rpy="0 0 0"/>
+      <mass value="0.00482838"/>
+      <inertia ixx="4.59701e-07" ixy="-8.71375e-09" ixz="-4.55859e-09" iyy="1.23246e-07" iyz="3.24314e-09" izz="4.59619e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__index_assem_2__Index_Distal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0.7596515531 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/index_assem__Index_Distal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0.7596515531 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/index_assem__Index_Distal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.004834042819 -0.004590727672 4.271850136e-05" rpy="0 0 0"/>
+      <mass value="0.00155249"/>
+      <inertia ixx="3.61002e-08" ixy="-1.07688e-08" ixz="9.99283e-11" iyy="3.72105e-08" iyz="9.51904e-11" izz="4.74391e-08"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__index_assem_2__Index_Middle_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="-0.02574661028 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/index_assem__Index_Middle_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="-0.02574661028 -1.561511122 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/index_assem__Index_Middle_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01064416933 0.0002741000346 -2.54514818e-06" rpy="0 0 0"/>
+      <mass value="0.0037779"/>
+      <inertia ixx="1.05539e-07" ixy="2.55246e-09" ixz="-2.37011e-11" iyy="2.04593e-07" iyz="6.01363e-13" izz="2.0466e-07"/>
+    </inertial>
+  </link>
+  <link name="human_hand_v3_2__index_assem_2__Index_Proximal_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0.006732571309 -0.006394383081 -2.381962626"/>
+      <geometry>
+        <mesh filename="../meshes/index_assem__Index_Proximal_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0.006732571309 -0.006394383081 -2.381962626"/>
+      <geometry>
+        <mesh filename="../meshes/index_assem__Index_Proximal_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.01277465961 0.01344941595 -0.0001248838901" rpy="0 0 0"/>
+      <mass value="0.00857536"/>
+      <inertia ixx="7.97802e-07" ixy="4.61531e-07" ixz="-4.28577e-09" iyy="7.50269e-07" iyz="4.51165e-09" izz="1.23613e-06"/>
+    </inertial>
+  </link>
+  <joint name="fore_arm_1__wrist_1" type="revolute">
+    <origin xyz="-0.01741910774 0.209999556 -0.01859874887" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="wrist_1"/>
+    <axis xyz="1 0 0"/>
+    <limit lower="-0.17453" upper="0.17453" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: limit mate (SolidWorks slider/hinge) -->
+  </joint>
+  <joint name="wrist_1__human_hand_v3_2__Palm_1" type="revolute">
+    <origin xyz="3.479996807e-07 4.44016192e-07 2.32492648e-07" rpy="0 0 0"/>
+    <parent link="wrist_1"/>
+    <child link="human_hand_v3_2__Palm_1"/>
+    <axis xyz="0 0.00928507 0.99995689"/>
+    <limit lower="-1" upper="1" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1" type="revolute">
+    <origin xyz="0.001513789104 0.05912383694 0.03646867925" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Palm_1"/>
+    <child link="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1"/>
+    <axis xyz="0.02574377 0.99962548 -0.00928199"/>
+    <limit lower="0" upper="1" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, PERPENDICULAR, COINCIDENT, COINCIDENT, PERPENDICULAR -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1" type="revolute">
+    <origin xyz="-0.0160461371 0.04490171905 0.01677608826" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Thumb_finger_1__Thumb_Base_1"/>
+    <child link="human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1"/>
+    <axis xyz="-0.706872 0.024768 0.706907"/>
+    <limit lower="0" upper="1" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, PERPENDICULAR, COINCIDENT, PERPENDICULAR -->
+    <!-- sw2robot-note: geo: under-constrained (2 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+  <joint name="human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1__human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1" type="revolute">
+    <origin xyz="0.0007980485926 0.03098864414 -0.0002873118661" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1"/>
+    <child link="human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1"/>
+    <axis xyz="-0.70687243 0.02476834 0.70690728"/>
+    <limit lower="0" upper="1.4" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__index_assem_2__Index_Proximal_1" type="revolute">
+    <origin xyz="0.003449664625 0.1342099458 0.02677108131" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Palm_1"/>
+    <child link="human_hand_v3_2__index_assem_2__Index_Proximal_1"/>
+    <axis xyz="0 -0.00928507 -0.99995689"/>
+    <limit lower="0" upper="1.57" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__index_assem_2__Index_Proximal_1__human_hand_v3_2__index_assem_2__Index_Middle_1" type="revolute">
+    <origin xyz="-0.02685808462 0.02827674577 -0.0002625629295" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__index_assem_2__Index_Proximal_1"/>
+    <child link="human_hand_v3_2__index_assem_2__Index_Middle_1"/>
+    <axis xyz="0 0.00928507 0.99995689"/>
+    <limit lower="0" upper="1.75" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__index_assem_2__Index_Middle_1__human_hand_v3_2__index_assem_2__Index_Distal_1" type="revolute">
+    <origin xyz="-0.02199270864 0.0005663384346 -5.258719644e-06" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__index_assem_2__Index_Middle_1"/>
+    <child link="human_hand_v3_2__index_assem_2__Index_Distal_1"/>
+    <axis xyz="0 0.00928507 0.99995689"/>
+    <limit lower="0" upper="1.22" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5" type="revolute">
+    <origin xyz="0.003449664625 0.1340288869 0.007271921901" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Palm_1"/>
+    <child link="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5"/>
+    <axis xyz="0 -0.00928507 -0.99995689"/>
+    <limit lower="0" upper="1.57" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5__human_hand_v3_2__Middle_Finger_1__Middle_Middle_4" type="revolute">
+    <origin xyz="-0.03099009764 0.03262701435 -0.0003029572263" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5"/>
+    <child link="human_hand_v3_2__Middle_Finger_1__Middle_Middle_4"/>
+    <axis xyz="0 0.00928507 0.99995689"/>
+    <limit lower="0" upper="1.75" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Middle_Finger_1__Middle_Middle_4__human_hand_v3_2__Middle_Finger_1__Middle_Distal_4" type="revolute">
+    <origin xyz="-0.02699105151 0.0006950517151 -6.453883201e-06" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Middle_Finger_1__Middle_Middle_4"/>
+    <child link="human_hand_v3_2__Middle_Finger_1__Middle_Distal_4"/>
+    <axis xyz="0 0.00928507 0.99995689"/>
+    <limit lower="0" upper="1.22" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: free rotation about mate axis (1 DOF) -->
+  </joint>
+  <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Ring_finger_1__Ring_Proximal_1" type="revolute">
+    <origin xyz="0.003449652 0.133847556 -0.01222723249" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Palm_1"/>
+    <child link="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1"/>
+    <axis xyz="0 -0.009285 -0.999957"/>
+    <limit lower="0" upper="1.57" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: under-constrained (3 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+  <joint name="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1__human_hand_v3_2__Ring_finger_1__Ring_Middle_1" type="revolute">
+    <origin xyz="-0.028235 0.029727 -0.000276" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Ring_finger_1__Ring_Proximal_1"/>
+    <child link="human_hand_v3_2__Ring_finger_1__Ring_Middle_1"/>
+    <axis xyz="0 -0.009285 -0.999957"/>
+    <limit lower="0" upper="1.75" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: under-constrained (3 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+  <joint name="human_hand_v3_2__Ring_finger_1__Ring_Middle_1__human_hand_v3_2__Ring_finger_1__Ring_Distal_1" type="revolute">
+    <origin xyz="-0.024992 0.000644 -6e-06" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Ring_finger_1__Ring_Middle_1"/>
+    <child link="human_hand_v3_2__Ring_finger_1__Ring_Distal_1"/>
+    <axis xyz="0 -0.009285 -0.999957"/>
+    <limit lower="0" upper="1.22" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: under-constrained (3 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+  <joint name="human_hand_v3_2__Palm_1__human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1" type="revolute">
+    <origin xyz="0.003449652 0.133680556 -0.03022623249" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Palm_1"/>
+    <child link="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1"/>
+    <axis xyz="0 -0.009285 -0.999957"/>
+    <limit lower="0" upper="1.57" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: under-constrained (3 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+  <joint name="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1__human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1" type="revolute">
+    <origin xyz="-0.022037 0.023202 -0.000216" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1"/>
+    <child link="human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1"/>
+    <axis xyz="0 -0.009285 -0.999957"/>
+    <limit lower="0" upper="1.75" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: under-constrained (3 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+  <joint name="human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1__human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1" type="revolute">
+    <origin xyz="-0.017994 0.000463 -4e-06" rpy="0 0 0"/>
+    <parent link="human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1"/>
+    <child link="human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1"/>
+    <axis xyz="0 -0.009285 -0.999957"/>
+    <limit lower="0" upper="1.22" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: under-constrained (3 DOF) -> fixed; verify; config sets revolute (inference said fixed) -->
+  </joint>
+</robot>

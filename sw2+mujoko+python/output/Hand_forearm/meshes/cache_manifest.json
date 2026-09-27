@@ -1,0 +1,98 @@
+{
+ "Middle_Finger__Middle_Distal_4.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\03_Middle\\Middle_Distal.SLDPRT"
+ },
+ "Middle_Finger__Middle_Middle_4.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\03_Middle\\Middle_Middle.SLDPRT"
+ },
+ "Middle_Finger__Middle_Proximal_5.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\03_Middle\\Middle_Proximal.SLDPRT"
+ },
+ "Pinky_finger__Pinky_Distal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\05_Pinky\\Pinky_Distal.SLDPRT"
+ },
+ "Pinky_finger__Pinky_Middle_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\05_Pinky\\Pinky_Middle.SLDPRT"
+ },
+ "Pinky_finger__Pinky_Proximal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\05_Pinky\\Pinky_Proximal.SLDPRT"
+ },
+ "Ring_finger__Ring_Distal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\04_Ring\\Ring_Distal.SLDPRT"
+ },
+ "Ring_finger__Ring_Middle_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\04_Ring\\Ring_Middle.SLDPRT"
+ },
+ "Ring_finger__Ring_Proximal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\04_Ring\\Ring_Proximal.SLDPRT"
+ },
+ "Thumb_finger__Thumb_Base_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\06_Thumb\\Thumb_Base.SLDPRT"
+ },
+ "Thumb_finger__Thumb_Distal_v2_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\06_Thumb\\Thumb_Distal_v2.SLDPRT"
+ },
+ "Thumb_finger__Thumb_Proximal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\06_Thumb\\Thumb_Proximal.SLDPRT"
+ },
+ "fore_arm_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\fore_barm+wrist\\fore arm.SLDPRT"
+ },
+ "human_hand_v3_2.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\human hand v3.SLDASM"
+ },
+ "human_hand_v3__Middle_Finger_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\03_Middle\\Middle_Finger.SLDASM"
+ },
+ "human_hand_v3__Palm_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\01_Palm\\Palm.SLDPRT"
+ },
+ "human_hand_v3__Pinky_finger_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\05_Pinky\\Pinky_finger.SLDASM"
+ },
+ "human_hand_v3__Ring_finger_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\04_Ring\\Ring_finger.SLDASM"
+ },
+ "human_hand_v3__Thumb_finger_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\06_Thumb\\Thumb_finger.SLDASM"
+ },
+ "human_hand_v3__index_assem_2.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\02_Index\\index_assem.SLDASM"
+ },
+ "index_assem__Index_Distal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\02_Index\\Index_Distal.SLDPRT"
+ },
+ "index_assem__Index_Middle_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\02_Index\\Index_Middle.SLDPRT"
+ },
+ "index_assem__Index_Proximal_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\02_Index\\Index_Proximal.SLDPRT"
+ },
+ "wrist_1.3dxml": {
+  "config": "Default",
+  "source": "C:\\Users\\naren\\Documents\\Capstone\\Human_Hand_200mm\\fore_barm+wrist\\wrist.SLDPRT"
+ }
+}

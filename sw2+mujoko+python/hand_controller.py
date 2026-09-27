@@ -7,6 +7,7 @@ Drive the actuated hand (from add_actuators.py) with a gamepad in the MuJoCo vie
   python hand_controller.py robot_actuated.xml            # gamepad control
   python hand_controller.py robot_actuated.xml --sweep    # move every joint one at a time (check axes/limits)
   python hand_controller.py robot_actuated.xml --demo     # cycle open / fist / pinch / point
+  python hand_controller.py robot_actuated.xml --pose 45  # hold every finger/thumb joint at 45 deg
   python hand_controller.py robot_actuated.xml --demo --headless 10   # no window, prints tracking error
 
 No gamepad? The viewer still opens: use the "Control" sliders in the right-hand panel.
@@ -319,6 +320,11 @@ def main():
     ap.add_argument("--config", help="hand_config.json (default: next to the model)")
     ap.add_argument("--sweep", action="store_true", help="move every joint one at a time")
     ap.add_argument("--demo", action="store_true", help="cycle grasp presets")
+    ap.add_argument("--only", action="append", default=[], metavar="NAME",
+                    help="with --pose: bend only joints whose name contains NAME (others stay at 0). Repeatable.")
+    ap.add_argument("--pose", type=float, metavar="DEG",
+                    help="just HOLD every finger/thumb joint at DEG (joint angle: 0 = straight / in the palm plane, "
+                         "+ = toward closed); wrist and sideways axes centred. For inspecting the model.")
     ap.add_argument("--headless", type=float, metavar="SECONDS", help="run --sweep/--demo without a window")
     ap.add_argument("--max-rate", type=float, metavar="DEG_PER_S",
                     help=f"fastest any joint target may move (default {math.degrees(MAX_CTRL_RATE):.0f} deg/s)")
@@ -344,7 +350,23 @@ def main():
         d.ctrl[hand.act[n]] = hand.target[n]
     mujoco.mj_forward(m, d)
 
-    if args.sweep:
+    if args.pose is not None:
+        for n in hand.names:
+            j = hand.J[n]
+            if j["role"] == "flex":
+                # joint angle itself (0 = straight / its zero), toward the closed side
+                deg = args.pose if (not args.only or any(k.lower() in n.lower() for k in args.only)) else 0.0
+                hand.target[n] = hand.clamp(n, math.radians(deg) * (1 if j["closed"] >= 0 else -1))
+        for n in hand.names:
+            d.qpos[hand.qadr[n]] = hand.target[n]
+            d.ctrl[hand.act[n]] = hand.target[n]
+        mujoco.mj_forward(m, d)
+        mode, logic = "hold", None
+        bent = [n for n in hand.names if hand.J[n]["role"] == "flex"
+                and (not args.only or any(k.lower() in n.lower() for k in args.only))]
+        print(f"[pose] holding {len(bent)} joint(s) at {args.pose:g} deg, everything else at 0: "
+              f"{bent if args.only else 'all fingers/thumb'}")
+    elif args.sweep:
         mode, logic = "auto", Sweep(hand)
     elif args.demo:
         mode, logic = "auto", Demo(hand)
@@ -357,11 +379,12 @@ def main():
             print("[info] no gamepad found - use the viewer's Control panel sliders (right side).")
 
     if args.headless:
-        if mode != "auto":
-            sys.exit("--headless needs --sweep or --demo")
+        if mode not in ("auto", "hold"):
+            sys.exit("--headless needs --sweep, --demo or --pose")
         dt, worst = m.opt.timestep, 0.0
         while d.time < args.headless:
-            logic.update(dt)
+            if logic:
+                logic.update(dt)
             hand.apply(d, dt)
             mujoco.mj_step(m, d)
             if not np.all(np.isfinite(d.qpos)):
@@ -382,7 +405,7 @@ def main():
                 logic.update(pad.read(), dt)
             elif mode == "auto":
                 logic.update(dt)
-            if mode != "sliders":
+            if mode not in ("sliders",):
                 hand.apply(d, dt)
 
             if d.time < sim0:                                    # viewer reset (Backspace)

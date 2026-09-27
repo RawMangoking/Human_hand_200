@@ -1,0 +1,76 @@
+base: fore_arm_1
+expand: [index_assem, Middle_Finger, Ring_finger, Pinky_finger, Thumb_finger]
+joints:
+- {parent: fore_arm_1, child: wrist_1, type: revolute, lower: -0.17453, upper: 0.17453}
+- parent: wrist_1
+  child: human_hand_v3_2__Palm_1
+  type: revolute
+  lower: -1.0
+  upper: 1.0
+  axis_point: [0.784962, 1.062206, 1.23933]
+  axis_dir: [-0.0, 1.0, -0.0]
+- {parent: human_hand_v3_2__Palm_1, child: human_hand_v3_2__Thumb_finger_1__Thumb_Base_1,
+  type: revolute, lower: 0.0, upper: 1.0}
+- parent: human_hand_v3_2__Thumb_finger_1__Thumb_Base_1
+  child: human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1
+  type: revolute
+  lower: 0.0
+  upper: 1.0
+  axis_point: [0.760532, 1.135325, 1.290685]
+  axis_dir: [-0.476687, -0.353553, 0.804841]
+- {parent: human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1, child: human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1,
+  type: revolute, lower: 0.0, upper: 1.4}
+- {parent: human_hand_v3_2__Palm_1, child: human_hand_v3_2__index_assem_2__Index_Proximal_1,
+  type: revolute, lower: 0.0, upper: 1.57}
+- {parent: human_hand_v3_2__index_assem_2__Index_Proximal_1, child: human_hand_v3_2__index_assem_2__Index_Middle_1,
+  type: revolute, lower: 0.0, upper: 1.75}
+- {parent: human_hand_v3_2__index_assem_2__Index_Middle_1, child: human_hand_v3_2__index_assem_2__Index_Distal_1,
+  type: revolute, lower: 0.0, upper: 1.22}
+- {parent: human_hand_v3_2__Palm_1, child: human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5,
+  type: revolute, lower: 0.0, upper: 1.57}
+- {parent: human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5, child: human_hand_v3_2__Middle_Finger_1__Middle_Middle_4,
+  type: revolute, lower: 0.0, upper: 1.75}
+- {parent: human_hand_v3_2__Middle_Finger_1__Middle_Middle_4, child: human_hand_v3_2__Middle_Finger_1__Middle_Distal_4,
+  type: revolute, lower: 0.0, upper: 1.22}
+- parent: human_hand_v3_2__Palm_1
+  child: human_hand_v3_2__Ring_finger_1__Ring_Proximal_1
+  type: revolute
+  lower: 0.0
+  upper: 1.57
+  axis_point: [0.786462, 1.166206, 1.228449]
+  axis_dir: [0.136491, -0.0, -0.990641]
+- parent: human_hand_v3_2__Ring_finger_1__Ring_Proximal_1
+  child: human_hand_v3_2__Ring_finger_1__Ring_Middle_1
+  type: revolute
+  lower: 0.0
+  upper: 1.75
+  axis_point: [0.757741, 1.195198, 1.224492]
+  axis_dir: [0.136491, -0.0, -0.990641]
+- parent: human_hand_v3_2__Ring_finger_1__Ring_Middle_1
+  child: human_hand_v3_2__Ring_finger_1__Ring_Distal_1
+  type: revolute
+  lower: 0.0
+  upper: 1.22
+  axis_point: [0.732975, 1.195198, 1.22108]
+  axis_dir: [0.136491, -0.0, -0.990641]
+- parent: human_hand_v3_2__Palm_1
+  child: human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1
+  type: revolute
+  lower: 0.0
+  upper: 1.57
+  axis_point: [0.788918, 1.166206, 1.210618]
+  axis_dir: [0.136491, -0.0, -0.990641]
+- parent: human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1
+  child: human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1
+  type: revolute
+  lower: 0.0
+  upper: 1.75
+  axis_point: [0.766503, 1.188834, 1.207529]
+  axis_dir: [0.136491, -0.0, -0.990641]
+- parent: human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1
+  child: human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1
+  type: revolute
+  lower: 0.0
+  upper: 1.22
+  axis_point: [0.748671, 1.188834, 1.205072]
+  axis_dir: [0.136491, -0.0, -0.990641]

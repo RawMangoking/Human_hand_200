@@ -57,8 +57,8 @@
       "closed": 0.17453,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 11.755586,
-      "force": 5.877793
+      "kp": 11.761899,
+      "force": 5.880949
     },
     "wrist_1__human_hand_v3_2__Palm_1": {
       "actuator": "act_wrist_1__human_hand_v3_2__Palm_1",
@@ -72,8 +72,8 @@
       "closed": 1.0,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 8.4429,
-      "force": 4.22145
+      "kp": 11.747758,
+      "force": 5.873879
     },
     "human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1": {
       "actuator": "act_human_hand_v3_2__Palm_1__human_hand_v3_2__Thumb_finger_1__Thumb_Base_1",
@@ -87,8 +87,8 @@
       "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.191696,
-      "force": 0.095848
+      "kp": 0.152963,
+      "force": 0.076481
     },
     "human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1": {
       "actuator": "act_human_hand_v3_2__Thumb_finger_1__Thumb_Base_1__human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1",
@@ -237,8 +237,8 @@
       "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.243014,
-      "force": 0.121507
+      "kp": 0.243011,
+      "force": 0.121506
     },
     "human_hand_v3_2__Ring_finger_1__Ring_Proximal_1__human_hand_v3_2__Ring_finger_1__Ring_Middle_1": {
       "actuator": "act_human_hand_v3_2__Ring_finger_1__Ring_Proximal_1__human_hand_v3_2__Ring_finger_1__Ring_Middle_1",
@@ -252,8 +252,8 @@
       "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.047168,
-      "force": 0.023584
+      "kp": 0.047171,
+      "force": 0.023585
     },
     "human_hand_v3_2__Ring_finger_1__Ring_Middle_1__human_hand_v3_2__Ring_finger_1__Ring_Distal_1": {
       "actuator": "act_human_hand_v3_2__Ring_finger_1__Ring_Middle_1__human_hand_v3_2__Ring_finger_1__Ring_Distal_1",
@@ -282,7 +282,7 @@
       "closed": 1.5708,
       "neutral": 0.0,
       "sign": 1,
-      "kp": 0.108991,
+      "kp": 0.108992,
       "force": 0.054496
     },
     "human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1__human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1": {

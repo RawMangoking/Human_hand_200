@@ -24,6 +24,7 @@ Usage:
     python fix_axes.py <pkg_dir> --reset --write   # after a re-extract: drop old overrides, recompute
 """
 import argparse
+import math
 import glob
 import os
 import shutil
@@ -75,11 +76,54 @@ def point_on_axis(ents, d):
     return lps[0] if lps else None
 
 
+def perpendicular_axes(rec, parent, child, ref=None, prefer=None):
+    """Universal joint in CAD = point Coincident + Perpendicular between an axis fixed in the
+    parent and an axis fixed in the child (and NO axis-to-axis Coincident). Returns
+    (bend, sideways, how) or None. The BEND axis is the one closest to `ref` (the next joint's
+    hinge, e.g. the thumb IP - it bends in the same plane); `prefer` = "parent"/"child" forces it."""
+    last = lambda s: str(s or "").split("/")[-1]
+    mates = (rec or {}).get("mates") or []
+    if any(m.get("type") == "COINCIDENT" and sum(et in (1, 2, 4) for et in m.get("etypes", [])) >= 2
+           for m in mates):
+        return None                                   # a real axis-to-axis hinge: not a universal joint
+    for m in mates:
+        if m.get("type") != "PERPENDICULAR":
+            continue
+        owners = list(m.get("owners") or []) + [""] * 4
+        ents = [(owners[i], unit(d)) for i, (et, d) in enumerate(zip(m.get("etypes", []), m.get("dirs", [])))
+                if et in (1, 2, 4)]
+        if len(ents) != 2 or ents[0][1] is None or ents[1][1] is None:
+            continue
+        own = [last(o) for o, _ in ents]
+        k_par = own.index(last(parent.name)) if last(parent.name) in own else \
+            (1 - own.index(last(child.name)) if last(child.name) in own else None)
+        if prefer in ("parent", "child") and k_par is not None:
+            k = k_par if prefer == "parent" else 1 - k_par
+            how = f"{prefer}-side axis (--uj-bend {prefer})"
+        elif ref is not None:
+            k = max((0, 1), key=lambda i: abs(float(ents[i][1] @ ref)))
+            side = "" if k_par is None else (" = parent-side" if k == k_par else " = child-side")
+            how = f"axis closest to the next joint's hinge{side}"
+        elif k_par is not None:
+            k, how = k_par, "parent-side axis"
+        else:
+            continue
+        return ents[k][1], ents[1 - k][1], f"Perpendicular mate (universal joint): {how}"
+    return None
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("pkg_dir")
     ap.add_argument("--config", help="joints yaml (default: <pkg_dir>/*.joints.yaml)")
     ap.add_argument("--write", action="store_true", help="write proposed axes into the yaml")
+    ap.add_argument("--ref-axis", action="append", default=[], metavar="CHILD=AXIS",
+                    help="take a joint's axis from a reference axis drawn in the TOP assembly (Hand_forearm). "
+                         "CHILD = part of the joint's child link name, AXIS = the reference axis name, e.g. "
+                         "Thumb_Proximal_1=thumb_mcp_flex. Repeatable.")
+    ap.add_argument("--uj-bend", choices=["auto", "parent", "child"], default="auto",
+                    help="universal joints: which Perpendicular-mate axis is the BEND axis (default auto = "
+                         "the one closest to the next joint's hinge)")
+    ap.add_argument("--list-axes", action="store_true", help="list the top-assembly reference axes in the extract")
     ap.add_argument("--reset", action="store_true",
                     help="ignore (and with --write, remove) every axis_point/axis_dir already in the yaml. "
                          "Use after a re-extract: overrides are world coordinates and go stale if the CAD moved")
@@ -139,6 +183,17 @@ def main():
                 d["note"] = geo[2] if geo else "no usable mate geometry"
         info.append(d)
 
+    # universal joints (point + Perpendicular, no axis-to-axis Coincident): always take the axis from
+    # the mate, even if sw2robot's classifier returned some axis of its own for the pair
+    for d in info:
+        if d["rec"] is None or d["entry"].get("type", "fixed") == "fixed":
+            continue
+        if perpendicular_axes(d["rec"], d["parent"], d["child"], ref=np.array([1.0, 0.0, 0.0])) is None:
+            continue
+        if d["status"] in ("sw2robot finds it", None):
+            d["sw_axis"] = d["axis"]
+            d["axis"], d["status"], d["uj"] = None, None, True
+
     by_child = {d["child"].name: d for d in info if d["child"]}
     by_parent = {}
     for d in info:
@@ -168,8 +223,13 @@ def main():
             prv = by_child.get(d["parent"].name)
             prv_ax = axis_of(prv)
             dirs = line_dirs(ents)
+            uj = perpendicular_axes(d["rec"], d["parent"], d["child"], nxt[0] if nxt else None,
+                                    None if args.uj_bend == "auto" else args.uj_bend)
 
-            if len(dirs) == 1:
+            if uj is not None:
+                d["sideways"] = uj[1]
+                prop[id(d)] = (centre, uj[0], f"{uj[2]} = BEND axis")
+            elif len(dirs) == 1:
                 prop[id(d)] = (point_on_axis(ents, dirs[0]), dirs[0], "from the mated reference axis")
             elif len(dirs) > 1:
                 ref = nxt[0] if nxt else prv_ax
@@ -190,6 +250,32 @@ def main():
                     prop[id(d)] = (centre, ax, "guess: perpendicular to the previous joint (2-DOF wrist)")
             if id(d) not in prop and pts:
                 prop[id(d)] = (centre, None, "only a point is mated - direction unknown")
+
+    # ---- joints whose axis is taken from a CAD reference axis (top assembly)
+    ref_axes = {str(a.name): a for a in (getattr(graph, "reference_axes", None) or [])}
+    if args.list_axes:
+        print("\ntop-assembly reference axes in this extract:")
+        for nm, a in ref_axes.items():
+            print(f"   {nm:<30} point {mm(a.document_point)}  dir {np.round(unit(a.document_direction), 3).tolist()}")
+        if not ref_axes:
+            print("   (none - create them in Hand_forearm.SLDASM itself, then re-extract)")
+    forced = []
+    for spec in args.ref_axis:
+        key, _, axname = spec.partition("=")
+        hits = [d for d in info if d["child"] is not None and d["entry"].get("type") != "fixed"
+                and key.lower() in (d["child"].link_name + " " + d["child"].name).lower()]
+        if len(hits) != 1:
+            sys.exit(f"--ref-axis: '{key}' matches {len(hits)} joints (child link names) - be more specific")
+        if axname not in ref_axes:
+            sys.exit(f"--ref-axis: no top-assembly reference axis named '{axname}'. "
+                     f"Available: {sorted(ref_axes) or 'none'}")
+        a = ref_axes[axname]
+        d = hits[0]
+        d["axis"], d["status"] = None, None
+        prop[id(d)] = (np.asarray(a.document_point, float), unit(a.document_direction),
+                       f"CAD reference axis '{axname}'")
+        forced.append(d)
+        print(f"[ref-axis] {d['entry'].get('parent')} -> {d['entry'].get('child')}  <-  '{axname}'")
 
     # ---- report
     print(f"\nconfig: {cfg_path}\n")
@@ -222,11 +308,26 @@ def main():
                 print(f"         axis_point: {np.round(pt, 6).tolist()}")
             if ax is not None:
                 print(f"         axis_dir:   {np.round(ax, 6).tolist()}")
+            nx = [n for n in by_parent.get(d["child"].name, []) if axis_of(n) is not None]
+            if d.get("uj") and ax is not None and nx:
+                ipa = axis_of(nx[0])
+                a1 = math.degrees(math.acos(min(1.0, abs(float(ax @ ipa)))))
+                a2 = (math.degrees(math.acos(min(1.0, abs(float(d["sideways"] @ ipa)))))
+                      if d.get("sideways") is not None else float("nan"))
+                print(f"         vs next joint's hinge: bend axis {a1:.1f} deg, sideways axis {a2:.1f} deg "
+                      f"(bend should be the small one)")
+            if d.get("sw_axis") is not None and ax is not None:
+                print(f"         (sw2robot had picked {np.round(d['sw_axis'], 3).tolist()}, "
+                      f"{math.degrees(math.acos(min(1.0, abs(float(d['sw_axis'] @ ax))))):.1f} deg off - replaced)")
+            if d.get("sideways") is not None:
+                ang_ = math.degrees(math.acos(min(1.0, abs(float(d["sideways"] @ ax))))) if ax is not None else 0
+                print(f"         sideways axis: {np.round(d['sideways'], 4).tolist()}  "
+                      f"[{ang_:.1f} deg to the bend axis] -> added in MuJoCo with --add-axis")
         print()
 
     if args.write:
         n = 0
-        for d in todo:
+        for d in todo + [f for f in forced if f not in todo]:
             p = prop.get(id(d))
             if p and p[0] is not None and p[1] is not None:
                 d["entry"]["axis_point"] = [round(float(x), 6) for x in p[0]]
