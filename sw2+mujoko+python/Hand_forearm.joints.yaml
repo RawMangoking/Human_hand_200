@@ -1,0 +1,123 @@
+base: fore_arm_1
+
+# substrings of the SolidWorks instance names ("human hand v3-2/index_assem-2"),
+# case-insensitive -- no "_1"/"-1" suffix, so hyphen vs underscore can't break it
+expand:
+  - index_assem
+  - Middle_Finger
+  - Ring_finger
+  - Pinky_finger
+  - Thumb_finger
+
+
+joints:
+
+  # Forearm -> Wrist ball -> Palm   (2-DOF wrist, both hinges through the ball centre)
+  - parent: fore_arm_1
+    child: wrist_1
+    type: revolute
+    lower: -0.17453    # wrist tilt  -10 deg  (LimitAngle, forearm <-> ball)
+    upper: 0.17453     # wrist tilt  +10 deg
+
+  - parent: wrist_1
+    child: human_hand_v3_2__Palm_1
+    type: revolute
+    lower: -1.0        # wrist flexion - SET FROM YOUR LimitAngle (ball <-> palm), radians
+    upper: 1.0
+
+  # Thumb   (CMC, MCP, IP)
+  # MCP lateral (2nd axis of Thumb_Base -> Thumb_Proximal) is added in MuJoCo:
+  #   add_actuators.py ... --add-axis "Thumb_Proximal_1@LO,HI"   (degrees, from your LimitAngle)
+  - parent: human_hand_v3_2__Palm_1
+    child: human_hand_v3_2__Thumb_finger_1__Thumb_Base_1
+    type: revolute
+    lower: 0.0
+    upper: 1.0         # ~ 57 deg
+
+  - parent: human_hand_v3_2__Thumb_finger_1__Thumb_Base_1
+    child: human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.0         # ~ 57 deg
+
+  - parent: human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1
+    child: human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1
+    type: revolute
+    lower: 0.0
+    upper: 1.4         # ~ 80 deg
+
+  # Index   (MCP 0-90, PIP 0-100, DIP 0-70 deg)
+  - parent: human_hand_v3_2__Palm_1
+    child: human_hand_v3_2__index_assem_2__Index_Proximal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.57
+
+  - parent: human_hand_v3_2__index_assem_2__Index_Proximal_1
+    child: human_hand_v3_2__index_assem_2__Index_Middle_1
+    type: revolute
+    lower: 0.0
+    upper: 1.75
+
+  - parent: human_hand_v3_2__index_assem_2__Index_Middle_1
+    child: human_hand_v3_2__index_assem_2__Index_Distal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.22
+
+  # Middle
+  - parent: human_hand_v3_2__Palm_1
+    child: human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5
+    type: revolute
+    lower: 0.0
+    upper: 1.57
+
+  - parent: human_hand_v3_2__Middle_Finger_1__Middle_Proximal_5
+    child: human_hand_v3_2__Middle_Finger_1__Middle_Middle_4
+    type: revolute
+    lower: 0.0
+    upper: 1.75
+
+  - parent: human_hand_v3_2__Middle_Finger_1__Middle_Middle_4
+    child: human_hand_v3_2__Middle_Finger_1__Middle_Distal_4
+    type: revolute
+    lower: 0.0
+    upper: 1.22
+
+  # Ring
+  - parent: human_hand_v3_2__Palm_1
+    child: human_hand_v3_2__Ring_finger_1__Ring_Proximal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.57
+
+  - parent: human_hand_v3_2__Ring_finger_1__Ring_Proximal_1
+    child: human_hand_v3_2__Ring_finger_1__Ring_Middle_1
+    type: revolute
+    lower: 0.0
+    upper: 1.75
+
+  - parent: human_hand_v3_2__Ring_finger_1__Ring_Middle_1
+    child: human_hand_v3_2__Ring_finger_1__Ring_Distal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.22
+
+  # Pinky
+  - parent: human_hand_v3_2__Palm_1
+    child: human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.57
+
+  - parent: human_hand_v3_2__Pinky_finger_1__Pinky_Proximal_1
+    child: human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1
+    type: revolute
+    lower: 0.0
+    upper: 1.75
+
+  - parent: human_hand_v3_2__Pinky_finger_1__Pinky_Middle_1
+    child: human_hand_v3_2__Pinky_finger_1__Pinky_Distal_1
+    type: revolute
+    lower: 0.0
+    upper: 1.22
