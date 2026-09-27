@@ -1,0 +1,47 @@
+<mujoco model="Full_door_v4">
+  <compiler angle="radian" autolimits="true" meshdir="assets" />
+  <option gravity="0 0 -9.81" />
+  <default>
+    <geom contype="2" conaffinity="1" />
+  </default>
+  <asset>
+    <mesh name="base_1_0" file="base_1_0.stl" />
+    <mesh name="frame_1_1" file="frame_1_1.stl" />
+    <mesh name="base_1_2" file="base_1_2.stl" />
+    <mesh name="frame_1_3" file="frame_1_3.stl" />
+    <mesh name="door_1_4" file="door_1_4.stl" />
+    <mesh name="door_1_5" file="door_1_5.stl" />
+    <mesh name="handle_1_6" file="handle_1_6.stl" />
+    <mesh name="handle_1_7" file="handle_1_7.stl" />
+  </asset>
+  <worldbody>
+    <light pos="0 0 3" dir="0 0 -1" directional="true" />
+    <geom name="ground" type="plane" size="5 5 0.1" contype="1" conaffinity="1" rgba="0.8 0.8 0.8 1" />
+    <body name="base_link" pos="0 0 0">
+      <inertial pos="2.42414859 0.0329652537 -2.41922137" mass="761.0029" diaginertia="1584.72055 1586.45336 3126.73575" quat="0.707106781 -0.707106781 -1.19558371e-12 1.27586002e-12" />
+      <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="base_1_0" rgba="1 0.960784314 0.792156863 1" name="base_link_visual0" />
+      <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="frame_1_1" rgba="0 0.0745098039 0.203921569 1" name="base_link_visual1" />
+      <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="base_1_2" rgba="0.4 0.4 0.4 1" name="base_link_collision0" />
+      <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="frame_1_3" rgba="0.4 0.4 0.4 1" name="base_link_collision1" />
+      <body name="door_1" pos="2.83414862 2.04122844 -2.41922145" quat="1 0 0 0">
+        <joint name="frame_1__door_1" pos="0 0 0" axis="0 1 0" type="hinge" range="-1.5708 1.5708" damping="3.18471338" />
+        <inertial pos="-0.398768882 -0.999967493 7.66035453e-08" mass="63.6858" diaginertia="3.40195999 21.3416 24.7266" quat="0.707096695 -2.7015042e-18 3.66035943e-18 -0.707116867" />
+        <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="door_1_4" rgba="0.482352941 0.231372549 0.0156862745 1" name="door_1_visual0" />
+        <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="door_1_5" rgba="0.4 0.4 0.4 1" name="door_1_collision0" />
+        <body name="handle_1" pos="-0.649576 -1.006495 0" quat="1 0 0 0">
+          <joint name="door_1__handle_1" pos="0 0 0" axis="0 0 1" type="hinge" range="0 1.5708" damping="3.18471338" />
+          <inertial pos="0.0649770021 0.000694055277 0.000244761311" mass="4.71892" diaginertia="0.0136081708 0.332434311 0.342418818" quat="0.695615976 0.714169734 0.053557581 -0.0566709053" />
+          <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="handle_1_6" rgba="0.501960784 0.501960784 0.501960784 1" name="handle_1_visual0" />
+          <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="handle_1_7" rgba="0.4 0.4 0.4 1" name="handle_1_collision0" />
+        </body>
+      </body>
+    </body>
+  </worldbody>
+  <actuator>
+    <position name="frame_1__door_1_act" joint="frame_1__door_1" kp="50" ctrlrange="-1.5708 1.5708" forcerange="-10 10" />
+    <position name="door_1__handle_1_act" joint="door_1__handle_1" kp="50" ctrlrange="0 1.5708" forcerange="-10 10" />
+  </actuator>
+  <keyframe>
+    <key name="home" qpos="0 0" />
+  </keyframe>
+</mujoco>

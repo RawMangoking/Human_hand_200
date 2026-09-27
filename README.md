@@ -1,6 +1,6 @@
 # Human Hand + Door — SolidWorks, sw2robot, and MuJoCo Documentation
 
-> **Project status (2026-09-27, evening):** Current model **`Mujoko/Hand_forearm_v5`** (updated dimensions): all **17 CAD joints** + thumb MCP sideways hinge = **18 position actuators**; 2-DOF ball-centre wrist; thumb MCP modelled as a **universal joint** (Perpendicular mate) with its bend axis from CAD; every finger/thumb joint reads **0° = straight → 90° = bent**; forearm stands vertical. Control by gamepad, sliders, saved poses and a **keyboard mode that moves the whole arm** (§8.3). The combined Hand + Door scene still uses the old 15-joint hand and must be regenerated (§35.8).
+> **Project status (2026-09-28):** **Hand** — `Mujoko/Hand_forearm_v5`: 17 CAD joints + thumb MCP sideways hinge = **18 position actuators**, 2-DOF ball-centre wrist, thumb MCP universal joint, every finger/thumb joint 0° = straight → 90° = bent, gamepad / sliders / saved poses / keyboard arm control (§8). **Door** — `Mujoko/Full_door_v4`: passive door (hinge + handle) built from `Full_door_v4.SLDASM`, upright, correct masses, handle return spring, handle ↔ frame solid collision, scripted scene and **manual keyboard control** (§37). Next: put the hand in front of the door (§37.9).
 >
 > **Pipeline:** SolidWorks → sw2robot (extract + build) → `drop_angle_mates.py` / `fix_axes.py` → MJCF → `add_actuators.py` → `hand_controller.py`. Full commands in §35.3.
 >
@@ -52,18 +52,27 @@ Human_Hand_200mm/
 ├── 07_Assembly/
 │   └── Human_Hand.SLDASM
 ├── Door/
-│   └── Full_door_v3.SLDASM
+│   ├── Full_door_v3.SLDASM          (previous)
+│   └── Full_door_v4.SLDASM          ← current door: base, frame, door, handle
 ├── Macro/
 ├── Hand_forearm.SLDASM              ← integrated forearm + wrist ball + hand (top assembly)
 ├── human hand v3.SLDASM             ← hand assembly used by Hand_forearm
 ├── sw2+mujoko+python/               ← export / simulation tools (§36)
-│   ├── drop_angle_mates.py
-│   ├── fix_axes.py
-│   ├── add_actuators.py
-│   ├── hand_controller.py
-│   └── Hand_forearm.joints.yaml     ← repo copy of the live sw2robot joint config
+│   ├── drop_angle_mates.py          hand + door: remove LimitAngle records from graph.json
+│   ├── fix_axes.py                  hand + door: joint axes from the mates
+│   ├── add_actuators.py             hand: actuators, anatomical zero, upright
+│   ├── hand_controller.py           hand: gamepad / keyboard / poses
+│   ├── check_pose.py                hand: part-by-part pose comparison
+│   ├── door_setup.py                door: upright, masses, passive joints, handle-frame collision, checks
+│   ├── door_scene.py                door: scripted push/turn/open scene + manual keyboard control
+│   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
+│   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
+│   └── output/                      ← sw2robot packages (generated, in .gitignore)
 ├── Mujoko/
-│   ├── Hand_forearm_v4/             ← CURRENT hand model (18 actuators)
+│   ├── Hand_forearm_v5/             ← CURRENT hand model (18 actuators; same layout as v4)
+│   ├── Full_door_v4/                ← CURRENT door model
+│   │   └── mjcf/  Full_door_v4.xml (export), Full_door_v4_sim.xml (use this), door_config.json, assets/
+│   ├── Hand_forearm_v4/             ← previous hand model (18 actuators)
 │   │   ├── mjcf/
 │   │   │   ├── Hand_forearm.xml             sw2robot export (untouched)
 │   │   │   ├── Hand_forearm_actuated.xml    add_actuators.py output — use this one
@@ -1314,6 +1323,11 @@ MuJoCo     = simulation implementation
 - [x] Door dimensions 2.0 × 0.8 × 0.04 m, wood 600 kg/m³, mass 38.4 kg verified
 - [x] Door exported through sw2robot (hinge + handle joints)
 - [x] Door root rotated +90° about X so the door is vertical in MuJoCo
+- [x] **v4 door**: Full_door_v4 exported, hinge + handle axes from the v4 mates (§37)
+- [x] Passive door: hinge damping/friction, handle return spring preloaded against its weight
+- [x] Handle ↔ frame solid collision (frame as boxes on the real frame faces), overlap diagnostics
+- [x] `--check` / `--sweep` joint verification, scripted push → turn → open scene, manual keyboard control
+- [ ] CAD strike hole if the handle overlaps the frame at rest (§37.5)
 
 ## Combined simulation
 
@@ -1942,6 +1956,21 @@ git push origin main
 
 Do not force-add files merely to bypass `.gitignore` without first checking whether the repository is intended to track generated STL assets.
 
+## Commit the door work (2026-09-28)
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm"
+git status
+git add README.md
+git add "sw2+mujoko+python/door_setup.py" "sw2+mujoko+python/door_scene.py" "sw2+mujoko+python/fix_axes.py"
+git add "sw2+mujoko+python/Full_door_v4.joints.yaml"
+git add "Mujoko/Full_door_v4/"
+git add Door/
+git status
+git commit -m "Door v4 in MuJoCo: upright, masses, passive hinge + handle spring, solid handle-frame collision, scene + manual control"
+git push origin main
+```
+
 ## Commit this session (2026-09-27)
 
 ```powershell
@@ -2186,9 +2215,157 @@ python check_pose.py <mjcf folder> [--pair PARENT CHILD]
 
 Compares each part's rotation relative to its parent in the raw sw2robot export (CAD pose) and in the actuated model's start pose; **TWIST** = any rotation not about the joint's own hinge axes (should be 0).
 
-## 36.6 PowerShell notes
+## 36.6 `door_setup.py`
+
+```text
+python door_setup.py <Full_door_v4.xml> [options]      -> Full_door_v4_sim.xml + door_config.json (same folder)
+  --mass PART=KG               set a part's mass, inertia scaled with it (door=38.4, handle=0.5)
+  --handle-hits-frame          frame collision rebuilt as boxes matching the real frame (jambs, header),
+                               handle <-> frame collision always ON, constraint latch removed
+  --pocket                     with --handle-hits-frame: cut a pocket where the CAD handle passes through the frame
+  --up y|hinge|plate           which direction becomes vertical (default y = SolidWorks up)
+  --door-damping / --door-friction / --handle-spring / --handle-damping   door feel
+  --unlock-deg / --no-latch / --keep-latch                                constraint latch options
+python door_setup.py <Full_door_v4_sim.xml> --check    measure hinge + handle: axis, pivot, range, collisions
+python door_setup.py <Full_door_v4_sim.xml> --sweep    animate both joints through their ranges
+python door_setup.py <Full_door_v4_sim.xml> --view-only
+```
+
+## 36.7 `door_scene.py`
+
+```text
+python door_scene.py <Full_door_v4_sim.xml>            scripted: PUSH (handle hits frame) -> TURN (lever vertical) -> OPEN
+python door_scene.py <sim.xml> --once                  run it once
+python door_scene.py <sim.xml> --manual                drive the door and handle yourself (§37.6)
+  --open-dir 1|-1   --push N*m   --door-speed rad/s   --turn-speed deg/s   --push-time s   --pause s
+```
+
+## 36.8 PowerShell notes
 
 - `<...>` in instructions is a placeholder — PowerShell treats `<` as an operator. Use the `$pkg` / `$dst` variables.
 - Run the scripts from `sw2+mujoko+python`, or give their full path.
 - An option like `--only "…"` only works at the end of a command, never on its own line.
 - Downloaded script files land in `Downloads` — copy them into `sw2+mujoko+python` (check with `python <script> -h`).
+- Start `sw2robot-web.exe` from `sw2+mujoko+python`, so packages go to `sw2+mujoko+python\output\`. Stop it with Ctrl+C when the extraction is done (it keeps a hidden SolidWorks running).
+- A `Traceback … KeyboardInterrupt / time.sleep` after Ctrl+C or closing a viewer is normal.
+
+
+# 37. Session — 2026-09-28: Door (`Full_door_v4`) in MuJoCo
+
+## 37.1 CAD
+
+Assembly `Door/Full_door_v4.SLDASM`, parts `base`, `frame`, `door`, `handle`. Mates (10):
+
+| Pair | Mates | Joint |
+|---|---|---|
+| base ↔ frame | Coincident1 (plane), Coincident2 (point), Coincident3 (axis) | fixed |
+| frame ↔ door | Coincident5 (hinge point), Coincident7 (hinge axis, SolidWorks Y = vertical), LimitAngle1 | **hinge** (vertical) |
+| door ↔ handle | Coincident8 (handle centre), Coincident9 (axis through the door), LimitAngle2 | **handle** (turns in the door plane) |
+
+The mate report we first used was titled **Full_door_v3**; in v4 the door is turned 90° relative to v3, so v3's axis numbers must not be used for v4 (§37.3, problem 5). Parts have no material in CAD → masses are set by `door_setup.py`.
+
+## 37.2 Pipeline
+
+```powershell
+# 1. SolidWorks: open Door\Full_door_v4.SLDASM -> File -> Save All -> close SolidWorks
+# 2. extract (browser: open ...\Door\Full_door_v4.SLDASM -> extract; then Ctrl+C here)
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
+sw2robot-web.exe
+
+# 3. build + set up (new PowerShell window)
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
+$pkg = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\output\Full_door_v4"
+$mj  = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\output\Full_door_v4_mjcf"
+$dst = "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\Mujoko\Full_door_v4"
+$yml = "$pkg\Full_door_v4.joints.yaml"
+
+Copy-Item ".\Full_door_v4.joints.yaml" $yml -Force
+python drop_angle_mates.py $pkg
+python fix_axes.py $pkg --reset --from-mates door_1 --from-mates handle_1 --write
+python -m sw2robot.exporter.build $pkg --config $yml --mujoco --mujoco-fixed-base
+New-Item -ItemType Directory $dst -Force | Out-Null
+Copy-Item "$mj\*" $dst -Recurse -Force
+
+python door_setup.py "$dst\mjcf\Full_door_v4.xml" --mass door=38.4 --mass handle=0.5 --handle-hits-frame
+python door_setup.py "$dst\mjcf\Full_door_v4_sim.xml" --check
+python door_scene.py "$dst\mjcf\Full_door_v4_sim.xml" --manual
+```
+
+`Full_door_v4.joints.yaml`: `base: base_1`; `base_1 → frame_1` fixed; `frame_1 → door_1` revolute; `door_1 → handle_1` revolute. The axes/pivots are written into it by `fix_axes.py --from-mates` from the **v4** mates (not typed in by hand).
+
+## 37.3 Problems found and fixes
+
+| # | Symptom | Root cause | Fix |
+|---|---|---|---|
+| 1 | Viewer showed a white/black split screen | Camera inside the (large, light) base plate | **Align** in the viewer; correct upright (#2) |
+| 2 | Base and door parallel, door lying flat | Model was stood up by the hinge axis, which came out wrong (LimitAngle), and later by the "flattest" base direction, which the merged frame spoils | `door_setup.py` stands the model up by **SolidWorks Y** (`--up y`, default) and warns if the hinge is not vertical |
+| 3 | Hinge axis wrong in the export | LimitAngle mates read as rigid (same as the hand) | `drop_angle_mates.py` + `fix_axes.py --from-mates` |
+| 4 | Handle axis `[0,0,1]` vs mate `(-1,0,0)` | LimitAngle2 compares two **opposite** lines → sw2robot cannot derive an axis from it | axis taken from the handle's own coincident axis mate (`--from-mates handle_1`) |
+| 5 | Handle turned in the wrong plane (swung out of the door) | Axes typed in from the **v3** mate report; v4's door is turned 90° | removed; `--from-mates` reads the v4 mates |
+| 6 | Door jammed at the hinge while swinging | MuJoCo does not filter parent/child contacts when the parent (frame) is fixed to the world | frame ↔ door contact always excluded |
+| 7 | Handle sagged ~8° under its own weight | return spring too weak for the handle's weight | spring **preloaded** so the handle rests level (`[handle] … sag … spring preloaded`) |
+| 8 | Handle "collided" with the frame everywhere / passed through it | MuJoCo collides meshes as their **convex hull**; the U-shaped frame's hull fills the door opening | frame collision rebuilt as **boxes matching the real frame** (`--handle-hits-frame`) |
+| 9 | Door flung open at the start ("moved 90 deg by itself") | Handle's convex hull overlapping the frame boxes at rest → shoved apart | boxes fitted to the real frame faces; overlap measured and reported; pocket (optional) built from the handle's **hull** |
+| 10 | Handle "partially merged" with the frame | Pocket = invisible hole in the frame; the visible frame has no hole | **solid frame by default**; pocket only with `--pocket` |
+| 11 | Door not blocked / handle stuck | In the CAD the handle's end sits inside the frame (like a latch bolt without a strike hole) | CAD fix §37.5, or `--pocket` |
+
+## 37.4 Door model settings (`door_setup.py`)
+
+| Item | Value |
+|---|---|
+| Door mass | 38.4 kg (2.0 × 0.8 × 0.04 m wood, 600 kg/m³) — `--mass door=38.4` |
+| Handle mass | 0.5 kg — `--mass handle=0.5` |
+| Hinge | passive, damping 2 N·m·s/rad, friction 0.5 N·m, armature 0.01; range from LimitAngle1 |
+| Handle | return spring 4 N·m/rad (preloaded against its weight), damping 0.02; range from LimitAngle2 (0 → 90°) |
+| Collision | handle ↔ frame **solid** (frame = boxes on the real frame faces); door ↔ frame off; door ↔ handle off (parent/child) |
+| Latch | physical (handle hits frame) with `--handle-hits-frame`; constraint latch (door locked until the handle turns 30°) otherwise |
+| Sensors | `door_angle`, `handle_angle` (jointpos) |
+| Orientation | SolidWorks Y → world Z, base resting on z = 0 |
+
+`door_config.json` stores the hinge / handle joint names and latch settings for the scene and later scenes.
+
+## 37.5 Handle ↔ frame: making both solid
+
+`door_setup.py` measures whether the **CAD** handle intersects the real frame:
+
+```text
+[frame-boxes] ... SOLID frame, exactly the real shape (no pockets); the handle is clear of the frame at every handle angle
+   -> good: the handle stops against the real frame face, nothing passes through
+[frame-boxes] ... WARNING: the CAD handle OVERLAPS the frame with the door closed (at rest);
+                  turning the handle with the door closed hits the frame between A and B deg
+   -> two solid parts cannot start inside each other: fix in CAD
+```
+
+CAD fix (a strike hole, exactly like a real latch): with the door closed and the handle at rest, edit **frame** in context → Insert → Features → **Cavity** → design component = **handle**. Repeat at a few handle angles (e.g. 30°, 60°, 90°) to clear its turning path. Save All, re-extract, rerun §37.2. Door ↔ handle overlap is fine (they never collide).
+
+## 37.6 Manual control (`door_scene.py --manual`)
+
+A small **"Door manual control"** window opens next to the viewer — click it, then hold:
+
+| Key | Action |
+|---|---|
+| W / ↑ | push the door open (while held) |
+| S / ↓ | push it closed |
+| D / → | turn the handle + (stays where you leave it) |
+| A / ← | turn the handle − |
+| Space | let go of the handle (its spring returns it) |
+| R | reset |
+| Esc | quit |
+
+The window shows the door and handle angles and **whether the handle is touching the frame** (red when it is); the terminal prints each time it starts / stops touching. The viewer shows contact points and force arrows where the handle meets the frame.
+
+## 37.7 Scripted scene (`door_scene.py`)
+
+`PUSH` (2 s push → the handle hits the frame, door stops) → `TURN` (handle to vertical; the angle is computed from the handle geometry) → `OPEN` (door swings to 90 % of its limit) → pause → repeat. Before pushing it checks that nothing moves by itself (an overlap) and prints what overlaps. Options §36.7.
+
+## 37.8 Verification
+
+1. `--check`: hinge `0.0 deg from vertical`, door centre ≈ 400 mm from the hinge line; handle `90 deg from vertical`, `≈0 deg from the door's face normal`, pivot ≈ 1005 mm high and ≈ 650 mm from the hinge line.
+2. `door_setup`: `[handle-frame] handle <-> frame collision ON, no overlap with the door closed`; no `WARNING`.
+3. `--manual`: W alone → the door stops with "handle touching the frame"; D until vertical → W opens the door.
+
+## 37.9 Next steps
+
+1. CAD strike hole (§37.5) if the setup reports an overlap.
+2. Combined scene: v5 hand (keyboard mode, soft-welded arm) in front of the door; hand grips and turns the handle, pushes the door.
+3. Fingertip friction for gripping the handle; scripted reach → grip → turn → push from saved poses.

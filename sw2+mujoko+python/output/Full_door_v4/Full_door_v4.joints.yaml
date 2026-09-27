@@ -1,0 +1,13 @@
+base: base_1
+joints:
+- {parent: base_1, child: frame_1, type: fixed}
+- parent: frame_1
+  child: door_1
+  type: revolute
+  axis_point: [2.205004, 4.254602, 3.575355]
+  axis_dir: [0.0, 1.0, 0.0]
+- parent: door_1
+  child: handle_1
+  type: revolute
+  axis_point: [1.555428, 3.248107, 3.575355]
+  axis_dir: [0.0, 0.0, 1.0]

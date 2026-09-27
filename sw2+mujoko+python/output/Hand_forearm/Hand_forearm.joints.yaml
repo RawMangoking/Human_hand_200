@@ -16,8 +16,8 @@ joints:
   type: revolute
   lower: 0.0
   upper: 1.0
-  axis_point: [0.77043, 1.136232, 1.292575]
-  axis_dir: [-0.706872, 0.024768, 0.706907]
+  axis_point: [0.787323, 1.124557, 1.310992]
+  axis_dir: [0.0, 0.009285, 0.999957]
 - {parent: human_hand_v3_2__Thumb_finger_1__Thumb_Proximal_1, child: human_hand_v3_2__Thumb_finger_1__Thumb_Distal_v2_1,
   type: revolute, lower: 0.0, upper: 1.4}
 - {parent: human_hand_v3_2__Palm_1, child: human_hand_v3_2__index_assem_2__Index_Proximal_1,

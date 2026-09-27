@@ -1,0 +1,21 @@
+# sw2robot joint config for Door/Full_door_v4.SLDASM
+# The hinge / handle axes + pivots are filled in from the v4 mates by:
+#   python fix_axes.py $pkg --reset --from-mates door_1 --from-mates handle_1 --write
+base: base_1
+
+joints:
+
+  # base plate and frame are one rigid piece
+  - parent: base_1
+    child: frame_1
+    type: fixed
+
+  # door hinge (vertical axis), LimitAngle1
+  - parent: frame_1
+    child: door_1
+    type: revolute
+
+  # handle (axis through the door), LimitAngle2
+  - parent: door_1
+    child: handle_1
+    type: revolute

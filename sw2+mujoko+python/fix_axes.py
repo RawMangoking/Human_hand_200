@@ -123,6 +123,9 @@ def main():
     ap.add_argument("--uj-bend", choices=["auto", "parent", "child"], default="auto",
                     help="universal joints: which Perpendicular-mate axis is the BEND axis (default auto = "
                          "the one closest to the next joint's hinge)")
+    ap.add_argument("--from-mates", action="append", default=[], metavar="CHILD",
+                    help="always take this joint's axis + pivot from its own coincident mates (point + axis), even if "
+                         "sw2robot found an axis. CHILD = part of the joint's child link name, e.g. handle_1. Repeatable.")
     ap.add_argument("--list-axes", action="store_true", help="list the top-assembly reference axes in the extract")
     ap.add_argument("--reset", action="store_true",
                     help="ignore (and with --write, remove) every axis_point/axis_dir already in the yaml. "
@@ -194,6 +197,18 @@ def main():
             d["sw_axis"] = d["axis"]
             d["axis"], d["status"], d["uj"] = None, None, True
 
+    # --from-mates: force the axis from the joint's own coincident point + axis mates
+    for key in args.from_mates:
+        hits = [d for d in info if d["child"] is not None and d["entry"].get("type") != "fixed"
+                and key.lower() in (d["child"].link_name + " " + d["child"].name).lower()]
+        if len(hits) != 1:
+            sys.exit(f"--from-mates: '{key}' matches {len(hits)} joints (child link names)")
+        d = hits[0]
+        if d["rec"] is None:
+            sys.exit(f"--from-mates: no mates between {d['entry'].get('parent')} and {d['entry'].get('child')}")
+        d["sw_axis"] = d["axis"]
+        d["axis"], d["status"], d["force_mates"] = None, None, True
+
     by_child = {d["child"].name: d for d in info if d["child"]}
     by_parent = {}
     for d in info:
@@ -222,6 +237,14 @@ def main():
             nxt = [a for a in (axis_of(n) for n in by_parent.get(d["child"].name, [])) if a is not None]
             prv = by_child.get(d["parent"].name)
             prv_ax = axis_of(prv)
+            if d.get("force_mates"):
+                coinc = [e for e in ents if e[0] == "COINCIDENT"]
+                cd = line_dirs(coinc)
+                if len(cd) == 1:
+                    prop[id(d)] = (point_on_axis(coinc, cd[0]), cd[0], "--from-mates: the joint's own coincident axis")
+                else:
+                    prop[id(d)] = (centre, None, f"--from-mates: {len(cd)} coincident axes found - can't choose")
+                continue
             dirs = line_dirs(ents)
             uj = perpendicular_axes(d["rec"], d["parent"], d["child"], nxt[0] if nxt else None,
                                     None if args.uj_bend == "auto" else args.uj_bend)
@@ -327,7 +350,8 @@ def main():
 
     if args.write:
         n = 0
-        for d in todo + [f for f in forced if f not in todo]:
+        extra = [f for f in forced if f not in todo] + [x for x in info if x.get("force_mates") and x not in todo]
+        for d in todo + extra:
             p = prop.get(id(d))
             if p and p[0] is not None and p[1] is not None:
                 d["entry"]["axis_point"] = [round(float(x), 6) for x in p[0]]

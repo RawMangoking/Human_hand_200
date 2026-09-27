@@ -1,0 +1,8 @@
+{
+  "model": "Full_door_v4_sim.xml",
+  "hinge": "frame_1__door_1",
+  "handle": "door_1__handle_1",
+  "latch": null,
+  "unlock_deg": 30.0,
+  "physical_latch": true
+}

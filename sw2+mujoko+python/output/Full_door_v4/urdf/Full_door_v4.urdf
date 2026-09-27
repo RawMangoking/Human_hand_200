@@ -1,0 +1,109 @@
+<?xml version="1.0"?>
+<robot name="Full_door_v4">
+  <link name="base_link">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/base_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/base_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="2.424148588 0.015 -2.419221369" rpy="0 0 0"/>
+      <mass value="750"/>
+      <inertia ixx="1562.56" ixy="-7.2656e-16" ixz="1.96684e-13" iyy="3125" iyz="1.72406e-32" izz="1562.56"/>
+    </inertial>
+  </link>
+  <link name="door_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="-0.763791747 -1.939518938 7.660354528e-08" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/door_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="-0.763791747 -1.939518938 7.660354528e-08" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/door_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="-0.3987688816 -0.999967493 7.660354529e-08" rpy="0 0 0"/>
+      <mass value="63.6858"/>
+      <inertia ixx="21.3416" ixy="-0.000511785" ixz="3.04542e-17" iyy="3.40196" iyz="-2.89149e-17" izz="24.7266"/>
+    </inertial>
+  </link>
+  <link name="frame_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/frame_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="../meshes/frame_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.4143391744 1.150299942 -1.015840752e-18" rpy="0 0 0"/>
+      <mass value="11.0029"/>
+      <inertia ixx="5.41856" ixy="-1.96193e-15" ixz="3.81825e-17" iyy="1.73575" iyz="-3.01733e-17" izz="7.15137"/>
+    </inertial>
+  </link>
+  <link name="handle_1">
+    <!-- sw2robot density="1000" inertia="solidworks" -->
+    <visual>
+      <origin xyz="0.01172216706 0.01284020232 -0.0008536955068" rpy="0 0 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/handle_1.3dxml"/>
+      </geometry>
+    </visual>
+    <collision>
+      <origin xyz="0.01172216706 0.01284020232 -0.0008536955068" rpy="0 0 1.570796327"/>
+      <geometry>
+        <mesh filename="../meshes/handle_1.3dxml"/>
+      </geometry>
+    </collision>
+    <inertial>
+      <origin xyz="0.06497700206 0.0006940552766 0.0002447613108" rpy="0 0 0"/>
+      <mass value="4.71892"/>
+      <inertia ixx="0.0213153" ixy="0.000802451" ixz="0.0489625" iyy="0.34241" iyz="0.00014147" izz="0.324736"/>
+    </inertial>
+  </link>
+  <joint name="base_1__frame_1" type="fixed">
+    <origin xyz="2.009809414 0.1072461282 -2.419221369" rpy="0 0 0"/>
+    <parent link="base_link"/>
+    <child link="frame_1"/>
+    <axis xyz="0 1 0"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: geo: fully constrained -->
+  </joint>
+  <joint name="frame_1__door_1" type="revolute">
+    <origin xyz="0.8243392043 1.933982309 -7.660354617e-08" rpy="0 0 0"/>
+    <parent link="frame_1"/>
+    <child link="door_1"/>
+    <axis xyz="0 1 0"/>
+    <limit lower="-1.5708" upper="1.5708" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: limit mate (SolidWorks slider/hinge) -->
+  </joint>
+  <joint name="door_1__handle_1" type="revolute">
+    <origin xyz="-0.649576 -1.006495 0" rpy="0 0 0"/>
+    <parent link="door_1"/>
+    <child link="handle_1"/>
+    <axis xyz="0 0 1"/>
+    <limit lower="0" upper="1.5708" effort="10" velocity="3.14"/>
+    <!-- mates: COINCIDENT, COINCIDENT, COINCIDENT, COINCIDENT -->
+    <!-- sw2robot-note: limit mate (SolidWorks slider/hinge) -->
+  </joint>
+</robot>
