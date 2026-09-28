@@ -65,6 +65,8 @@ Human_Hand_200mm/
 │   ├── check_pose.py                hand: part-by-part pose comparison
 │   ├── door_setup.py                door: upright, masses, passive joints, handle-frame collision, checks
 │   ├── door_scene.py                door: scripted push/turn/open scene + manual keyboard control
+│   ├── door_env.py                  RL: Gymnasium env, hand + door, tasks reach / handle / door (§38)
+│   ├── train_policy.py              RL: SAC training / playback with stable-baselines3
 │   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
 │   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
 │   └── output/                      ← sw2robot packages (generated, in .gitignore)
@@ -1956,6 +1958,17 @@ git push origin main
 
 Do not force-add files merely to bypass `.gitignore` without first checking whether the repository is intended to track generated STL assets.
 
+## Commit the RL environment
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm"
+git add README.md "sw2+mujoko+python/door_env.py" "sw2+mujoko+python/train_policy.py" "sw2+mujoko+python/door_setup.py" "sw2+mujoko+python/door_scene.py"
+git add "Mujoko/Full_door_v4/"
+git status          # sw2+mujoko+python/output/, runs/ and policies/ should not be listed
+git commit -m "Gymnasium env: hand + door scene, tasks reach/handle/door, coupled middle-ring-pinky; handle stays upright"
+git push origin main
+```
+
 ## Commit the door work (2026-09-28)
 
 ```powershell
@@ -2226,6 +2239,8 @@ python door_setup.py <Full_door_v4.xml> [options]      -> Full_door_v4_sim.xml +
   --up y|hinge|plate           which direction becomes vertical (default y = SolidWorks up)
   --door-damping / --door-friction / --handle-spring / --handle-damping   door feel
   --unlock-deg / --no-latch / --keep-latch                                constraint latch options
+  --handle-stays               no return spring: the handle stays where it is turned (weightless + light friction)
+  --flip-handle / --handle-range LO HI                                    handle direction / range
 python door_setup.py <Full_door_v4_sim.xml> --check    measure hinge + handle: axis, pivot, range, collisions
 python door_setup.py <Full_door_v4_sim.xml> --sweep    animate both joints through their ranges
 python door_setup.py <Full_door_v4_sim.xml> --view-only
@@ -2369,3 +2384,79 @@ The window shows the door and handle angles and **whether the handle is touching
 1. CAD strike hole (§37.5) if the setup reports an overlap.
 2. Combined scene: v5 hand (keyboard mode, soft-welded arm) in front of the door; hand grips and turns the handle, pushes the door.
 3. Fingertip friction for gripping the handle; scripted reach → grip → turn → push from saved poses.
+
+
+# 38. RL environment — `door_env.py` (Gymnasium, MuJoCo)
+
+## 38.1 What it is
+
+One MuJoCo scene built at start-up from the two models you already have:
+
+```text
+hand : Mujoko/Hand_forearm_v5/mjcf/Hand_forearm_actuated.xml + hand_config.json   (add_actuators.py)
+door : Mujoko/Full_door_v4/mjcf/Full_door_v4_sim.xml        + door_config.json    (door_setup.py)
+```
+
+All names get a prefix (`hand/…`, `door/…`), mesh paths are made absolute, the source files are not changed; the merged model is also written to `Mujoko/Hand_Door_env/scene.xml`. The arm floats on a **soft weld to a mocap target** (as in keyboard mode), so it collides and pushes physically. It is placed automatically: palm facing the door, in front of the handle.
+
+## 38.2 Tasks and actions (all actions in [-1, 1], 25 Hz control, sim 500 Hz)
+
+| Task | Goal | Actions | Size |
+|---|---|---|---|
+| `reach` | palm to the handle (< 4 cm) | arm_pos (3), arm_rot (3) | 6 |
+| `handle` | grasp and turn the handle ≥ 80 % | arm_pos (3), arm_rot (3), wrist (2), index, mrp, thumb, opp | 12 |
+| `door` | handle already turned: door ≥ 60° | arm_pos (3), grip | 4 |
+
+* `arm_pos`: target moves ≤ 1 cm / step; `arm_rot`: ≤ 3° / step (world axes); 5 cm leash to the real arm
+* `wrist`: flexion, tilt across their ranges; `index`, `thumb`: curl 0 → 1; `opp`: thumb CMC
+* **`mrp` = middle + ring + pinky coupled** (one action → all 9 joints, via the curl mapping of `hand_config.json`); `grip` = index + mrp + thumb
+* Coupling is done in the action mapping (every joint keeps its own actuator); a tendon-driven version can be added if the real hand uses one motor for these fingers.
+
+**Env latch:** the door is held closed (both directions) until the handle reaches 80 % of its travel, so the agent cannot open the door without turning the handle (the physical handle ↔ frame stop only blocks one direction).
+
+## 38.3 Observations (flat vector)
+
+palm → handle vector (3), palm x / z axes (6), hand joint angles normalised (18), door & handle angle + velocity (4), fingertip-on-handle contacts (5), palm-on-handle contact (1), arm target offset (3), previous action.
+
+## 38.4 Rewards
+
+* reach: −distance + 5 × distance improvement; +10 on success
+* handle: 10 × handle-turn progress − 0.5 × distance + 0.05 per fingertip / palm contact; +10 at ≥ 80 %
+* door: 5 × door-angle progress + 0.02 while touching the handle; +10 at 60°
+* all: −0.01 × |action|²
+
+## 38.5 Door behaviour used by the env
+
+Build the door with **`--handle-stays`** so the handle stays where it is turned (upright stays upright):
+
+```powershell
+python door_setup.py "$dst\mjcf\Full_door_v4.xml" --mass door=38.4 --mass handle=0.5 --handle-hits-frame --flip-handle --handle-stays
+```
+
+It removes the return spring, makes the handle weightless (`gravcomp`) with 0.1 N·m friction: it holds exactly at 0, 20, 45, 70, 90° and a gentle 0.5 N·m turns it.
+
+## 38.6 Commands
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
+python -m pip install gymnasium stable-baselines3 tensorboard
+
+python door_env.py --task reach --check          # gymnasium env checker
+python door_env.py --task reach --scripted       # hand-written baseline in the viewer
+python door_env.py --task handle --scripted
+python door_env.py --task door --scripted
+python door_env.py --task reach                  # random actions
+
+python train_policy.py --task reach --steps 200000
+python train_policy.py --task reach --play
+tensorboard --logdir runs
+```
+
+Stand-in test results: all three tasks pass the checker; scripted baselines solve reach (~28 steps), handle (~17 steps, 88–97 %, door stays shut), door (~77 steps, 60°); random actions do not.
+
+## 38.7 Next steps
+
+1. Train `reach` → `handle` → `door`; start `handle` / `door` episodes from the end states of the previous policy.
+2. A switcher: palm within 4 cm → handle policy; handle ≥ 80 % → door policy.
+3. If the real hand uses one cable motor for middle+ring+pinky: switch `mrp` to a MuJoCo tendon (adaptive grip).
+4. Randomise door mass, handle friction and the arm start pose for robustness.
