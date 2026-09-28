@@ -499,6 +499,10 @@ def main():
                     help="set a part's mass (scales its inertia too), e.g. door=38.4. Repeatable.")
     ap.add_argument("--hinge", help="door hinge joint (default: the joint that moves the 'door' part)")
     ap.add_argument("--handle", help="handle joint (default: the joint that moves the 'handle' part)")
+    ap.add_argument("--flip-handle", action="store_true",
+                    help="make the handle turn the OTHER way (mirrors its range about the rest position)")
+    ap.add_argument("--handle-range", nargs=2, type=float, metavar=("LO", "HI"),
+                    help="handle range in degrees from its rest position, e.g. -90 0 (overrides the exported one)")
     ap.add_argument("--door-damping", type=float, default=2.0, help="hinge damping N*m*s/rad (default 2)")
     ap.add_argument("--door-friction", type=float, default=0.5, help="hinge friction N*m (default 0.5)")
     ap.add_argument("--handle-spring", type=float, default=4.0, help="handle return spring N*m/rad (default 4)")
@@ -560,6 +564,21 @@ def main():
         print(f"[joint] {n:<28} range [{math.degrees(lo):7.1f}, {math.degrees(hi):7.1f}] deg  ({lim})")
         if not m.jnt_limited[j] or hi - lo > 2 * math.pi - 0.01:
             print(f"        ! set real limits for {n} (LimitAngle) in the joints yaml and rebuild")
+
+    # ---- handle direction / range
+    if args.flip_handle or args.handle_range:
+        q0h = float(m.qpos0[m.jnt_qposadr[jd]])
+        lo, hi = (float(x) for x in m.jnt_range[jd])
+        if args.handle_range:
+            lo, hi = q0h + math.radians(args.handle_range[0]), q0h + math.radians(args.handle_range[1])
+        if args.flip_handle:
+            lo, hi = q0h - (hi - q0h), q0h - (lo - q0h)
+        el_h = find(root, "joint", handle)
+        el_h.set("range", fmt(ang(min(lo, hi)), ang(max(lo, hi))))
+        el_h.set("limited", "true")
+        print(f"[handle] range set to [{math.degrees(min(lo, hi) - q0h):.0f}, {math.degrees(max(lo, hi) - q0h):.0f}] deg "
+              f"from its rest position" + ("  (flipped: it now turns the other way)" if args.flip_handle else ""))
+        m = compile_tree(tree, workdir)
 
     # ---- masses
     for spec in args.mass:

@@ -34,6 +34,17 @@ except Exception:
     mjviewer = None
 
 
+def show_contacts(v, m, forces=False, markers=True):
+    """Contact markers sized in real millimetres (MuJoCo scales them by the model's mean size, which a big
+    base plate makes huge). Force arrows only on request."""
+    ms = max(float(m.stat.meansize), 1e-6)
+    v.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = bool(markers)
+    v.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTFORCE] = bool(forces)
+    m.vis.scale.contactwidth = 0.008 / ms          # 8 mm dot
+    m.vis.scale.contactheight = 0.002 / ms         # 2 mm thick
+    m.vis.scale.forcewidth = 0.004 / ms            # 4 mm arrow
+    m.vis.map.force = 0.0005                       # 100 N -> 5 cm
+
 def lever_vertical_angle(m, d, jd):
     """Handle angle (joint value) at which the lever (pivot -> handle centre) points straight up or
     down; the one inside the joint range, closest to the rest pose."""
@@ -189,6 +200,9 @@ class Manual:
         self.push, self.turn = push, math.radians(turn_speed)
         self.target = sc.d0                                    # handle target (held where you leave it)
         self.hold = False
+        lo, hi = m.jnt_range[sc.jd]
+        # D always turns the handle toward its open side (works for clockwise and anticlockwise handles)
+        self.open_sign = 1.0 if (hi - sc.d0) >= (sc.d0 - lo) else -1.0
 
     def apply(self, held, once, dt):
         m, d, sc = self.m, self.d, self.sc
@@ -209,7 +223,7 @@ class Manual:
         if turn:
             self.hold = True
             lo, hi = m.jnt_range[sc.jd]
-            self.target = float(np.clip(self.target + turn * self.turn * dt, lo, hi))
+            self.target = float(np.clip(self.target + self.open_sign * turn * self.turn * dt, lo, hi))
         if self.hold:
             e = self.target - d.qpos[sc.qd]
             spring = m.jnt_stiffness[sc.jd] * (d.qpos[sc.qd] - m.qpos_spring[sc.qd])
@@ -234,7 +248,7 @@ class Manual:
 class DoorKeys:
     HELP = ["CLICK THIS WINDOW, then hold:",
             "W / Up      push the door open        S / Down   push it closed",
-            "D / Right   turn the handle +         A / Left   turn the handle -",
+            "D / Right   turn the handle open      A / Left   turn it back",
             "Space       let go of the handle      R reset     Esc quit"]
 
     def __init__(self):
@@ -285,9 +299,7 @@ def run_manual(m, d, sc, args):
     last_touch = None
     with mjviewer.launch_passive(m, d) as v:
         with v.lock():
-            v.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = True
-            v.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTFORCE] = True
-            m.vis.map.force = 0.02
+            show_contacts(v, m, args.show_forces, not args.no_markers)
         wall0, sim0 = time.perf_counter(), d.time
         while v.is_running():
             now = time.perf_counter()
@@ -329,6 +341,8 @@ def main():
     ap.add_argument("--hold-time", type=float, default=2.0, help="pause when open before restarting (default 2)")
     ap.add_argument("--push-while-turning", action="store_true", help="keep pushing the door while the handle turns")
     ap.add_argument("--once", action="store_true", help="run the sequence once")
+    ap.add_argument("--show-forces", action="store_true", help="also draw contact force arrows (small)")
+    ap.add_argument("--no-markers", action="store_true", help="no contact markers at all")
     ap.add_argument("--manual", action="store_true",
                     help="drive the door and handle yourself with the keyboard (small extra window)")
     ap.add_argument("--headless", action="store_true", help="no window (with --once: prints the result)")
@@ -383,9 +397,7 @@ def main():
         sys.exit("mujoco.viewer unavailable")
     with mjviewer.launch_passive(m, d) as v:
         with v.lock():                                   # show where the handle hits the frame
-            v.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTPOINT] = True
-            v.opt.flags[mujoco.mjtVisFlag.mjVIS_CONTACTFORCE] = True
-            m.vis.map.force = 0.02
+            show_contacts(v, m, args.show_forces, not args.no_markers)
         wall0, sim0 = time.perf_counter(), d.time
         while v.is_running():
             now = time.perf_counter()
