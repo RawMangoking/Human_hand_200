@@ -55,9 +55,9 @@
       </geometry>
     </collision>
     <inertial>
-      <origin xyz="0.4143391744 1.150299942 -1.015840752e-18" rpy="0 0 0"/>
+      <origin xyz="0.4143391744 1.150299942 -9.237893445e-19" rpy="0 0 0"/>
       <mass value="11.0029"/>
-      <inertia ixx="5.41856" ixy="-1.96193e-15" ixz="3.81825e-17" iyy="1.73575" iyz="-3.01733e-17" izz="7.15137"/>
+      <inertia ixx="5.41856" ixy="-1.96193e-15" ixz="3.81825e-17" iyy="1.73575" iyz="-3.03558e-17" izz="7.15137"/>
     </inertial>
   </link>
   <link name="handle_1">
@@ -75,9 +75,9 @@
       </geometry>
     </collision>
     <inertial>
-      <origin xyz="0.06497700206 0.0006940552766 0.0002447613108" rpy="0 0 0"/>
-      <mass value="4.71892"/>
-      <inertia ixx="0.0213153" ixy="0.000802451" ixz="0.0489625" iyy="0.34241" iyz="0.00014147" izz="0.324736"/>
+      <origin xyz="0.01484852579 0.0005857387807 -0.004583736264" rpy="0 0 0"/>
+      <mass value="4.29491"/>
+      <inertia ixx="0.0200097" ixy="0.000548099" ixz="0.0373946" iyy="0.220325" iyz="0.000116557" izz="0.203765"/>
     </inertial>
   </link>
   <joint name="base_1__frame_1" type="fixed">

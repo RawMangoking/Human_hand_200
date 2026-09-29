@@ -1,0 +1,173 @@
+\documentclass[12pt,a4paper]{report}
+
+\usepackage[left=1.5in,right=1in,top=1in,bottom=1in]{geometry}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{longtable}
+\usepackage{setspace}
+\usepackage{url}
+
+\onehalfspacing
+\renewcommand{\arraystretch}{1.2}
+
+\begin{document}
+
+\begin{center}
+    {\LARGE \textbf{Review 2 -- Literature Survey and Research Gap}}\\[0.5em]
+    {\large RL-Based Humanoid Robot Arm}\\[0.5em]
+    \textbf{Narenkarthik Kesavoorthy \quad Naren Kumar C \quad Lakshmi Narayanan P}
+\end{center}
+
+\section{Project Title}
+
+\textbf{Reinforcement Learning for Generalized Door Manipulation Using Domain Randomization and Modular Task-Specific Policies}
+
+\section{Problem Statement}
+
+Reinforcement learning can learn manipulation policies directly from interaction with a simulated environment. However, a policy trained under one fixed physical configuration can become specialized to the conditions encountered during training. In door manipulation, variations in properties such as door dynamics, handle interaction, friction, and initial configuration can affect the behaviour required from the robot.
+
+At the same time, an anthropomorphic hand has a relatively large number of controllable joints. Allowing a single reinforcement learning policy to control the complete hand can increase the dimensionality of the action space and consequently increase the difficulty of learning.
+
+This project investigates a simulation-based approach that addresses both issues by combining domain-randomized training with modular task-specific policies. Instead of requiring every policy to control the complete hand, each policy controls only the degrees of freedom required for its corresponding manipulation stage.
+
+\section{Motivation}
+
+The project is motivated by two challenges in reinforcement-learning-based robotic manipulation:
+
+\begin{enumerate}
+    \item \textbf{Generalization:} A policy trained on a single door configuration may learn behaviour that is specialized to that configuration. Domain randomization provides a way to expose the policy to a range of physical conditions during training and evaluate whether this improves performance on previously unseen configurations.
+
+    \item \textbf{Scalability of high-DOF control:} Anthropomorphic hands contain many joints, but a particular manipulation stage may require only a subset of them. A modular approach can assign different policies to different stages and restrict each policy to the joints relevant to that stage. This reduces the effective action-space dimensionality of each learning problem.
+\end{enumerate}
+
+The project therefore studies whether a combination of domain randomization and task-specific control can provide a scalable approach to simulated door manipulation.
+
+\section{Literature Survey}
+
+\subsection{A Versatile Door Opening System with Mobile Manipulator through Adaptive Position-Force Control and Reinforcement Learning}
+
+This work investigates autonomous door opening using a mobile manipulator. The system considers different door and handle conditions and combines adaptive position-force control with reinforcement learning. The study demonstrates that reinforcement learning can be incorporated into a versatile door-opening system rather than being restricted to one specific door configuration.
+
+The work is directly relevant to the proposed project because it establishes door opening as a reinforcement-learning-based manipulation problem. However, its primary focus is on developing a versatile door-opening system, whereas the proposed work focuses on a controlled comparison of training distributions and a modular policy architecture.
+
+\subsection{Learning Adaptive Manipulation of Objects with Revolute Joint: A Case Study on Varied Cabinet Doors Opening}
+
+This work studies manipulation of objects with revolute joints using varied cabinet doors as a case study. The approach incorporates environment information and adaptation to handle variation between door configurations.
+
+The paper demonstrates that RL-based manipulation can be extended beyond a single fixed articulated object. This is relevant to the proposed work because door variation is also central to our evaluation. The distinction is that our experiment explicitly compares a policy trained under a fixed configuration against a policy trained with domain-randomized physical conditions on the same held-out test configurations.
+
+\subsection{Domain Randomization for Transferring Deep Neural Networks from Simulation to the Real World}
+
+Tobin et al. introduced domain randomization as a method for training models under a distribution of simulated conditions rather than relying on a single simulated environment. The central idea is that exposing a model to sufficiently diverse simulated appearances or conditions can improve robustness to conditions not encountered exactly during training.
+
+This work provides the foundation for using randomized simulation conditions in the proposed project. While the original work is not specifically a door-manipulation study, its domain-randomization principle motivates the comparison between fixed-condition and randomized-condition training.
+
+\subsection{Learning Complex Dexterous Manipulation with Deep Reinforcement Learning and Demonstrations}
+
+Rajeswaran et al. investigate deep reinforcement learning for complex dexterous manipulation using a high-degree-of-freedom anthropomorphic hand. The work demonstrates that reinforcement learning can be applied to complex hand manipulation and investigates the use of demonstrations to improve learning.
+
+This paper is relevant to the proposed project because it illustrates the difficulty and capability of learning with a high-DOF dexterous hand. The proposed work differs in that the hand is not necessarily controlled by a single policy over all available joints. Instead, the manipulation task is decomposed into multiple policies, with each policy controlling only the joints needed for its particular stage.
+
+\section{Literature Comparison}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{p{3.3cm} p{3.4cm} p{3.4cm} p{3.6cm}}
+\toprule
+\textbf{Work} & \textbf{Main focus} & \textbf{Variation / robustness} & \textbf{Relation to proposed work} \\
+\midrule
+A Versatile Door Opening System & RL and adaptive control for door opening & Different door and handle conditions & Establishes RL-based versatile door manipulation \\
+\midrule
+Yu et al. & Adaptive manipulation of revolute-joint objects & Varied cabinet doors & Demonstrates adaptation to varied articulated objects \\
+\midrule
+Tobin et al. & Domain randomization & Randomized simulation conditions & Provides the basis for randomized training \\
+\midrule
+Rajeswaran et al. & High-DOF dexterous manipulation & Complex anthropomorphic hand manipulation & Demonstrates RL for high-DOF hand control \\
+\midrule
+\textbf{Proposed work} & \textbf{Door manipulation using modular RL policies} & \textbf{Fixed vs domain-randomized training; unseen test configurations} & \textbf{Studies generalization and task-specific action-space reduction} \\
+\bottomrule
+\end{tabular}
+\caption{Comparison of selected related works with the proposed approach.}
+\end{table}
+
+\section{Research Gap Identification}
+
+The reviewed papers establish several important components relevant to the project. Reinforcement learning has been used for door opening, adaptive manipulation has been studied for varied articulated objects, domain randomization has been proposed for robustness to variation, and deep reinforcement learning has been demonstrated for high-DOF anthropomorphic-hand manipulation.
+
+However, these works do not directly establish the exact controlled experimental setup proposed in this project. In particular, there is scope for studying the effect of \textbf{training-condition diversity} on the generalization of an anthropomorphic-hand policy to unseen articulated-door configurations while keeping the robot, task, learning algorithm, and evaluation procedure controlled.
+
+A second gap concerns the \textbf{effective action-space dimensionality}. A complete anthropomorphic hand contains many controllable joints, but every stage of a door-manipulation task does not necessarily require all of them. There is scope for investigating whether decomposing the task into multiple policies, with each policy controlling only the degrees of freedom required for its stage, can make reinforcement learning more scalable.
+
+Therefore, the proposed research does not claim that previous work has not used reinforcement learning for varied doors. Instead, it investigates the combination of:
+
+\begin{enumerate}
+    \item controlled fixed-condition versus domain-randomized training,
+    \item evaluation on the same unseen door configurations, and
+    \item modular policies with task-specific action spaces.
+\end{enumerate}
+
+\section{Gap-to-Motivation Mapping}
+
+\begin{table}[h!]
+\centering
+\small
+\begin{tabular}{p{4.2cm} p{4.2cm} p{5.0cm}}
+\toprule
+\textbf{Observed limitation / gap} & \textbf{Motivation} & \textbf{Proposed investigation} \\
+\midrule
+A policy trained under a fixed physical configuration may become specialized to that configuration. & Test whether training-condition diversity improves generalization. & Compare a fixed-training policy with a domain-randomized policy on identical unseen door configurations. \\
+\midrule
+High-DOF hand control increases the action-space dimensionality of RL. & Reduce the learning problem presented to each policy. & Use three policies, with each policy controlling only the joints required for its manipulation stage. \\
+\midrule
+Existing door-opening studies demonstrate versatility but use different system architectures and experimental objectives. & Isolate the effects of training distribution and policy decomposition. & Keep the robot, task and evaluation framework controlled while comparing the proposed training and policy configurations. \\
+\bottomrule
+\end{tabular}
+\caption{Mapping of identified research gaps to project motivation and proposed investigation.}
+\end{table}
+
+\section{Research Question}
+
+\begin{quote}
+\textbf{Does domain-randomized training improve the generalization of an anthropomorphic-hand reinforcement learning system to unseen articulated-door configurations compared with training on a fixed door configuration, and can task-specific modular policies reduce the effective action-space dimensionality of the learning problem?}
+\end{quote}
+
+\section{Proposed Experimental Approach}
+
+The proposed system will use three reinforcement learning policies. Each policy will control only the degrees of freedom required for its corresponding stage rather than controlling the entire anthropomorphic hand.
+
+The policies will be evaluated as part of the complete door-manipulation sequence. The exact allocation of joints to each policy will follow the manipulation requirements of the final simulated environment.
+
+For the generalization experiment, two training conditions will be compared:
+
+\begin{enumerate}
+    \item \textbf{Fixed-condition training:} the policy is trained using a fixed door configuration.
+    \item \textbf{Domain-randomized training:} the policy is trained while selected physical and environmental parameters are randomized.
+\end{enumerate}
+
+Both policies will then be evaluated on the same set of previously unseen door configurations. This provides a controlled comparison of whether exposure to a wider range of conditions during training affects generalization.
+
+Potential evaluation measures include task success rate, task completion time, final door-opening angle, failure rate, cumulative reward, and training behaviour. Training cost or convergence behaviour can also be compared when sufficient experimental data is available.
+
+\section{Expected Contribution}
+
+The project aims to provide:
+
+\begin{enumerate}
+    \item A simulated anthropomorphic hand and articulated-door manipulation environment.
+    \item A modular reinforcement-learning architecture using task-specific policies and reduced action spaces.
+    \item A controlled comparison between fixed-condition and domain-randomized training.
+    \item Quantitative evaluation of generalization on unseen door configurations.
+    \item An experimental assessment of whether task-specific policies provide a more scalable learning setup for high-DOF hand manipulation.
+\end{enumerate}
+
+The project will not assume in advance that domain randomization or modular policies will perform better. Their effectiveness will be determined from the experimental results.
+
+\section{Conclusion}
+
+The literature indicates that reinforcement learning has already been applied to door opening and dexterous manipulation, while domain randomization provides an established approach for training under variable simulated conditions. The proposed work builds on these directions by focusing on a controlled experimental comparison between fixed and randomized training and by decomposing the manipulation problem into task-specific policies.
+
+The resulting research question is therefore not whether reinforcement learning can open a door, but whether \textbf{the way the RL training environment and action space are structured affects generalization and scalability in anthropomorphic-hand door manipulation}.
+
+\end{document}

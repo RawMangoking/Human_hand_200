@@ -30,7 +30,7 @@
         <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="door_1_5" rgba="0.4 0.4 0.4 1" name="door_1_collision0" />
         <body name="handle_1" pos="-0.649576 -1.006495 0" quat="1 0 0 0">
           <joint name="door_1__handle_1" pos="0 0 0" axis="0 0 1" type="hinge" range="0 1.5708" damping="3.18471338" />
-          <inertial pos="0.0649770021 0.000694055277 0.000244761311" mass="4.71892" diaginertia="0.0136081708 0.332434311 0.342418818" quat="0.695615976 0.714169734 0.053557581 -0.0566709053" />
+          <inertial pos="0.0148485258 0.000585738781 -0.00458373626" mass="4.29491" diaginertia="0.0126900083 0.211078195 0.220331497" quat="0.695487062 0.71203068 0.0665233428 -0.0698906455" />
           <geom pos="0 0 0" quat="1 0 0 0" group="2" contype="0" conaffinity="0" type="mesh" mesh="handle_1_6" rgba="0.501960784 0.501960784 0.501960784 1" name="handle_1_visual0" />
           <geom pos="0 0 0" quat="1 0 0 0" group="3" type="mesh" mesh="handle_1_7" rgba="0.4 0.4 0.4 1" name="handle_1_collision0" />
         </body>
