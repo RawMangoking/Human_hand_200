@@ -5,7 +5,13 @@
 > **Pipeline:** SolidWorks → sw2robot (extract + build) → `drop_angle_mates.py` / `fix_axes.py` → MJCF → `add_actuators.py` → `hand_controller.py`. Full commands in §35.3.
 >
 > **Source of truth:** SolidWorks CAD defines the intended geometry, assembly relationships, reference geometry, and joint limits. MuJoCo is used for simulation physics, contacts, actuators, and control.
+## Team
+Capstone project, B.Tech CSE, Shiv Nadar University Chennai
+- @RawMangoking
+- @narenkumarchandran
+- @plan28-06
 
+Mentor: Dr. Priya GL
 ---
 
 ## 1. Project Overview
