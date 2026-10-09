@@ -67,6 +67,7 @@ Human_Hand_200mm/
 │   ├── door_scene.py                door: scripted push/turn/open scene + manual keyboard control
 │   ├── door_env.py                  RL: Gymnasium env, hand + door, tasks reach / handle / door (§38)
 │   ├── train_policy.py              RL: SAC training / playback with stable-baselines3
+│   ├── env_tests.py                 RL: environment test battery (PASS/FAIL report)
 │   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
 │   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
 │   └── output/                      ← sw2robot packages (generated, in .gitignore)
@@ -2454,7 +2455,47 @@ tensorboard --logdir runs
 
 Stand-in test results: all three tasks pass the checker; scripted baselines solve reach (~28 steps), handle (~17 steps, 88–97 %, door stays shut), door (~77 steps, 60°); random actions do not.
 
-## 38.7 Next steps
+## 38.7 Collisions, arm force limit, start pose
+
+| Pair | Collides |
+|---|---|
+| hand ↔ hand | no (parts may overlap) — `--self-collision` to turn on |
+| hand ↔ door / handle / frame / floor | yes — stiff contacts (overlap < 1 mm when pushing) |
+| handle ↔ frame | yes (solid, `door_setup.py --handle-hits-frame`) |
+
+The arm is gravity-compensated and follows its target through a soft weld; the target may run at most **2 cm** ahead of the arm, which caps the push at ≈ 20 N (with a 5 cm lead the pull reached ≈ 300 N and the hand tunnelled through the 4 cm door). At every reset the start pose is checked: if any hand part overlaps the door, the arm is moved back along the door normal until it is clear (`info["start_pushed_back"]`). If the hand was exported without collision shapes, its visible meshes are used and a message is printed.
+
+Finger, thumb and wrist actions are **rates**: 0 = hold, ±1 = 10 % of the range per step (an action of 0 used to mean "half closed").
+
+## 38.8 Domain randomization (fixed vs randomized training)
+
+```python
+DoorEnv(task="door")                                    # fixed (nominal) door
+DoorEnv(task="door", randomize_physics=True)            # randomized every reset
+DoorEnv(task="door", physics={"door_mass": 1.8, "hinge_friction": 3.0})   # a held-out test door
+```
+
+| Parameter (multiplier of the nominal door) | Training range |
+|---|---|
+| door_mass (and inertia) | 0.6 – 1.4 |
+| hinge_damping | 0.5 – 2.0 |
+| hinge_friction | 0.5 – 2.0 |
+| handle_friction | 0.5 – 2.0 |
+| grip_friction (handle surface) | 0.6 – 1.4 |
+
+`info["physics"]` reports the values used. Test doors outside these ranges (e.g. mass 1.8) measure generalization.
+
+## 38.9 Tests (`env_tests.py`)
+
+```powershell
+python env_tests.py                       # everything, PASS/FAIL with numbers, writes env_test_report.json
+python env_tests.py --only collisions     # one group: info start collisions latch actions obs reward random speed
+python door_env.py --task reach --view    # look at the start pose, no policy
+```
+
+Stand-in results: 47/47 pass — start pose clear of the door (20 starts per task), 0 hand self-contacts in a fist, hand stopped by the door (0.8 mm overlap), door shut while the handle is not turned (0.14°), door opens once it is (60°), every action channel moves only its own joints, observations finite and bounded, reward prefers moving toward the handle, randomization within its ranges, ≈ 1000 env steps/s (1 M steps ≈ 0.3 h).
+
+## 38.10 Next steps
 
 1. Train `reach` → `handle` → `door`; start `handle` / `door` episodes from the end states of the previous policy.
 2. A switcher: palm within 4 cm → handle policy; handle ≥ 80 % → door policy.

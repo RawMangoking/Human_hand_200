@@ -3,3 +3,8 @@
 
 # Vim swap files
 *.swpsw2+mujoko+python/output/
+
+sw2+mujoko+python/env_test_report.json
+sw2+mujoko+python/runs/
+sw2+mujoko+python/policies/
+Mujoko/Hand_Door_env/
