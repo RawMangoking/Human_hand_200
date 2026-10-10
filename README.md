@@ -2589,3 +2589,53 @@ python record.py --chain runs\reach_ars_random_synergy_s0 runs\handle_ars_random
 ```
 
 `--algo sac` / `--algo ppo` use stable-baselines3 (`python -m pip install stable-baselines3`) with `--steps 300000`; `ars` needs only numpy and uses all CPU cores (`--workers`). Packages for plots / videos: `python -m pip install matplotlib imageio imageio-ffmpeg pillow`.
+
+
+# 40. The three-policy pipeline (reach → handle → door)
+
+## 40.1 Why three policies need more than three training runs
+
+A chained policy fails if the next stage has never seen the states the previous one ends in. Three tools make the chain reliable — each one from the literature of the review:
+
+| Tool | What it does | Where it comes from |
+|---|---|---|
+| **Start-state pools** (`experiment.py starts`, `--starts`) | each stage trains from the states where the previous stage *actually succeeded* (mixed 50/50 with the normal starts); each state keeps its door's physics | transition / chaining work, e.g. Sequential Dexterity (Chen et al. 2023) |
+| **Behaviour cloning + DAgger** (`--bc-episodes`, `--dagger`) | the hand-written controller demonstrates each stage; the policy is fitted to it, then the *cloned* policy drives while the controller labels the states it reaches (3 rounds), then ARS fine-tunes | DAPG (Rajeswaran et al. 2018, Paper 1 of the review); DAgger (Ross et al. 2011) |
+| **Chaining with recovery** (`experiment.py chain`) | runs the three policies on one door; if the hand loses the lever during *handle* it goes back to *reach*, if the latch re-engages during *door* it goes back to *handle* | — |
+
+The ARS policy uses **128 random Fourier features** (Rahimi & Recht 2007): still linear in its weights (ARS and least-squares cloning apply) but nonlinear in the observation. Cloning the handle stage: linear 3/8 → Fourier features **8/8**. After cloning, ARS fine-tunes with 4× smaller steps and a **frozen observation normalisation** (updating it changed every feature and destroyed the cloned policy: reach 100 % → 0 %).
+
+The hand-written controller has two handle strategies (`direct`, `pregrasp`); `pick_scripted_variant()` tries both on the actual door and keeps the better (different handle shapes need different approaches).
+
+## 40.2 Pipeline (one condition, one seed)
+
+```powershell
+python experiment.py train  --task reach  --condition random --algo ars --seed 0 --bc-episodes 40
+python experiment.py starts --task reach  --policy runs\reach_ars_random_synergy_s0  --condition random --out starts\after_reach_random_s0.pkl
+python experiment.py train  --task handle --condition random --algo ars --seed 0 --bc-episodes 40 --starts starts\after_reach_random_s0.pkl
+python experiment.py starts --task handle --policy runs\handle_ars_random_synergy_s0 --condition random --out starts\after_handle_random_s0.pkl
+python experiment.py train  --task door   --condition random --algo ars --seed 0 --bc-episodes 40 --starts starts\after_handle_random_s0.pkl
+python experiment.py chain  --reach runs\reach_ars_random_synergy_s0 --handle runs\handle_ars_random_synergy_s0 --door runs\door_ars_random_synergy_s0 --doors all --out runs\chain_ars_random_s0
+python experiment.py report
+```
+
+`python experiment.py plan --algo ars --seeds 3` prints the full matrix (fixed and random, 3 seeds, plus the full-joint and one-policy baselines). Add `--iters 150 --workers 16` for longer training on all cores.
+
+## 40.3 Smoke test (stand-in long-lever door, exporter-style collision flags; 1 CPU core, tiny budget)
+
+| Stage | Cloned (iteration 0) | After ARS |
+|---|:-:|:-:|
+| reach | 100 % | 100 % (stable) |
+| handle (from the reach pool) | 60–90 % | 90–100 % |
+| door (pool + normal starts) | 50 % | 50 % (pool starts succeed; normal starts are harder) |
+
+| Chained three policies | End-to-end | Time |
+|---|:-:|:-:|
+| nominal door | **100 %** | 5.7 s |
+| 9 unseen doors | **89 %** (8 of 9 doors at 100 %) | 5.8–8.3 s |
+
+The door policy alone scores 50 % from mixed starts but 100 % inside the chain — it was trained on the handle stage's real end states, which is exactly what the chain gives it. A stand-in, one seed, minutes of training: the real numbers come from the real models with `plan`.
+
+## 40.4 Tests
+
+`python env_tests.py` (≈ 3 min) includes `bc`: each stage's cloned policy must succeed straight from 16 demonstrations (stand-ins: 6/6 for reach, handle and door). `python env_tests.py --quick` skips the learning tests.

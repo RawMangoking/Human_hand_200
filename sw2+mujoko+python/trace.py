@@ -14,7 +14,7 @@ import time
 import mujoco
 import numpy as np
 
-from door_env import DEFAULT_DOOR, DEFAULT_HAND, DoorEnv, scripted_action
+from door_env import DEFAULT_DOOR, DEFAULT_HAND, DoorEnv, pick_scripted_variant, scripted_action
 
 
 def short(name):
@@ -44,6 +44,8 @@ def main():
     ap.add_argument("--door", default=DEFAULT_DOOR)
     a = ap.parse_args()
     env = DoorEnv(task=a.task, hand_path=a.hand, door_path=a.door)
+    sc = pick_scripted_variant(env)
+    print(f"hand-written handle strategy: tried {sc} -> using '{env.scripted_variant}'")
     obs, info = env.reset(seed=a.seed)
     d = env.data
     lines = [f"task {a.task}, seed {a.seed}: lever at {np.round(env.grasp_point(), 3).tolist()}, "

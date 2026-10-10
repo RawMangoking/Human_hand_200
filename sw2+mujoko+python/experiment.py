@@ -56,6 +56,9 @@ def make_env(cfg_or_args, **over):
     kw = dict(task=g("task"), hand_path=g("hand", DEFAULT_HAND), door_path=g("door", DEFAULT_DOOR),
               action_mode=g("action_mode", "synergy"), obs_noise=g("obs_noise", 0.0),
               randomize_physics=(g("condition", "fixed") == "random"))
+    starts = ars_mod.load_starts(g("starts", None))
+    if starts:
+        kw.update(start_states=starts, start_mix=g("start_mix", 0.5))
     kw.update(over)
     return DoorEnv(**kw)
 
@@ -80,7 +83,7 @@ def cmd_train(a):
         raise SystemExit("needs stable-baselines3:  python -m pip install stable-baselines3   (or use --algo ars)")
     json.dump(dict(vars(a)), open(os.path.join(a.out, "config.json"), "w"), indent=2)
     env = Monitor(make_env(a), os.path.join(a.out, "monitor.csv"), info_keywords=("success",))
-    eval_env = make_env(a, randomize_physics=False)
+    eval_env = make_env(a, randomize_physics=False, start_states=None)
 
     class Progress(BaseCallback):
         def __init__(self):
@@ -124,7 +127,7 @@ def cmd_train(a):
 # --------------------------------------------------------------------------- evaluate
 def evaluate(policy, cfg, doors, episodes, seed0=100_000):
     """-> list of per-door metric dicts"""
-    env = make_env(cfg, randomize_physics=False)
+    env = make_env(cfg, randomize_physics=False, start_states=None)
     rows = []
     for label, phys in doors:
         stats = dict(success=[], time=[], door_deg=[], handle=[], dist=[], ret=[])
@@ -178,49 +181,99 @@ def cmd_eval(a):
             print_rows(f"[eval] {os.path.basename(run)} on '{set_name}' doors ({a.episodes} episodes each)", rows)
 
 
+# --------------------------------------------------------------------------- start-state pools
+def cmd_starts(a):
+    """Run a policy (trained, or 'scripted') and keep the simulation state every time it SUCCEEDS:
+    reach -> pool to train 'handle' from, handle -> pool to train 'door' from."""
+    import pickle
+    from door_env import pick_scripted_variant, scripted_action
+    env = DoorEnv(task=a.task, hand_path=a.hand, door_path=a.door, action_mode=a.action_mode,
+                  randomize_physics=(a.condition == "random"))
+    if a.policy == "scripted":
+        sc = pick_scripted_variant(env)
+        print(f"[starts] hand-written policy, strategy '{env.scripted_variant}' ({sc})")
+        act_fn = lambda obs: scripted_action(env)
+    else:
+        pol, cfg = load_policy(a.policy)
+        act_fn = lambda obs: pol.predict(obs, deterministic=True)[0]
+    states, t0 = [], time.time()
+    for ep in range(a.episodes):
+        obs, _ = env.reset(seed=30_000_000 + ep)
+        done = False
+        while not done:
+            obs, r, term, trunc, info = env.step(act_fn(obs))
+            done = term or trunc
+        if info["success"]:
+            states.append(env.get_state())
+        if (ep + 1) % 20 == 0:
+            print(f"[starts] {ep + 1}/{a.episodes} episodes, {len(states)} successful end states")
+    os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
+    with open(a.out, "wb") as f:
+        pickle.dump(states, f)
+    nxt = {"reach": "handle", "handle": "door"}.get(a.task, "?")
+    print(f"[starts] {len(states)}/{a.episodes} successes ({time.time() - t0:.0f} s) -> {a.out}\n"
+          f"         train the next stage from them:  python experiment.py train --task {nxt} --starts {a.out} ...")
+
+
 # --------------------------------------------------------------------------- chain the three modular policies
 def cmd_chain(a):
+    """Run reach -> handle -> door on one door with the three trained policies. With recovery (default):
+    if the hand loses the lever during 'handle' it goes back to 'reach'; if the latch re-engages during 'door'
+    (the handle slipped back) it goes back to 'handle'."""
     pols = {t: load_policy(getattr(a, t)) for t in ("reach", "handle", "door")}
+    modes = {p[1].get("action_mode", "synergy") for p in pols.values()}
+    if len(modes) > 1:
+        raise SystemExit("all three policies must use the same --action-mode")
     cfg = dict(pols["reach"][1])
-    env = make_env(cfg, task="reach", randomize_physics=False)
-    limits = {"reach": 250, "handle": 250, "door": 250}
+    env = make_env(cfg, task="reach", randomize_physics=False, start_states=None)
     out_rows = []
     for set_name in (["nominal", "in_dist", "unseen"] if a.doors == "all" else [a.doors]):
         for label, phys in door_set(set_name):
-            per = dict(reach=0, handle=0, door=0, total=0, time=[])
+            stats = dict(reach=0, handle=0, door=0, total=0, time=[], recover=[])
             for i in range(a.episodes):
                 obs, _ = env.reset(seed=200_000 + i, options={"physics": phys})
-                t_all, ok = 0, True
-                for stage in ("reach", "handle", "door"):
-                    if stage != "reach":
-                        obs = env.switch_task(stage)
-                    pol = pols[stage][0]
-                    if pols[stage][1].get("action_mode", "synergy") != env.action_mode:
-                        raise SystemExit("all three policies must use the same --action-mode")
-                    done, info = False, {}
-                    while not done:
-                        act, _ = pol.predict(obs, deterministic=True)
-                        obs, r, term, trunc, info = env.step(act)
-                        done = term or env.steps >= limits[stage]
-                    t_all += env.steps
-                    if not info.get("success"):
-                        ok = False
-                        break
-                    per[stage] += 1
-                if ok:
-                    per["total"] += 1
-                    per["time"].append(t_all * DT)
-            row = dict(set=set_name, door=label, episodes=a.episodes,
-                       reach=per["reach"] / a.episodes, handle=per["handle"] / a.episodes,
-                       door_open=per["door"] / a.episodes, end_to_end=per["total"] / a.episodes,
-                       time_s=float(np.mean(per["time"])) if per["time"] else float("nan"))
+                stage, steps_total, in_stage, recov, done_all = "reach", 0, 0, 0, False
+                reached = set()
+                while steps_total < a.max_steps:
+                    act, _ = pols[stage][0].predict(obs, deterministic=True)
+                    obs, r, term, trunc, info = env.step(act)
+                    steps_total += 1
+                    in_stage += 1
+                    nxt = None
+                    if info["success"]:
+                        reached.add(stage)
+                        if stage == "door":
+                            done_all = True
+                            break
+                        nxt = {"reach": "handle", "handle": "door"}[stage]
+                    elif not a.no_recovery and recov < a.max_recoveries:
+                        if stage == "handle" and info["palm_to_handle"] > 0.12 and in_stage > 10:
+                            nxt, recov = "reach", recov + 1               # lost the lever
+                        elif stage == "door" and env._latched:
+                            nxt, recov = "handle", recov + 1              # handle slipped back, latch re-engaged
+                    if nxt is None and in_stage >= a.stage_steps:
+                        break                                             # this stage timed out
+                    if nxt:
+                        obs, stage, in_stage = env.switch_task(nxt), nxt, 0
+                for st in reached:
+                    stats[st] += 1
+                if done_all:
+                    stats["total"] += 1
+                    stats["time"].append(steps_total * DT)
+                stats["recover"].append(recov)
+            n = a.episodes
+            row = dict(set=set_name, door=label, episodes=n, reach=stats["reach"] / n, handle=stats["handle"] / n,
+                       door_open=stats["door"] / n, end_to_end=stats["total"] / n,
+                       time_s=float(np.mean(stats["time"])) if stats["time"] else float("nan"),
+                       recoveries=float(np.mean(stats["recover"])))
             out_rows.append(row)
-            print(f"  {set_name:<8} {label:<18} reach {row['reach'] * 100:4.0f}%  handle {row['handle'] * 100:4.0f}%"
+            print(f"  {set_name:<8} {label:<16} reach {row['reach'] * 100:4.0f}%  handle {row['handle'] * 100:4.0f}%"
                   f"  door {row['door_open'] * 100:4.0f}%  END-TO-END {row['end_to_end'] * 100:4.0f}%  "
-                  f"time {row['time_s']:.1f} s")
+                  f"time {row['time_s']:5.1f} s  recoveries {row['recoveries']:.1f}")
     os.makedirs(a.out, exist_ok=True)
     write_rows(os.path.join(a.out, "chain_eval.csv"), out_rows)
-    print(f"[chain] written {a.out}/chain_eval.csv")
+    print(f"[chain] mean end-to-end {np.mean([r['end_to_end'] for r in out_rows]) * 100:.0f} %  -> "
+          f"{a.out}/chain_eval.csv")
 
 
 # --------------------------------------------------------------------------- report
@@ -251,6 +304,21 @@ def cmd_report(a):
         table.append(dict(task=key[0], algo=key[1], condition=key[2], action_mode=key[3], seeds=len(g["runs"]),
                           **{s: float(np.mean(v)) for s, v in g["sets"].items()}))
     md = "# Results (success rate, mean ± sd over seeds)\n\n" + "\n".join(lines) + "\n"
+    # the chained three-policy runs
+    chains = sorted(glob.glob(os.path.join(a.runs, "*", "chain_eval.csv")))
+    if chains:
+        md += ("\n# Chained three-policy runs (reach -> handle -> door)\n\n"
+               "| run | door set | doors | reach | handle | door | END-TO-END | time (s) | recoveries |\n"
+               "|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|\n")
+        for c in chains:
+            rows = list(csv.DictReader(open(c)))
+            for sname in sorted({r["set"] for r in rows}):
+                rs = [r for r in rows if r["set"] == sname]
+                f = lambda k: np.mean([float(r[k]) for r in rs])
+                tm = [float(r["time_s"]) for r in rs if r["time_s"] not in ("", "nan")]
+                md += (f"| {os.path.basename(os.path.dirname(c))} | {sname} | {len(rs)} | {f('reach') * 100:.0f} % | "
+                       f"{f('handle') * 100:.0f} % | {f('door_open') * 100:.0f} % | **{f('end_to_end') * 100:.0f} %** | "
+                       f"{(np.mean(tm) if tm else float('nan')):.1f} | {f('recoveries'):.1f} |\n")
     open(os.path.join(a.out, "results.md"), "w").write(md)
     if table:
         keys = sorted({k for t in table for k in t})
@@ -328,23 +396,36 @@ def cmd_report(a):
 # --------------------------------------------------------------------------- plan
 def cmd_plan(a):
     seeds = range(a.seeds)
-    print("# Q1 - fixed vs domain-randomized training (modular policies, synergy actions)")
-    for task in ("reach", "handle", "door"):
-        for cond in ("fixed", "random"):
-            for s in seeds:
-                print(f"python experiment.py train --task {task} --condition {cond} --algo {a.algo} --seed {s}")
-    print("\n# Q2a - reduced (synergy) vs full-joint actions (handle and door, randomized training)")
-    for task in ("handle", "door"):
-        for s in seeds:
-            print(f"python experiment.py train --task {task} --condition random --action-mode full "
-                  f"--algo {a.algo} --seed {s}")
-    print("\n# Q2b - one policy for everything (task full) vs the chained modular policies")
-    for s in seeds:
-        print(f"python experiment.py train --task full --condition random --algo {a.algo} --seed {s}")
-    print("\n# evaluate every run on every test-door set, then build the tables / plots")
-    print("Get-ChildItem runs -Directory | ForEach-Object { python experiment.py eval --run $_.FullName --doors all }")
-    print("python experiment.py chain --reach runs/reach_X --handle runs/handle_X --door runs/door_X --doors all "
-          "--out runs/chain_X")
+    al = a.algo
+    bc = " --bc-episodes 40" if al == "ars" else ""
+    print("# ===== THE THREE-POLICY PIPELINE (per training condition: fixed / random) =====")
+    print("# each stage trains from where the previous one actually ends (start-state pools), with a")
+    print("# behaviour-cloning head start from the hand-written controller (ARS)")
+    for cond in ("fixed", "random"):
+        print(f"\n# --- condition: {cond}")
+        for sd in seeds:
+            r, h, d = (f"runs/{t}_{al}_{cond}_synergy_s{sd}" for t in ("reach", "handle", "door"))
+            print(f"python experiment.py train --task reach  --condition {cond} --algo {al} --seed {sd}{bc}")
+            print(f"python experiment.py starts --task reach  --policy {r} --condition {cond} "
+                  f"--out starts/after_reach_{cond}_s{sd}.pkl")
+            print(f"python experiment.py train --task handle --condition {cond} --algo {al} --seed {sd}{bc} "
+                  f"--starts starts/after_reach_{cond}_s{sd}.pkl")
+            print(f"python experiment.py starts --task handle --policy {h} --condition {cond} "
+                  f"--out starts/after_handle_{cond}_s{sd}.pkl")
+            print(f"python experiment.py train --task door   --condition {cond} --algo {al} --seed {sd}{bc} "
+                  f"--starts starts/after_handle_{cond}_s{sd}.pkl")
+            print(f"python experiment.py chain --reach {r} --handle {h} --door {d} --doors all "
+                  f"--out runs/chain_{al}_{cond}_s{sd}")
+    print("\n# ===== BASELINES =====")
+    print("# reduced (synergy) vs every joint (full) actions")
+    for sd in seeds:
+        print(f"python experiment.py train --task handle --condition random --action-mode full --algo {al} --seed {sd}")
+    print("# one policy for the whole sequence vs the chained three")
+    for sd in seeds:
+        print(f"python experiment.py train --task full --condition random --algo {al} --seed {sd}{bc}")
+    print("\n# ===== EVALUATE + REPORT =====")
+    print("Get-ChildItem runs -Directory | Where-Object { $_.Name -notlike 'chain*' } | "
+          "ForEach-Object { python experiment.py eval --run $_.FullName --doors all }")
     print("python experiment.py report")
 
 
@@ -377,7 +458,21 @@ def main():
         c.add_argument(f"--{k}", required=True, help=f"run directory of the {k} policy")
     c.add_argument("--doors", choices=["nominal", "in_dist", "unseen", "all"], default="all")
     c.add_argument("--episodes", type=int, default=10)
+    c.add_argument("--max-steps", type=int, default=750, help="whole sequence (default 750 = 30 s)")
+    c.add_argument("--stage-steps", type=int, default=250, help="one stage (default 250 = 10 s)")
+    c.add_argument("--no-recovery", action="store_true", help="never go back to an earlier stage")
+    c.add_argument("--max-recoveries", type=int, default=3)
     c.add_argument("--out", default=os.path.join("runs", "chain"))
+
+    st = sub.add_parser("starts", help="start-state pool: end states of successful episodes")
+    st.add_argument("--task", choices=["reach", "handle"], required=True)
+    st.add_argument("--policy", default="scripted", help="'scripted' or a run directory")
+    st.add_argument("--episodes", type=int, default=200)
+    st.add_argument("--condition", choices=["fixed", "random"], default="random")
+    st.add_argument("--action-mode", choices=["synergy", "full"], default="synergy")
+    st.add_argument("--hand", default=DEFAULT_HAND)
+    st.add_argument("--door", default=DEFAULT_DOOR)
+    st.add_argument("--out", required=True)
 
     r = sub.add_parser("report")
     r.add_argument("--runs", default="runs")
@@ -388,7 +483,8 @@ def main():
     p.add_argument("--seeds", type=int, default=3)
 
     a = ap.parse_args()
-    dict(train=cmd_train, eval=cmd_eval, chain=cmd_chain, report=cmd_report, plan=cmd_plan)[a.cmd](a)
+    dict(train=cmd_train, eval=cmd_eval, chain=cmd_chain, report=cmd_report, plan=cmd_plan,
+         starts=cmd_starts)[a.cmd](a)
 
 
 if __name__ == "__main__":

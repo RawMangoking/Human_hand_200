@@ -527,11 +527,12 @@ class DoorEnv(gym.Env):
                  control_hz=25, max_steps=None, door_dir="push", randomize=True, latch=True, unlock_frac=0.8,
                  hand_self_collision=False, hand_door_collision=True,
                  randomize_physics=False, physics=None, physics_ranges=None,
-                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto", arm_tilt="auto"):
+                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto", arm_tilt="auto", start_mix=0.5):
         assert task in self.TASKS, f"task must be one of {list(self.TASKS)}"
         assert action_mode in ("synergy", "full"), "action_mode must be 'synergy' or 'full'"
         self.task, self.render_mode, self.randomize = task, render_mode, randomize
         self.action_mode, self.obs_noise, self.start_states = action_mode, float(obs_noise), start_states
+        self.start_mix = start_mix                              # share of episodes started from the pool
         self._fixed_max_steps = max_steps
         self.arm_tilt = 0.0 if arm_tilt == "auto" else math.radians(arm_tilt)   # forearm leans away (start)
         self._arm_tilt_request = arm_tilt
@@ -945,13 +946,20 @@ class DoorEnv(gym.Env):
                  "handle": (0.07 + 0.3 * along, 0.3 * lateral, 0.3 * yaw),
                  "door": (0.05 + 0.3 * along, 0.3 * lateral, 0.3 * yaw)}[self.task]
         self._latched = self.task != "door"                     # door task: the handle is already turned
+        self._scripted_grip = False
         self._place_clear(*start, at_handle=at_handle)
         self._arm_start = self.data.mocap_pos[self.mid].copy()
         self._stage = 0
-        if self.start_states:                                   # start where a previous policy ended
-            self.set_state(self.start_states[int(rnd.integers(len(self.start_states)))])
+        use_pool = (self.start_states and not (options and "physics" in options)
+                    and rnd.random() < self.start_mix)
+        self.started_from_pool = bool(use_pool)
+        if use_pool:                                            # start where a previous policy ended
+            st = self.start_states[int(rnd.integers(len(self.start_states)))]
+            if "physics" in st:                                 # the door it was recorded on
+                self._apply_physics(st["physics"])
+            self.set_state(st)
             self.start_pushed_back = 0.0
-            self._arm_start = st0 if (st0 := self.start_states[0].get("arm_start")) is not None else \
+            self._arm_start = np.array(st["arm_start"]) if st.get("arm_start") is not None else \
                 self.data.mocap_pos[self.mid].copy()
         self._update_latch()
         mujoco.mj_forward(m, d)
@@ -1136,6 +1144,31 @@ def _close(env, amount):
     return {k: amount for k in ("index", "mrp", "thumb", "opp") if k in names}
 
 
+SCRIPTED_VARIANTS = ("direct", "pregrasp")
+
+
+def pick_scripted_variant(env, episodes=2, seed0=7000):
+    """Try each hand-written handle strategy on this door ('handle' and 'full' episodes) and keep the best one
+    (different handle shapes need different approaches). Sets env.scripted_variant; returns {variant: successes}."""
+    base, score = env.base_task, {}
+    for v in SCRIPTED_VARIANTS:
+        env.scripted_variant, ok = v, 0
+        for task in ("handle", "full"):         # the handle on its own AND as part of the whole sequence
+            env.base_task = task
+            for i in range(episodes):
+                env.reset(seed=seed0 + i)
+                done = False
+                while not done:
+                    _, _, term, trunc, info = env.step(scripted_action(env))
+                    done = term or trunc
+                ok += info["success"]
+        score[v] = ok
+    env.base_task = base
+    env.scripted_variant = max(SCRIPTED_VARIANTS, key=lambda v: score[v])
+    env.reset(seed=seed0)
+    return score
+
+
 def scripted_action(env):
     """Hand-written policies for every task (shows each task is solvable; a baseline; used by the tests).
     For task 'full' it runs the three stages in order."""
@@ -1150,13 +1183,34 @@ def scripted_action(env):
     if stage == 0:
         return named_action(env, arm_pos=to, **_close(env, -1.0))
     if stage == 1:
-        if not near:
-            return named_action(env, arm_pos=to, **_close(env, -1.0))
+        # grip with hysteresis: start gripping within 5 cm, only let go beyond 9 cm (a slip is not a release)
+        dist = float(np.linalg.norm(grasp - palm_c))
+        gripping = getattr(env, "_scripted_grip", False)
+        gripping = dist < 0.05 or (gripping and dist < 0.09)
+        env._scripted_grip = gripping
+        nrm = env.geo["door"]["normal"]
+        variant = getattr(env, "scripted_variant", "direct")
+        tips_on_door = False
+        if variant == "pregrasp":
+            m_ = env.model
+            tips_on_door = any(                                     # fingertips pressing on the DOOR itself
+                {m_.geom_bodyid[c.geom1], m_.geom_bodyid[c.geom2]} & set(env.tips) and
+                env.door_body in (m_.geom_bodyid[c.geom1], m_.geom_bodyid[c.geom2]) for c in d.contact[:d.ncon])
+        if not gripping:
+            # 'direct': straight for the lever. 'pregrasp': if fingertips touch the door, aim 3 cm in front of it
+            aim = grasp + nrm * 0.03 if tips_on_door else grasp
+            return named_action(env, arm_pos=np.clip((aim - palm_c) / 0.01, -1, 1), **_close(env, -1.0))
+        # follow the lever's arc IN THE DOOR PLANE with only a light touch toward the door (pressing the whole
+        # arm into the door pushed the forearm against it and broke the grip)
         ax, piv = np.array(d.xaxis[env.jd]), np.array(d.xanchor[env.jd])
         tang = np.cross(ax, grasp - piv) * np.sign(env.handle_open - env.d0)
+        tang -= nrm * (tang @ nrm)
         n = np.linalg.norm(tang)
-        move = np.clip(tang / (n + 1e-9) + 0.5 * to, -1, 1) if n > 1e-6 else to
-        return named_action(env, arm_pos=move, **_close(env, 1.0))
+        lat = to - nrm * (to @ nrm)                                 # stay on the lever, sideways / up-down
+        depth = float((palm_c - grasp) @ nrm)
+        inward = nrm * 0.3 if tips_on_door else -nrm * (0.15 if depth > 0.02 else 0.0)
+        move = (tang / (n + 1e-9) if n > 1e-6 else 0) + 0.5 * lat + inward
+        return named_action(env, arm_pos=np.clip(move, -1, 1), **_close(env, 1.0))
     # push perpendicular to the door's CURRENT face, while gripping the lever and holding it turned
     # (letting go of a turned handle before the door moves re-engages the latch - like a real door)
     ang = float(d.qpos[env.qh] - env.h0)
