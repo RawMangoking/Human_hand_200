@@ -108,6 +108,41 @@ def t_info(H, D):
            m.body(env.handle_body).name in per, ", ".join(f"{k}: {v}" for k, v in sorted(per.items())))
     for r in env.geo.get("report", []):
         report("info", "scene fix applied", True, r)
+    # MuJoCo's per-body collision bits must match the geoms (the cause of "hand passes through the door")
+    if hasattr(m, "body_contype"):
+        bad = []
+        for b in range(m.nbody):
+            gs = [g for g in range(m.ngeom) if m.geom_bodyid[g] == b]
+            ct = ca = 0
+            for g in gs:
+                ct |= int(m.geom_contype[g])
+                ca |= int(m.geom_conaffinity[g])
+            if (ct, ca) != (int(m.body_contype[b]), int(m.body_conaffinity[b])):
+                bad.append(m.body(b).name)
+        report("info", "per-body collision bits match the geoms", not bad, f"mismatched bodies: {bad or 'none'}")
+    # handle collision boxes cover the visible handle
+    hb = env.handle_body
+    boxes = [g for g in range(m.ngeom) if m.geom_bodyid[g] == hb and m.geom(g).name.startswith("door/handle_box")]
+    if boxes:
+        from door_env import fit_boxes
+        vis = [g for g in range(m.ngeom) if m.geom_bodyid[g] == hb and int(m.geom_type[g]) == 7]
+        rng = np.random.default_rng(1)
+        pts = []
+        for g in vis:                                        # surface points of the visible mesh (body frame)
+            mid = m.geom_dataid[g]
+            V = np.array(m.mesh_vert[m.mesh_vertadr[mid]: m.mesh_vertadr[mid] + m.mesh_vertnum[mid]])
+            R = np.zeros(9)
+            mujoco.mju_quat2Mat(R, m.geom_quat[g])
+            pts.append(V[rng.choice(len(V), min(len(V), 2000))] @ R.reshape(3, 3).T + m.geom_pos[g])
+        P = np.vstack(pts)
+        inside = np.zeros(len(P), bool)
+        for g in boxes:
+            R = np.zeros(9)
+            mujoco.mju_quat2Mat(R, m.geom_quat[g])
+            loc = (P - m.geom_pos[g]) @ R.reshape(3, 3)
+            inside |= np.all(np.abs(loc) <= m.geom_size[g] + 1e-4, axis=1)
+        report("info", "handle collision boxes cover the handle", inside.mean() > 0.97,
+               f"{len(boxes)} boxes cover {inside.mean() * 100:.1f} % of the handle's surface points")
 
 
 def t_start(H, D):
@@ -186,8 +221,9 @@ def t_latch(H, D):
         for ep in range(4):
             env.reset(seed=50 + ep)
             for _ in range(250):
+                latched = env._latched                      # engaged before this step
                 _, _, term, trunc, info = env.step(rng.uniform(-1, 1, env.action_space.shape).astype(np.float32))
-                if info["handle_frac"] < env.unlock_frac:   # handle not turned enough -> door must stay shut
+                if latched and env._latched:                # still engaged -> the door must not have moved
                     worst = max(worst, abs(info["door_deg"]))
                     cases += 1
                 if term or trunc:

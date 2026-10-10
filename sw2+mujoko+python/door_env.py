@@ -67,6 +67,7 @@ REF_ATTRS = {"name", "class", "childclass", "body", "body1", "body2", "joint", "
              "geom1", "geom2", "site", "site1", "site2", "mesh", "material", "texture", "tendon", "actuator",
              "objname", "refname", "target", "hfield", "skin", "cranksite", "slidersite", "jointinparent"}
 FILE_TAGS = {"mesh": "meshdir", "texture": "texturedir", "hfield": "assetdir", "skin": "assetdir"}
+_PRINTED = set()
 
 
 # --------------------------------------------------------------------------- scene building
@@ -170,6 +171,22 @@ def door_geometry(door_path, cfg):
     return dict(grasp=grasp, normal=v * side, push_sign=push_sign)
 
 
+def refresh_body_masks(model):
+    """MuJoCo first checks a per-BODY copy of the collision bits (OR of the body's geoms), made when the model is
+    compiled. After changing geom_contype / geom_conaffinity at run time that copy must be updated too,
+    otherwise e.g. hand<->door pairs are rejected before their geoms are ever compared."""
+    if not hasattr(model, "body_contype"):
+        return
+    ct = np.zeros(model.nbody, dtype=np.int64)
+    ca = np.zeros(model.nbody, dtype=np.int64)
+    for g in range(model.ngeom):
+        b = model.geom_bodyid[g]
+        ct[b] |= int(model.geom_contype[g])
+        ca[b] |= int(model.geom_conaffinity[g])
+    model.body_contype[:] = ct
+    model.body_conaffinity[:] = ca
+
+
 def set_collisions(model, hand_self=False, hand_door=True):
     """Collision rules with MuJoCo bitmasks (a pair collides if contype1 & conaffinity2 or contype2 & conaffinity1):
        hand geoms: contype 2, conaffinity 1  -> hand-hand: 2&1 = 0 -> no self-collision
@@ -192,10 +209,59 @@ def set_collisions(model, hand_self=False, hand_door=True):
             if hand_door:
                 model.geom_conaffinity[g] = int(model.geom_conaffinity[g]) | 2
             n_other += 1
+    refresh_body_masks(model)
     return n_hand, n_other
 
 
-def build_scene(hand_path, door_path, standoff=0.30):
+def fit_boxes(model, geoms, k=6, n_pts=4000, seed=0):
+    """Oriented boxes approximating mesh geoms (body frame): points sampled over the surface (by triangle area),
+    k-means into k compact clusters, one PCA-aligned box per cluster. -> [(centre, half-sizes, quat)]"""
+    rng = np.random.default_rng(seed)
+    pts = []
+    for g in geoms:
+        mid = model.geom_dataid[g]
+        V = np.array(model.mesh_vert[model.mesh_vertadr[mid]: model.mesh_vertadr[mid] + model.mesh_vertnum[mid]])
+        F = np.array(model.mesh_face[model.mesh_faceadr[mid]: model.mesh_faceadr[mid] + model.mesh_facenum[mid]])
+        A, B, C = V[F[:, 0]], V[F[:, 1]], V[F[:, 2]]
+        area = 0.5 * np.linalg.norm(np.cross(B - A, C - A), axis=1)
+        idx = rng.choice(len(F), size=n_pts // len(geoms), p=area / area.sum())
+        u, v = rng.random((2, len(idx)))
+        flip = u + v > 1
+        u[flip], v[flip] = 1 - u[flip], 1 - v[flip]
+        P = np.vstack([V, A[idx] + u[:, None] * (B[idx] - A[idx]) + v[:, None] * (C[idx] - A[idx])])
+        R = np.zeros(9)
+        mujoco.mju_quat2Mat(R, model.geom_quat[g])
+        pts.append(P @ R.reshape(3, 3).T + model.geom_pos[g])          # geom -> body frame
+    P = np.vstack(pts)
+    k = max(1, min(k, len(P) // 50))
+    cent = [P[rng.integers(len(P))]]                                    # farthest-point initialisation
+    for _ in range(k - 1):
+        dmin = np.min([np.sum((P - c) ** 2, 1) for c in cent], axis=0)
+        cent.append(P[int(np.argmax(dmin))])
+    cent = np.array(cent)
+    for _ in range(30):
+        lab = np.argmin(((P[:, None, :] - cent[None]) ** 2).sum(-1), axis=1)
+        cent = np.array([P[lab == j].mean(0) if np.any(lab == j) else cent[j] for j in range(k)])
+    out = []
+    for j in range(k):
+        Q = P[lab == j]
+        if len(Q) < 10:
+            continue
+        mu = Q.mean(0)
+        _, vec = np.linalg.eigh(np.cov((Q - mu).T))
+        if np.linalg.det(vec) < 0:
+            vec[:, 0] = -vec[:, 0]
+        loc = (Q - mu) @ vec
+        lo, hi = loc.min(0), loc.max(0)
+        half = np.maximum((hi - lo) / 2, 0.002)
+        c = mu + vec @ ((lo + hi) / 2)
+        q = np.zeros(4)
+        mujoco.mju_mat2Quat(q, vec.flatten())
+        out.append((c, half, q))
+    return out
+
+
+def build_scene(hand_path, door_path, standoff=0.30, handle_boxes=6):
     hand_cfg_path = os.path.join(os.path.dirname(hand_path), "hand_config.json")
     door_cfg_path = os.path.join(os.path.dirname(door_path), "door_config.json")
     hcfg, dcfg = json.load(open(hand_cfg_path)), json.load(open(door_cfg_path))
@@ -293,6 +359,26 @@ def build_scene(hand_path, door_path, standoff=0.30):
     if any("collision shape" in r for r in report):
         model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
 
+    # (1b) the handle's collision shape: a convex hull of an L / T-shaped handle (lever + spindle + rod) is one
+    #      solid wedge - the fingers would hit empty space. Fit a few oriented boxes to its mesh instead.
+    hb = model.jnt_bodyid[model.joint("door/" + dcfg["handle"]).id]
+    meshes = [g for g in range(model.ngeom) if model.geom_bodyid[g] == hb and int(model.geom_type[g]) == 7
+              and (model.geom_contype[g] or model.geom_conaffinity[g])]
+    if meshes and handle_boxes:
+        boxes = fit_boxes(model, meshes, k=handle_boxes)
+        hel = next(e for e in wb.iter("body") if e.get("name") == model.body(hb).name)
+        gx = [c for c in hel if c.tag == "geom"]
+        first = model.body_geomadr[hb]
+        for g in meshes:                                        # the mesh stays visible, boxes collide
+            if 0 <= g - first < len(gx):
+                gx[g - first].set("contype", "0")
+                gx[g - first].set("conaffinity", "0")
+        for i, (c, half, q) in enumerate(boxes):
+            ET.SubElement(hel, "geom", name=f"door/handle_box{i}", type="box", size=_fmt(half), pos=_fmt(c),
+                          quat=_fmt(q), contype="1", conaffinity="1", group="3", rgba="0.2 0.6 1 0.4")
+        report.append(f"handle collision: {len(boxes)} boxes fitted to its shape (instead of one convex hull)")
+        model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+
     # (2) door parts that overlap each other at rest (e.g. the handle sitting inside the frame in CAD) would be
     #     shoved apart at the first step and fling the door: switch that pair off (the env latch keeps the door
     #     shut until the handle is turned)
@@ -316,7 +402,9 @@ def build_scene(hand_path, door_path, standoff=0.30):
                           f"(fix in CAD to restore it; the env latch still holds the door shut)")
         model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
     for r in report:
-        print("[door_env] " + r)
+        if r not in _PRINTED:                                   # say each scene fix once per run
+            _PRINTED.add(r)
+            print("[door_env] " + r)
 
     xml = ET.tostring(scene, encoding="unicode")
     out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(door_path)))),
@@ -415,7 +503,10 @@ class DoorEnv(gym.Env):
                 if self.model.geom_bodyid[g] in hb:
                     self.model.geom_contype[g], self.model.geom_conaffinity[g] = 2, 1
             n_hand = sum(1 for g in range(self.model.ngeom) if self.model.geom_bodyid[g] in hb)
-            print(f"[door_env] the hand had NO collision shapes - using its {n_hand} visible meshes for collision")
+            if "nohand" not in _PRINTED:
+                _PRINTED.add("nohand")
+                print(f"[door_env] the hand had NO collision shapes - using its {n_hand} visible meshes for collision")
+            refresh_body_masks(self.model)
         self.n_collision_geoms = (n_hand, n_door)
         # stiffer hand contacts: the hand presses on the door instead of sinking into it
         for g in range(self.model.ngeom):

@@ -2548,7 +2548,15 @@ For `reach` and `full` the robot starts at a fixed spot in the world (a moved do
 
 The gap appears on the moved doors (`shifted_side`, `handle_low`, `hard_combo`). A pilot only — the real results need ≥ 3 seeds, longer training and the real hand + door.
 
-## 39.4 Running the experiments
+## 39.4 Collision fixes found on the real models
+
+| Symptom (real hand + door) | Cause | Fix in `door_env.py` |
+|---|---|---|
+| hand passes through the door, 0 contacts, door never opens | the exporter's collision bits (e.g. contype 1 / conaffinity 0); MuJoCo checks a **per-body copy** of the bits first, which was not updated when the env changed the geom bits | `refresh_body_masks()` after every change; test "per-body collision bits match the geoms" |
+| fingers would hit empty space near the handle | the handle (lever + spindle + rod) collides as one convex hull — a solid wedge through the door | handle collision = 6 oriented boxes fitted to its mesh (k-means on surface points + vertices, PCA boxes); the mesh stays visible; test "boxes cover 100 % of the handle" |
+| door flung open at the start | the handle overlaps the frame / base in CAD | that pair's collision is switched off (message printed once); the env latch holds the door |
+
+## 39.5 Running the experiments
 
 ```powershell
 cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
