@@ -2555,6 +2555,9 @@ The gap appears on the moved doors (`shifted_side`, `handle_low`, `hard_combo`).
 | hand passes through the door, 0 contacts, door never opens | the exporter's collision bits (e.g. contype 1 / conaffinity 0); MuJoCo checks a **per-body copy** of the bits first, which was not updated when the env changed the geom bits | `refresh_body_masks()` after every change; test "per-body collision bits match the geoms" |
 | fingers would hit empty space near the handle | the handle (lever + spindle + rod) collides as one convex hull — a solid wedge through the door | handle collision = 6 oriented boxes fitted to its mesh (k-means on surface points + vertices, PCA boxes); the mesh stays visible; test "boxes cover 100 % of the handle" |
 | door flung open at the start | the handle overlaps the frame / base in CAD | that pair's collision is switched off (message printed once); the env latch holds the door |
+| reach impossible, stages start 12 cm too far back | the target was the handle's centre of mass, which lies **inside** the door slab (lever in front + spindle / rod behind) | target = centre of the handle's **lever in front of the door face**, moving with the door (`env.grasp_point()`) |
+| a turned handle springs back while the door is still shut | real latch behaviour (re-engages) | handle-stage success = latch released with a 5 % margin, or the door already moving; scripted door stage keeps gripping the lever while pushing |
+| door stops at ~55° | following the lever while the door swings needs ~0.7 m of arm travel | arm reach 1.0 m |
 
 ## 39.5 Running the experiments
 

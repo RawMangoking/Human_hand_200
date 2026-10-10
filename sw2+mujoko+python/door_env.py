@@ -15,7 +15,8 @@ so it pushes and collides physically. It starts with the palm facing the door, i
 
 TASKS (one small action set each; every action is in [-1, 1])
   reach   move the palm to the handle                 arm_pos(3) arm_rot(3)                              = 6
-  handle  grasp the handle and turn it open           arm_pos(3) arm_rot(3) wrist(2) index mrp thumb opp = 12
+  handle  grasp the handle and turn it until the latch releases (+5 %)
+                                                      arm_pos(3) arm_rot(3) wrist(2) index mrp thumb opp = 12
   door    handle already turned: push/pull door open  arm_pos(3) grip                                    = 4
 DOMAIN RANDOMIZATION: DoorEnv(randomize_physics=True) samples door mass, hinge damping / friction, handle
 friction and grip friction each reset (PHYSICS_RANGES, multipliers of the nominal door); DoorEnv(physics={...})
@@ -468,7 +469,8 @@ class DoorEnv(gym.Env):
     MAX_STEPS = {"reach": 250, "handle": 250, "door": 250, "full": 600}
     SIZES = {"arm_pos": 3, "arm_rot": 3, "wrist": 2, "index": 1, "mrp": 1, "thumb": 1, "opp": 1, "grip": 1}
     LEASH = 0.02             # m: how far the arm target may run ahead of the arm
-    WORKSPACE = 0.70         # m: the arm stays within this distance of where it started (a real arm's reach)
+    WORKSPACE = 1.00         # m: the arm stays within this distance of where it started (a real arm's reach;
+                             #    following the lever while the door swings 60 deg needs ~0.7 m on its own)
     STEP_FRAC = 0.10         # finger / wrist actions: fraction of the range per step at action = 1
     # domain randomization: each value is a multiplier of the door's nominal value (from door_setup.py)
     # multipliers of the nominal door (from door_setup.py) ...
@@ -595,6 +597,10 @@ class DoorEnv(gym.Env):
             b = m.body_parentid[b]
         self.door_root = b
         self._root_pos0, self._root_quat0 = m.body_pos[b].copy(), m.body_quat[b].copy()
+        self._palm_build = self.geo["door"]["grasp"] + self.geo["door"]["normal"] * 0.30   # where build put the palm
+        self._lever_local = self._find_lever()
+        mujoco.mj_forward(m, self.data)
+        self.geo["door"]["grasp"] = self.grasp_point()
         self._grasp0 = self.geo["door"]["grasp"].copy()
         self._normal0 = self.geo["door"]["normal"].copy()
         self._door_yaw = 0.0
@@ -669,7 +675,7 @@ class DoorEnv(gym.Env):
             yaw = yaw + self._door_yaw                                  # face the (turned) door
         Rz = np.array([[math.cos(yaw), -math.sin(yaw), 0], [math.sin(yaw), math.cos(yaw), 0], [0, 0, 1]])
         R = Rz @ R0.reshape(3, 3)
-        palm0 = self._grasp0 + self._normal0 * 0.30                    # where build_scene put the palm
+        palm0 = self._palm_build                                        # where build_scene put the palm
         base = g["door"]["grasp"] if at_handle else self._grasp0
         pos = base + palm_offset + Rz @ (g["root_pos"] - palm0)
         quat = _quat_from_mat(R)
@@ -696,7 +702,7 @@ class DoorEnv(gym.Env):
     def _obs(self):
         m, d = self.model, self.data
         palm_c = np.array(d.xipos[self.palm])
-        grasp = np.array(d.xipos[self.handle_body])
+        grasp = self.grasp_point()
         R = np.array(d.xmat[self.palm]).reshape(3, 3)
         q = []
         for n, h in self.hj.items():
@@ -714,6 +720,31 @@ class DoorEnv(gym.Env):
             n = len(o) - len(self._last_action)                 # noise on sensed values, not on own action
             o[:n] = o[:n] + self.np_random.normal(0.0, self.obs_noise, n)
         return np.clip(o, -1e3, 1e3).astype(np.float32)
+
+    # ---- where to grasp: the part of the handle in FRONT of the door face (the lever), not its centre of mass
+    def _find_lever(self):
+        """Centre of the handle's surface that lies in front of the door's front face, in the handle body frame.
+        (A handle with a spindle / rod through the door has its centre of mass inside the door slab.)"""
+        m, d = self.model, self.data
+        mujoco.mj_forward(m, d)
+        from door_setup import geom_points
+        nrm = self.geo["door"]["normal"]
+        front = max(float((geom_points(m, d, g) @ nrm).max())
+                    for g in range(m.ngeom) if m.geom_bodyid[g] == self.door_body)
+        P = np.vstack([geom_points(m, d, g) for g in range(m.ngeom) if m.geom_bodyid[g] == self.handle_body])
+        lever = P[(P @ nrm) > front + 0.005]
+        pick = lever.mean(0) if len(lever) >= 4 else np.array(d.xipos[self.handle_body])
+        R = np.array(d.xmat[self.handle_body]).reshape(3, 3)
+        self.lever_found = len(lever) >= 4
+        return R.T @ (pick - np.array(d.xpos[self.handle_body]))
+
+    def grasp_point(self):
+        """World position of the handle's lever (moves with the door and the handle)."""
+        d = self.data
+        if not hasattr(self, "_lever_local"):                       # during start-up
+            return np.array(d.xipos[self.handle_body])
+        R = np.array(d.xmat[self.handle_body]).reshape(3, 3)
+        return np.array(d.xpos[self.handle_body]) + R @ self._lever_local
 
     # ---- door physics (domain randomization)
     def _apply_physics(self, mult):
@@ -743,7 +774,7 @@ class DoorEnv(gym.Env):
         # where the handle / door face are now (used for placing the arm and by the scripted policies)
         d = self.data                                   # (door joints are at rest: reset() just reset them)
         mujoco.mj_forward(m, d)
-        self.geo["door"]["grasp"] = np.array(d.xipos[self.handle_body])
+        self.geo["door"]["grasp"] = self.grasp_point()
         self.geo["door"]["normal"] = Rz @ self._normal0
 
     def _sample_physics(self):
@@ -895,7 +926,7 @@ class DoorEnv(gym.Env):
     def _progress(self):
         d = self.data
         palm_c = np.array(d.xipos[self.palm])
-        dist = float(np.linalg.norm(np.array(d.xipos[self.handle_body]) - palm_c))
+        dist = float(np.linalg.norm(self.grasp_point() - palm_c))
         R = np.array(d.xmat[self.palm]).reshape(3, 3)
         return dict(dist=dist,
                     handle=float((d.qpos[self.qd] - self.d0) / (self.handle_open - self.d0 + 1e-9)),
@@ -920,7 +951,10 @@ class DoorEnv(gym.Env):
             success = p["dist"] < 0.04
         elif self.task == "handle":
             r = 10.0 * (p["handle"] - self._prev["handle"]) - 0.5 * p["dist"] + 0.05 * len(tips) + 0.05 * palm_t
-            success = p["handle"] > 0.8
+            # success = the latch is really released (its point is randomized), with a margin so that
+            # letting go of the handle does not immediately re-latch the door
+            success = (not self._latched) and (p["handle"] >= min(self.unlock_frac + 0.05, 0.98)
+                                                or p["door"] > math.radians(3))      # ... or the door is moving
         elif self.task == "door":
             r = 5.0 * (p["door"] - self._prev["door"]) + 0.02 * touch
             success = p["door"] > math.radians(60)
@@ -1007,7 +1041,7 @@ def scripted_action(env):
     For task 'full' it runs the three stages in order."""
     d = env.data
     palm_c = np.array(d.xipos[env.palm])
-    grasp = np.array(d.xipos[env.handle_body])
+    grasp = env.grasp_point()
     to = np.clip((grasp - palm_c) / 0.01, -1, 1)
     near = np.linalg.norm(grasp - palm_c) < 0.05
     stage = {"reach": 0, "handle": 1, "door": 2}.get(env.task, env._stage)
@@ -1023,17 +1057,20 @@ def scripted_action(env):
         n = np.linalg.norm(tang)
         move = np.clip(tang / (n + 1e-9) + 0.5 * to, -1, 1) if n > 1e-6 else to
         return named_action(env, arm_pos=move, **_close(env, 1.0))
-    # push perpendicular to the door's CURRENT face (it turns as the door swings)
+    # push perpendicular to the door's CURRENT face, while gripping the lever and holding it turned
+    # (letting go of a turned handle before the door moves re-engages the latch - like a real door)
     ang = float(d.qpos[env.qh] - env.h0)
     q = np.zeros(4)
     mujoco.mju_axisAngle2Quat(q, np.array(d.xaxis[env.jh]), ang)
     nrm_now = np.zeros(3)
     mujoco.mju_rotVecQuat(nrm_now, env.geo["door"]["normal"], q)
     push = -nrm_now * env.door_goal_sign * env.geo["door"]["push_sign"]
-    door_c = np.array(d.xipos[env.door_body])                       # and keep the hand near the door
-    keep = np.clip((door_c - palm_c) / 0.3, -1, 1)
-    keep -= nrm_now * (keep @ nrm_now)
-    return named_action(env, arm_pos=np.clip(push + 0.3 * keep, -1, 1), **_close(env, -1.0))
+    if np.linalg.norm(grasp - palm_c) > 0.07:                       # get (back) to the lever first
+        return named_action(env, arm_pos=to, **_close(env, -1.0))
+    ax, piv = np.array(d.xaxis[env.jd]), np.array(d.xanchor[env.jd])
+    tang = np.cross(ax, grasp - piv) * np.sign(env.handle_open - env.d0)
+    tang = tang / (np.linalg.norm(tang) + 1e-9)
+    return named_action(env, arm_pos=np.clip(push + 0.4 * tang + 0.3 * to, -1, 1), **_close(env, 1.0))
 
 
 def main():
