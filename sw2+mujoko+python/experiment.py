@@ -47,7 +47,8 @@ def load_policy(run_dir):
 
 
 def run_name(a):
-    return f"{a.task}_{a.algo}_{a.condition}_{a.action_mode}_s{a.seed}"
+    tag = f"_{a.tag}" if getattr(a, "tag", None) else ""
+    return f"{a.task}_{a.algo}_{a.condition}_{a.action_mode}{tag}_s{a.seed}"
 
 
 def make_env(cfg_or_args, **over):
@@ -276,6 +277,107 @@ def cmd_chain(a):
           f"{a.out}/chain_eval.csv")
 
 
+def _chain_runs(runs_dir):
+    """{condition: {seed: rows}} from runs/chain_<algo>_<condition>_s<seed>/chain_eval.csv"""
+    out = {}
+    for c in glob.glob(os.path.join(runs_dir, "chain_*", "chain_eval.csv")):
+        parts = os.path.basename(os.path.dirname(c)).split("_")
+        if len(parts) < 4:
+            continue
+        cond, seed = parts[2], parts[3]
+        out.setdefault(cond, {})[seed] = list(csv.DictReader(open(c)))
+    return out
+
+
+def _bootstrap_diff(a_by_door, b_by_door, n=10000, seed=0):
+    """95 % CI of mean(b - a) over doors (paired: same test doors), resampling doors."""
+    doors = sorted(set(a_by_door) & set(b_by_door))
+    if len(doors) < 2:
+        return float("nan"), float("nan"), float("nan")
+    diff = np.array([b_by_door[d] - a_by_door[d] for d in doors])
+    rng = np.random.default_rng(seed)
+    boots = diff[rng.integers(0, len(diff), (n, len(diff)))].mean(1)
+    return float(diff.mean()), float(np.percentile(boots, 2.5)), float(np.percentile(boots, 97.5))
+
+
+def research_summary(runs_dir, groups):
+    md = "\n# Research questions\n\n"
+    ch = _chain_runs(runs_dir)
+    # ---- Q1: fixed vs randomized training, three chained policies, end-to-end success
+    md += "## Q1 - fixed vs domain-randomized training (three chained policies, end-to-end success)\n\n"
+    if ch:
+        md += "| training | seeds | nominal | in-distribution | **unseen** |\n|---|:-:|:-:|:-:|:-:|\n"
+        per_door = {}
+        for cond in sorted(ch):
+            cells = []
+            for sname in ("nominal", "in_dist", "unseen"):
+                vals = []
+                for seed, rows in ch[cond].items():
+                    rs = [r for r in rows if r["set"] == sname]
+                    if rs:
+                        vals.append(np.mean([float(r["end_to_end"]) for r in rs]))
+                    for r in rs:
+                        if sname == "unseen":
+                            per_door.setdefault(cond, {}).setdefault(r["door"], []).append(float(r["end_to_end"]))
+                cells.append(f"{np.mean(vals) * 100:.0f} ± {np.std(vals) * 100:.0f} %" if vals else "-")
+            md += f"| {cond} | {len(ch[cond])} | " + " | ".join(cells) + " |\n"
+        if "fixed" in per_door and "random" in per_door:
+            fa = {d: np.mean(v) for d, v in per_door["fixed"].items()}
+            ra = {d: np.mean(v) for d, v in per_door["random"].items()}
+            m, lo, hi = _bootstrap_diff(fa, ra)
+            verdict = ("randomized training generalizes BETTER to unseen doors" if lo > 0 else
+                       "fixed training generalizes better" if hi < 0 else
+                       "no clear difference (the interval includes 0)")
+            md += (f"\nUnseen doors, randomized minus fixed: **{m * 100:+.0f} percentage points**, 95 % bootstrap "
+                   f"interval [{lo * 100:+.0f}, {hi * 100:+.0f}] over the {len(fa)} doors -> {verdict}.\n")
+            md += "\n| unseen door | fixed | randomized |\n|---|:-:|:-:|\n"
+            for d in sorted(fa):
+                md += f"| {d} | {fa[d] * 100:.0f} % | {ra.get(d, float('nan')) * 100:.0f} % |\n"
+    else:
+        md += "(no chained runs yet)\n"
+
+    # ---- Q2a: reduced (synergy) vs full-joint actions on the handle stage
+    md += ("\n## Q2a - reduced (synergy) actions vs every joint (handle stage, randomized training, "
+           "trained FROM SCRATCH - no cloning, so the learning itself is compared)\n\n")
+    rows = []
+    for mode in ("synergy", "full"):
+        g = groups.get(("handle", "ars", "random", f"{mode}/scratch"))
+        if not g:
+            continue
+        to80 = []
+        for r in g["runs"]:
+            p = os.path.join(r, "progress.csv")
+            if os.path.exists(p):
+                prog = [x for x in csv.DictReader(open(p)) if x["eval_success"] not in ("", None)]
+                hit = [int(x["env_steps"]) for x in prog if float(x["eval_success"]) >= 0.8]
+                to80.append(hit[0] if hit else float("nan"))
+        un = g["sets"].get("unseen")
+        rows.append(f"| {mode} | {len(g['runs'])} | {'-' if not un else f'{np.mean(un) * 100:.0f} %'} | "
+                    f"{np.nanmean(to80) / 1000:.0f} k |" if to80 and not np.all(np.isnan(to80)) else
+                    f"| {mode} | {len(g['runs'])} | {'-' if not un else f'{np.mean(un) * 100:.0f} %'} | not reached |")
+    md += ("| actions | seeds | unseen success | env steps to 80 % eval success |\n|---|:-:|:-:|:-:|\n" + "\n".join(rows)
+           + "\n") if rows else "(no handle runs for both action modes yet)\n"
+
+    # ---- Q2b: three chained policies vs one policy for everything
+    md += ("\n## Q2b - three chained policies vs one policy for the whole sequence (randomized training; both "
+           "cloned from the same hand-written controller with the same budget)\n\n")
+    g = groups.get(("full", "ars", "random", "synergy"))
+    if g and "random" in ch:
+        md += "| approach | nominal | in-distribution | unseen |\n|---|:-:|:-:|:-:|\n"
+        cells = []
+        for sname in ("nominal", "in_dist", "unseen"):
+            vals = [np.mean([float(r["end_to_end"]) for r in rows if r["set"] == sname])
+                    for rows in ch["random"].values() if any(r["set"] == sname for r in rows)]
+            cells.append(f"{np.mean(vals) * 100:.0f} %" if vals else "-")
+        md += "| three chained policies | " + " | ".join(cells) + " |\n"
+        md += "| one policy (task full) | " + " | ".join(
+            f"{np.mean(g['sets'][s]) * 100:.0f} %" if g["sets"].get(s) else "-"
+            for s in ("nominal", "in_dist", "unseen")) + " |\n"
+    else:
+        md += "(needs the chained runs and the 'full' baseline)\n"
+    return md
+
+
 # --------------------------------------------------------------------------- report
 def cmd_report(a):
     runs = sorted(d for d in glob.glob(os.path.join(a.runs, "*")) if os.path.exists(os.path.join(d, "config.json")))
@@ -285,7 +387,8 @@ def cmd_report(a):
     groups = {}
     for r in runs:
         c = json.load(open(os.path.join(r, "config.json")))
-        key = (c["task"], c["algo"], c.get("condition", "fixed"), c.get("action_mode", "synergy"))
+        key = (c["task"], c["algo"], c.get("condition", "fixed"), c.get("action_mode", "synergy")
+               + (f"/{c['tag']}" if c.get("tag") else ""))
         g = groups.setdefault(key, dict(runs=[], sets={}))
         g["runs"].append(r)
         for s in ("nominal", "in_dist", "unseen"):
@@ -319,6 +422,7 @@ def cmd_report(a):
                 md += (f"| {os.path.basename(os.path.dirname(c))} | {sname} | {len(rs)} | {f('reach') * 100:.0f} % | "
                        f"{f('handle') * 100:.0f} % | {f('door_open') * 100:.0f} % | **{f('end_to_end') * 100:.0f} %** | "
                        f"{(np.mean(tm) if tm else float('nan')):.1f} | {f('recoveries'):.1f} |\n")
+    md += research_summary(a.runs, groups)
     open(os.path.join(a.out, "results.md"), "w").write(md)
     if table:
         keys = sorted({k for t in table for k in t})
@@ -446,6 +550,7 @@ def main():
     t.add_argument("--noise", type=float, default=0.03)
     t.add_argument("--workers", type=int, default=None)
     t.add_argument("--runs", default="runs")
+    t.add_argument("--tag", default=None, help="extra name part, e.g. 'scratch' for runs without cloning")
     t.add_argument("--out", default=None)
 
     e = sub.add_parser("eval")

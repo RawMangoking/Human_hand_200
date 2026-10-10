@@ -72,6 +72,7 @@ Human_Hand_200mm/
 │   ├── experiment.py                RL: plan / train / eval / chain / report (§39)
 │   ├── record.py                    RL: videos of policies on test doors
 │   ├── trace.py                     RL: step-by-step log of a scripted episode (contacts, latch, lever)
+│   ├── run_all.py                   RL: the whole experiment, unattended and resumable (§41)
 │   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
 │   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
 │   └── output/                      ← sw2robot packages (generated, in .gitignore)
@@ -2639,3 +2640,41 @@ The door policy alone scores 50 % from mixed starts but 100 % inside the chain �
 ## 40.4 Tests
 
 `python env_tests.py` (≈ 3 min) includes `bc`: each stage's cloned policy must succeed straight from 16 demonstrations (stand-ins: 6/6 for reach, handle and door). `python env_tests.py --quick` skips the learning tests.
+
+
+# 41. Running the whole experiment — `run_all.py`
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
+python run_all.py --dry-run          # print the plan
+python run_all.py                    # everything, unattended (overnight); results\results.md at the end
+python run_all.py --seeds 1 --iters 60   # a quick first pass (~1 h)
+```
+
+* **Resumable**: each step checks for its output and is skipped if done — after a crash / reboot / Ctrl+C run the same command again. Failures are logged and the rest continues. Log: `run_all.log`.
+* Defaults: 2 conditions × 3 seeds × (reach → pool → handle → pool → door → chain), 150 ARS iterations with 32 directions, 40 demonstrations + DAgger, 200-episode start pools, 10 episodes per test door, workers = CPU threads − 2.
+* **Baselines**: Q2a — handle stage with synergy vs every-joint actions, both **from scratch** (cloning both from the same controller would only measure how well demonstrations clone, not how hard learning is); Q2b — one policy for the whole sequence, cloned from the same controller with the same budget as the chained three.
+
+## 41.1 What the report answers (`results/results.md`, "Research questions")
+
+| Question | Measure |
+|---|---|
+| Q1 fixed vs randomized training | end-to-end success of the chained three policies on nominal / in-distribution / unseen doors (mean ± sd over seeds), the difference on unseen doors with a **95 % bootstrap interval** (paired over doors), and a per-door table |
+| Q2a reduced vs every-joint actions | handle-stage success on unseen doors and **environment steps to 80 % success**, both from scratch |
+| Q2b three policies vs one | end-to-end success of the chain vs the single `full`-task policy |
+
+## 41.2 Smoke test of the runner (stand-in models, 1 seed, 4–6 iterations, 2 episodes per door — not results)
+
+| Q1 | nominal | in-dist | unseen |
+|---|:-:|:-:|:-:|
+| fixed | 100 % | 65 % | 67 % |
+| randomized | 100 % | 80 % | 89 % |
+
+Unseen: randomized − fixed = +22 points, 95 % interval [+6, +39].
+
+| Q2a (from scratch) | unseen success | steps to 80 % |
+|---|:-:|:-:|
+| synergy (12 actions) | 78 % | 16 k |
+| every joint (24 actions) | 0 % | not reached |
+
+All 26 steps completed in ~6 min on one CPU core; a rerun skipped all finished steps.
