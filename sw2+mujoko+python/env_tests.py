@@ -3,8 +3,9 @@
 env_tests.py - checks the hand + door environment (door_env.py) before training and prints PASS / FAIL with numbers.
 
   python env_tests.py                       # all tests on Mujoko/Hand_forearm_v5 + Mujoko/Full_door_v4
-  python env_tests.py --only collisions     # one group: info, start, collisions, latch, actions, obs, reward,
-                                            #            random, speed
+  python env_tests.py --quick               # everything except the ~1 min learnability test
+  python env_tests.py --only collisions     # one group: info start collisions latch actions obs reward random
+                                            #            modes chain doors speed learn
   python env_tests.py --hand <xml> --door <xml>
 A JSON copy of the results is written to env_test_report.json.
 """
@@ -97,6 +98,16 @@ def t_info(H, D):
            f"other {env.n_collision_geoms[1]}; control {1 / (env.frame_skip * env.model.opt.timestep):.0f} Hz")
     report("info", "hand has collision shapes", env.n_collision_geoms[0] > 0,
            f"{env.n_collision_geoms[0]} hand geoms collide")
+    m = env.model
+    per = {}
+    for g in range(m.ngeom):
+        b = m.body(m.geom_bodyid[g]).name
+        if not b.startswith("hand/") and (m.geom_contype[g] or m.geom_conaffinity[g]):
+            per[b or "world"] = per.get(b or "world", 0) + 1
+    report("info", "door parts with collision shapes", m.body(env.door_body).name in per and
+           m.body(env.handle_body).name in per, ", ".join(f"{k}: {v}" for k, v in sorted(per.items())))
+    for r in env.geo.get("report", []):
+        report("info", "scene fix applied", True, r)
 
 
 def t_start(H, D):
@@ -148,6 +159,17 @@ def t_collisions(H, D):
 
 def t_latch(H, D):
     print("\n== LATCH / DOOR")
+    for task in DoorEnv.TASKS:
+        env = DoorEnv(task=task, hand_path=H, door_path=D, randomize=False)
+        env.reset(seed=0)
+        m, d = env.model, env.data
+        peak_h, peak_d = 0.0, 0.0
+        for _ in range(100):                                 # 2 s, nobody touches anything
+            for _ in range(env.frame_skip):
+                mujoco.mj_step(m, d)
+            peak_h = max(peak_h, abs(math.degrees(d.qpos[env.qh] - env.h0)))
+        report("latch", f"{task}: door stays still when nothing touches it", peak_h < 1.0,
+               f"door moved {peak_h:.2f} deg in 2 s on its own")
     env = DoorEnv(task="handle", hand_path=H, door_path=D, randomize=False)
     env.reset(seed=0)
     nrm = env.geo["door"]["normal"]
@@ -156,6 +178,22 @@ def t_latch(H, D):
         _, _, _, _, info = env.step(act(env, arm_pos=-nrm))
         peak = max(peak, abs(info["door_deg"]))
     report("latch", "door stays shut while the handle is not turned", peak < 2.0, f"door moved {peak:.2f} deg")
+
+    worst, cases = 0.0, 0
+    for task in ("reach", "handle", "full"):                # hammer the door with random actions
+        env = DoorEnv(task=task, hand_path=H, door_path=D, randomize_physics=True)
+        rng = np.random.default_rng(1)
+        for ep in range(4):
+            env.reset(seed=50 + ep)
+            for _ in range(250):
+                _, _, term, trunc, info = env.step(rng.uniform(-1, 1, env.action_space.shape).astype(np.float32))
+                if info["handle_frac"] < env.unlock_frac:   # handle not turned enough -> door must stay shut
+                    worst = max(worst, abs(info["door_deg"]))
+                    cases += 1
+                if term or trunc:
+                    break
+    report("latch", "latch never gives without the handle (random actions)", worst < 2.0,
+           f"{cases} latched steps over 12 random episodes, door moved at most {worst:.2f} deg")
 
     env = DoorEnv(task="door", hand_path=H, door_path=D, randomize=False)
     env.reset(seed=0)
@@ -280,14 +318,27 @@ def t_random(H, D):
     env.reset(seed=3)
     report("random", "values reach the simulation", abs(env.model.body_mass[env.door_body] -
                                                           nominal * env.physics["door_mass"]) < 1e-9,
-           f"door mass {env.model.body_mass[env.door_body]:.1f} kg (nominal {nominal:.1f})")
+           f"door mass {env.model.body_mass[env.door_body]:.1f} kg (nominal {nominal:.1f}), "
+           f"latch at {env.unlock_frac * 100:.0f} %")
     fixed = DoorEnv(task="door", hand_path=H, door_path=D, physics={"door_mass": 1.8, "hinge_friction": 3.0})
     p = fixed.reset(seed=0)[1]["physics"]
     report("random", "fixed test door (physics=...) is applied", p["door_mass"] == 1.8 and p["hinge_friction"] == 3.0,
-           f"{p}")
+           f"door_mass {p['door_mass']}, hinge_friction {p['hinge_friction']}")
     off = DoorEnv(task="door", hand_path=H, door_path=D)
-    report("random", "randomization off -> nominal door", all(v == 1.0 for v in off.reset(seed=0)[1]["physics"].values()),
-           "all multipliers 1.0")
+    report("random", "randomization off -> nominal door", off.reset(seed=0)[1]["physics"] == off.NOMINAL,
+           "every value at its nominal")
+    mv = DoorEnv(task="reach", hand_path=H, door_path=D)
+    _, info0 = mv.reset(seed=0)
+    g0 = mv.geo["door"]["grasp"].copy()
+    arm0 = mv.data.qpos[mv.free_q:mv.free_q + 3].copy()
+    _, info = mv.reset(seed=0, options={"physics": {"door_dx": 0.10, "door_dz": 0.05}})
+    moved = np.linalg.norm(mv.geo["door"]["grasp"] - g0)
+    arm_moved = np.linalg.norm(mv.data.qpos[mv.free_q:mv.free_q + 3] - arm0)
+    report("random", "door_dx / door_dz really move the handle", abs(moved - math.hypot(0.10, 0.05)) < 0.005,
+           f"handle moved {moved * 100:.1f} cm (expected {math.hypot(0.10, 0.05) * 100:.1f})")
+    report("random", "the robot stays put when the door moves (reach)", arm_moved < 0.005,
+           f"robot moved {arm_moved * 1000:.1f} mm; start palm->handle {info0['palm_to_handle'] * 1000:.0f} -> "
+           f"{info['palm_to_handle'] * 1000:.0f} mm")
 
 
 def t_speed(H, D):
@@ -307,8 +358,129 @@ def t_speed(H, D):
                f"{sps:.0f} steps/s ({sps * env.frame_skip:.0f} physics steps/s); 1M steps ~ {1e6 / sps / 3600:.1f} h")
 
 
+def t_modes(H, D):
+    print("\n== ACTION MODES / TASKS")
+    from door_env import scripted_action
+    for mode in ("synergy", "full"):
+        for task in DoorEnv.TASKS:
+            env = DoorEnv(task=task, hand_path=H, door_path=D, action_mode=mode)
+            ok = 0
+            for sd in range(3):
+                env.reset(seed=sd)
+                done = False
+                while not done:
+                    _, _, term, trunc, info = env.step(scripted_action(env))
+                    done = term or trunc
+                ok += info["success"]
+            report("modes", f"{mode:<7} {task:<6} solvable (scripted)", ok == 3,
+                   f"{ok}/3 episodes, {env.action_space.shape[0]} actions")
+    env = DoorEnv(task="handle", hand_path=H, door_path=D, action_mode="full")
+    for jn in env.joint_names[:: max(1, len(env.joint_names) // 4)]:
+        env.reset(seed=0)
+        q0 = {n: env.data.qpos[env.hj[n]["qadr"]] for n in env.joint_names}
+        k = 6 + env.joint_names.index(jn)
+        a = np.zeros(env.action_space.shape, dtype=np.float32)
+        a[k] = 1.0
+        for _ in range(15):
+            env.step(a)
+        dq = {n: abs(env.data.qpos[env.hj[n]["qadr"]] - q0[n]) for n in env.joint_names}
+        others = max(v for n, v in dq.items() if n != jn)
+        report("modes", f"full: joint action moves only {jn.split('__')[-1][:22]}",
+               dq[jn] > math.radians(5) and others < math.radians(3),
+               f"it moved {math.degrees(dq[jn]):.0f} deg, others max {math.degrees(others):.1f} deg")
+
+
+def t_chain(H, D):
+    print("\n== CHAINING THE MODULAR POLICIES (scripted)")
+    from door_env import scripted_action
+    env = DoorEnv(task="reach", hand_path=H, door_path=D)
+    ok, steps = 0, []
+    for sd in range(5):
+        env.reset(seed=sd)
+        good, n = True, 0
+        for stage in ("reach", "handle", "door"):
+            if stage != "reach":
+                env.switch_task(stage)
+            done = False
+            while not done:
+                _, _, term, trunc, info = env.step(scripted_action(env))
+                done = term or trunc
+            n += env.steps
+            if not info["success"]:
+                good = False
+                break
+        ok += good
+        steps.append(n)
+    report("chain", "reach -> handle -> door on one door", ok == 5, f"{ok}/5 end-to-end, {np.mean(steps):.0f} steps")
+    env.reset(seed=0)
+    report("chain", "reset() returns to the original task", env.task == "reach" and env.action_space.shape[0] == 6,
+           f"task '{env.task}', {env.action_space.shape[0]} actions")
+    # save / restore the simulation state
+    env.reset(seed=1)
+    rng = np.random.default_rng(0)
+    acts = [rng.uniform(-1, 1, env.action_space.shape).astype(np.float32) for _ in range(15)]
+    for a_ in acts[:5]:
+        env.step(a_)
+    st = env.get_state()
+    for a_ in acts[5:]:
+        o1 = env.step(a_)[0]
+    env.set_state(st)
+    for a_ in acts[5:]:
+        o2 = env.step(a_)[0]
+    report("chain", "get_state / set_state reproduces the motion", np.allclose(o1, o2, atol=1e-4),
+           f"max difference after 10 steps {np.abs(o1 - o2).max():.2e}")
+
+
+def t_doors(H, D):
+    print("\n== TEST DOORS")
+    from door_env import door_set
+    rng_keys = DoorEnv.PHYSICS_RANGES
+    ind = door_set("in_dist")
+    inside = all(rng_keys[k][0] - 1e-9 <= v <= rng_keys[k][1] + 1e-9 for _, p in ind for k, v in p.items())
+    report("doors", "in-distribution doors are inside the training ranges", inside and len(ind) == 10,
+           f"{len(ind)} doors")
+    uns = door_set("unseen")
+    outside = [any(not (rng_keys[k][0] <= v <= rng_keys[k][1]) for k, v in p.items()) for _, p in uns]
+    report("doors", "every unseen door is outside the training ranges", all(outside),
+           f"{sum(outside)}/{len(uns)}: " + ", ".join(lbl for lbl, _ in uns))
+    report("doors", "the sets are the same every time", door_set("in_dist") == ind, "fixed seed")
+
+
+def t_learn(H, D):
+    print("\n== LEARNABILITY (short ARS run on 'reach')")
+    import types
+    import ars
+    a = types.SimpleNamespace(task="reach", hand=H, door=D, action_mode="synergy", condition="fixed",
+                              obs_noise=0.0, seed=0, iters=10, dirs=6, top=3, step=0.02, noise=0.03,
+                              eval_every=10, eval_episodes=6, workers=1, out="env_test_ars_tmp")
+    t0 = time.time()
+    pol = ars.train(a, log=lambda *x: None)
+    env = DoorEnv(task="reach", hand_path=H, door_path=D)
+    zero = ars.LinearPolicy(pol.mean.size, pol.W.shape[0])
+
+    def score(p):
+        ok, closest = 0, []
+        for i in range(6):
+            obs, _ = env.reset(seed=900 + i)
+            done, best = False, 9.0
+            while not done:
+                obs, _, term, trunc, info = env.step(p.act(obs))
+                best = min(best, info["palm_to_handle"])
+                done = term or trunc
+            ok += info["success"]
+            closest.append(best)
+        return ok / 6, float(np.mean(closest))
+    (s0, c0), (s1, c1) = score(zero), score(pol)
+    import shutil
+    shutil.rmtree("env_test_ars_tmp", ignore_errors=True)
+    report("learn", "a policy learns 'reach' in 10 ARS iterations", c1 < 0.7 * c0,
+           f"closest palm->handle {c0 * 1000:.0f} -> {c1 * 1000:.0f} mm, success {s0 * 100:.0f} -> {s1 * 100:.0f} % "
+           f"({time.time() - t0:.0f} s; train longer with ars.py / experiment.py for full success)")
+
+
 GROUPS = dict(info=t_info, start=t_start, collisions=t_collisions, latch=t_latch, actions=t_actions,
-              obs=t_obs, reward=t_reward, random=t_random, speed=t_speed)
+              obs=t_obs, reward=t_reward, random=t_random, modes=t_modes, chain=t_chain, doors=t_doors,
+              speed=t_speed, learn=t_learn)
 
 
 def main():
@@ -316,8 +488,9 @@ def main():
     ap.add_argument("--hand", default=DEFAULT_HAND)
     ap.add_argument("--door", default=DEFAULT_DOOR)
     ap.add_argument("--only", choices=list(GROUPS), action="append")
+    ap.add_argument("--quick", action="store_true", help="skip the slow learnability test")
     args = ap.parse_args()
-    for name in (args.only or GROUPS):
+    for name in (args.only or [g for g in GROUPS if not (args.quick and g == "learn")]):
         try:
             GROUPS[name](args.hand, args.door)
         except Exception as e:                                # keep going, report the crash

@@ -5,13 +5,7 @@
 > **Pipeline:** SolidWorks → sw2robot (extract + build) → `drop_angle_mates.py` / `fix_axes.py` → MJCF → `add_actuators.py` → `hand_controller.py`. Full commands in §35.3.
 >
 > **Source of truth:** SolidWorks CAD defines the intended geometry, assembly relationships, reference geometry, and joint limits. MuJoCo is used for simulation physics, contacts, actuators, and control.
-## Team
-Capstone project, B.Tech CSE, Shiv Nadar University Chennai
-- @RawMangoking
-- @narenkumarchandran
-- @plan28-06
 
-Mentor: Dr. Priya GL
 ---
 
 ## 1. Project Overview
@@ -74,6 +68,9 @@ Human_Hand_200mm/
 │   ├── door_env.py                  RL: Gymnasium env, hand + door, tasks reach / handle / door (§38)
 │   ├── train_policy.py              RL: SAC training / playback with stable-baselines3
 │   ├── env_tests.py                 RL: environment test battery (PASS/FAIL report)
+│   ├── ars.py                       RL: Augmented Random Search trainer (numpy only, parallel)
+│   ├── experiment.py                RL: plan / train / eval / chain / report (§39)
+│   ├── record.py                    RL: videos of policies on test doors
 │   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
 │   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
 │   └── output/                      ← sw2robot packages (generated, in .gitignore)
@@ -2507,3 +2504,69 @@ Stand-in results: 47/47 pass — start pose clear of the door (20 starts per tas
 2. A switcher: palm within 4 cm → handle policy; handle ≥ 80 % → door policy.
 3. If the real hand uses one cable motor for middle+ring+pinky: switch `mrp` to a MuJoCo tendon (adaptive grip).
 4. Randomise door mass, handle friction and the arm start pose for robustness.
+
+
+# 39. Experiment system — answering the research question
+
+## 39.1 What was added
+
+| Piece | File | Purpose |
+|---|---|---|
+| Full-joint baseline | `door_env.py` `action_mode="full"` | every hand joint is its own action (24 actions) — the "no DOF reduction" baseline |
+| One-policy baseline | `door_env.py` `task="full"` | a single policy does reach → turn → open (staged reward, 600 steps) — the "not modular" baseline |
+| Chaining | `env.switch_task()` | runs the three modular policies one after another on the same door |
+| Start-state pools | `get_state()` / `set_state()`, `start_states=` | start a stage where the previous one ended |
+| Sensor noise | `obs_noise=` | Gaussian noise on observations (sim-to-real robustness) |
+| Test doors | `door_set("nominal" / "in_dist" / "unseen")` | fixed evaluation doors: 10 inside the training ranges, 9 outside |
+| Numpy trainer | `ars.py` | Augmented Random Search: no PyTorch / GPU, parallel on all CPU cores |
+| Experiment harness | `experiment.py` | `plan` / `train` / `eval` / `chain` / `report` → `results/results.md`, CSV, plots |
+| Videos | `record.py` | MP4 / GIF of scripted, trained or chained policies on any test door, with overlay |
+| Tests | `env_tests.py` | 84 checks, incl. both action modes, chaining, latch stress test, learnability |
+
+## 39.2 What is randomized (training) — and why
+
+Door physics alone did not matter: a policy trained on one fixed door opened every "heavier / stiffer" door, because the arm's ≈ 20 N push dwarfs those changes. Randomization now changes **what the robot has to do**:
+
+| Parameter | Training range | Effect |
+|---|---|---|
+| `door_dx`, `door_dz` | ±8 cm sideways, ±6 cm up/down | the handle is somewhere else (the robot stays at its fixed spot) |
+| `door_yaw` | ±10° | the door is turned |
+| `unlock` | 60–90 % of handle travel | how far the handle must turn before the latch releases |
+| `handle_friction`, `hinge_friction` | ×0.5 – ×10 | resistance that the turning / pushing must overcome |
+| `hinge_damping`, `door_mass`, `grip_friction` | ×0.5–2, ×0.6–1.4, ×0.6–1.4 | door dynamics, handle grip |
+
+Unseen test doors (all outside the ranges): `shifted_side` (14 cm), `handle_high` / `handle_low` (±10 cm), `turned_door` (18°), `stiff_handle` (×15), `stiff_hinge` (×15), `deep_latch` (95 %), `heavy_slippery`, `hard_combo`.
+
+For `reach` and `full` the robot starts at a fixed spot in the world (a moved door really is elsewhere); `handle` and `door` start next to the actual handle (where the previous stage ends). The latch stays latched until the handle is turned, however hard the door is pushed (random-action stress test: 2899 latched steps, door moved ≤ 0.06°). The arm cannot move more than 0.7 m from its start (a real arm's reach).
+
+## 39.3 Pilot result (stand-in models, ARS, 1 seed, 30 iterations, 6 episodes per door)
+
+| Training | Nominal | In-distribution | **Unseen** |
+|---|:-:|:-:|:-:|
+| fixed door | 83 % | 62 % | **52 %** |
+| randomized | 100 % | 72 % | **69 %** |
+
+The gap appears on the moved doors (`shifted_side`, `handle_low`, `hard_combo`). A pilot only — the real results need ≥ 3 seeds, longer training and the real hand + door.
+
+## 39.4 Running the experiments
+
+```powershell
+cd "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python"
+python env_tests.py --quick                       # everything OK on your models?
+python experiment.py plan --algo ars --seeds 3    # prints every command of the experiment matrix
+
+# Q1: fixed vs randomized (repeat for handle, door; seeds 0 1 2)
+python experiment.py train --task reach --condition fixed  --algo ars --seed 0
+python experiment.py train --task reach --condition random --algo ars --seed 0
+# Q2a: reduced vs full-joint actions
+python experiment.py train --task handle --condition random --action-mode full --algo ars --seed 0
+# Q2b: one policy for everything
+python experiment.py train --task full --condition random --algo ars --seed 0
+
+Get-ChildItem runs -Directory | ForEach-Object { python experiment.py eval --run $_.FullName --doors all }
+python experiment.py chain --reach runs\reach_ars_random_synergy_s0 --handle runs\handle_ars_random_synergy_s0 --door runs\door_ars_random_synergy_s0 --doors all --out runs\chain_random
+python experiment.py report                       # results\results.md, results.csv, learning_*.png, unseen_*.png
+python record.py --chain runs\reach_ars_random_synergy_s0 runs\handle_ars_random_synergy_s0 runs\door_ars_random_synergy_s0 --doors unseen
+```
+
+`--algo sac` / `--algo ppo` use stable-baselines3 (`python -m pip install stable-baselines3`) with `--steps 300000`; `ars` needs only numpy and uses all CPU cores (`--workers`). Packages for plots / videos: `python -m pip install matplotlib imageio imageio-ffmpeg pillow`.

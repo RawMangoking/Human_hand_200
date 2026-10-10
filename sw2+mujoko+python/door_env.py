@@ -276,6 +276,48 @@ def build_scene(hand_path, door_path, standoff=0.30):
                           body2="hand/" + hg["root"], solref="0.05 1", solimp="0.95 0.99 0.001")
         if not len(merged):
             scene.remove(merged)
+    report = []
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+
+    # (1) door parts the hand must touch (door, handle) need collision shapes: use the visible mesh if none
+    for jname in (dcfg["hinge"], dcfg["handle"]):
+        b = model.jnt_bodyid[model.joint("door/" + jname).id]
+        if not any(model.geom_contype[g] or model.geom_conaffinity[g]
+                   for g in range(model.ngeom) if model.geom_bodyid[g] == b):
+            bname = model.body(b).name
+            el = next(e for e in wb.iter("body") if e.get("name") == bname)
+            for g in el.findall("geom"):
+                g.set("contype", "1")
+                g.set("conaffinity", "1")
+            report.append(f"{bname} had no collision shape - its visible mesh now collides")
+    if any("collision shape" in r for r in report):
+        model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+
+    # (2) door parts that overlap each other at rest (e.g. the handle sitting inside the frame in CAD) would be
+    #     shoved apart at the first step and fling the door: switch that pair off (the env latch keeps the door
+    #     shut until the handle is turned)
+    d0 = mujoco.MjData(model)
+    mujoco.mj_forward(model, d0)
+    hand_b = {b for b in range(model.nbody) if model.body(b).name.startswith("hand/")}
+    pairs = {}
+    for c in d0.contact[:d0.ncon]:
+        b1, b2 = int(model.geom_bodyid[c.geom1]), int(model.geom_bodyid[c.geom2])
+        if b1 in hand_b or b2 in hand_b or c.dist > -0.001:
+            continue
+        key = tuple(sorted((model.body(b1).name, model.body(b2).name)))
+        pairs[key] = max(pairs.get(key, 0.0), -float(c.dist))
+    if pairs:
+        cont = scene.find("contact")
+        if cont is None:
+            cont = ET.SubElement(scene, "contact")
+        for (n1, n2), depth in sorted(pairs.items()):
+            ET.SubElement(cont, "exclude", body1=n1, body2=n2)
+            report.append(f"{n1} overlaps {n2} by {depth * 1000:.1f} mm at rest - that pair's collision is OFF "
+                          f"(fix in CAD to restore it; the env latch still holds the door shut)")
+        model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+    for r in report:
+        print("[door_env] " + r)
+
     xml = ET.tostring(scene, encoding="unicode")
     out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(door_path)))),
                            "Hand_Door_env")
@@ -285,31 +327,84 @@ def build_scene(hand_path, door_path, standoff=0.30):
             f.write(xml)
     except OSError:
         pass
-    model = mujoco.MjModel.from_xml_string(xml)
-    return model, hcfg, dcfg, dict(hand=hg, door=dg, root_pos=root_pos, root_quat=root_quat)
+    return model, hcfg, dcfg, dict(hand=hg, door=dg, root_pos=root_pos, root_quat=root_quat, report=report)
+
+
+# --------------------------------------------------------------------------- test doors
+UNSEEN_DOORS = [                                   # every one is OUTSIDE the training ranges
+    ("shifted_side", {"door_dx": 0.14}),                 # door 14 cm to the side (train: +-8 cm)
+    ("handle_high", {"door_dz": 0.10}),                  # handle 10 cm higher (train: +-6 cm)
+    ("handle_low", {"door_dz": -0.10}),
+    ("turned_door", {"door_yaw": 18.0}),                 # door turned 18 deg (train: +-10 deg)
+    ("stiff_handle", {"handle_friction": 15.0}),         # 15x handle resistance (train: up to 10x)
+    ("stiff_hinge", {"hinge_friction": 15.0, "hinge_damping": 3.0}),
+    ("deep_latch", {"unlock": 0.95}),                    # handle must turn 95 % (train: 60-90 %)
+    ("heavy_slippery", {"door_mass": 2.0, "grip_friction": 0.4}),
+    ("hard_combo", {"door_dx": 0.12, "door_dz": 0.08, "door_yaw": -15.0, "handle_friction": 12.0}),
+]
+
+
+def door_set(name, n=10, seed=1234):
+    """Named sets of test doors -> [(label, physics multipliers)].
+    nominal : the training door of the fixed condition
+    in_dist : n doors sampled inside the training ranges (fixed seed -> same doors every time)
+    unseen  : UNSEEN_DOORS, outside the training ranges (generalization test)"""
+    if name == "nominal":
+        return [("nominal", {})]
+    if name == "in_dist":
+        rng = np.random.default_rng(seed)
+        return [(f"in_dist_{i}", {k: float(rng.uniform(lo, hi)) for k, (lo, hi) in DoorEnv.PHYSICS_RANGES.items()})
+                for i in range(n)]
+    if name == "unseen":
+        return list(UNSEEN_DOORS)
+    if name == "all":
+        return door_set("nominal") + door_set("in_dist", n, seed) + door_set("unseen")
+    raise ValueError(f"unknown door set '{name}' (nominal, in_dist, unseen, all)")
 
 
 # --------------------------------------------------------------------------- environment
 class DoorEnv(gym.Env):
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 25}
-    TASKS = {
+    TASKS = {                                   # action channels per task, action_mode="synergy" (default)
         "reach": ["arm_pos", "arm_rot"],
         "handle": ["arm_pos", "arm_rot", "wrist", "index", "mrp", "thumb", "opp"],
         "door": ["arm_pos", "grip"],
+        "full": ["arm_pos", "arm_rot", "wrist", "index", "mrp", "thumb", "opp"],   # one policy, whole sequence
     }
+    TASKS_FULL = {                              # action_mode="full": every hand joint is its own action
+        "reach": ["arm_pos", "arm_rot"],
+        "handle": ["arm_pos", "arm_rot", "joints"],
+        "door": ["arm_pos", "arm_rot", "joints"],
+        "full": ["arm_pos", "arm_rot", "joints"],
+    }
+    MAX_STEPS = {"reach": 250, "handle": 250, "door": 250, "full": 600}
     SIZES = {"arm_pos": 3, "arm_rot": 3, "wrist": 2, "index": 1, "mrp": 1, "thumb": 1, "opp": 1, "grip": 1}
     LEASH = 0.02             # m: how far the arm target may run ahead of the arm
+    WORKSPACE = 0.70         # m: the arm stays within this distance of where it started (a real arm's reach)
     STEP_FRAC = 0.10         # finger / wrist actions: fraction of the range per step at action = 1
     # domain randomization: each value is a multiplier of the door's nominal value (from door_setup.py)
-    PHYSICS_RANGES = {"door_mass": (0.6, 1.4), "hinge_damping": (0.5, 2.0), "hinge_friction": (0.5, 2.0),
-                      "handle_friction": (0.5, 2.0), "grip_friction": (0.6, 1.4)}
+    # multipliers of the nominal door (from door_setup.py) ...
+    PHYSICS_RANGES = {"door_mass": (0.6, 1.4), "hinge_damping": (0.5, 2.0), "hinge_friction": (0.5, 10.0),
+                      "handle_friction": (0.5, 10.0), "grip_friction": (0.6, 1.4),
+                      # ... and absolute values: where the door is, how far the latch must be turned
+                      "door_dx": (-0.08, 0.08),      # m, sideways (along the door face)
+                      "door_dz": (-0.06, 0.06),      # m, up / down
+                      "door_yaw": (-10.0, 10.0),     # deg, door turned about the vertical
+                      "unlock": (0.6, 0.9)}          # handle travel (fraction) that releases the latch
+    NOMINAL = {"door_mass": 1.0, "hinge_damping": 1.0, "hinge_friction": 1.0, "handle_friction": 1.0,
+               "grip_friction": 1.0, "door_dx": 0.0, "door_dz": 0.0, "door_yaw": 0.0, "unlock": 0.8}
 
     def __init__(self, task="reach", hand_path=DEFAULT_HAND, door_path=DEFAULT_DOOR, render_mode=None,
-                 control_hz=25, max_steps=250, door_dir="push", randomize=True, latch=True, unlock_frac=0.8,
+                 control_hz=25, max_steps=None, door_dir="push", randomize=True, latch=True, unlock_frac=0.8,
                  hand_self_collision=False, hand_door_collision=True,
-                 randomize_physics=False, physics=None, physics_ranges=None):
+                 randomize_physics=False, physics=None, physics_ranges=None,
+                 action_mode="synergy", obs_noise=0.0, start_states=None):
         assert task in self.TASKS, f"task must be one of {list(self.TASKS)}"
+        assert action_mode in ("synergy", "full"), "action_mode must be 'synergy' or 'full'"
         self.task, self.render_mode, self.randomize = task, render_mode, randomize
+        self.action_mode, self.obs_noise, self.start_states = action_mode, float(obs_noise), start_states
+        self._fixed_max_steps = max_steps
+        self.base_task = task                                   # reset() always returns to this task
         self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path)
         # collision rules: hand may overlap itself, hand collides with the door / handle / frame / floor
         n_hand, n_door = set_collisions(self.model, hand_self=hand_self_collision, hand_door=hand_door_collision)
@@ -332,7 +427,7 @@ class DoorEnv(gym.Env):
         m = self.model
         self.data = mujoco.MjData(m)
         self.frame_skip = max(1, int(round(1.0 / (control_hz * m.opt.timestep))))
-        self.max_steps = max_steps
+        self.max_steps = max_steps or self.MAX_STEPS[task]
         J = lambda n: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, n)
         B = lambda n: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, n)
         A = lambda n: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_ACTUATOR, n)
@@ -371,21 +466,24 @@ class DoorEnv(gym.Env):
         self.latch, self.unlock_frac = latch, unlock_frac
         self.hinge_range = m.jnt_range[self.jh].copy()
         self.hinge_limited = bool(m.jnt_limited[self.jh])
+        self._latched = True
+        m.jnt_solref[self.jh] = [0.005, 1.0]                     # a firm latch / door stop
 
         # arm (mocap target)
         self.mid = m.body_mocapid[B("hand/base_target")]
         self.free_q = m.jnt_qposadr[J("hand/base_free")]
         self.free_v = m.jnt_dofadr[J("hand/base_free")]
 
-        n_act = sum(self.SIZES[k] for k in self.TASKS[task])
-        self.action_space = spaces.Box(-1.0, 1.0, shape=(n_act,), dtype=np.float32)
-        self._last_action = np.zeros(n_act, dtype=np.float32)
-        obs = self._obs()
-        self.observation_space = spaces.Box(-1e3, 1e3, shape=obs.shape, dtype=np.float32)
+        self.joint_names = list(self.hj)
+        self.sizes = dict(self.SIZES, joints=len(self.joint_names))
+        self._target = {n: self._home(n) for n in self.hj}
+        self._curl = {g: 0.0 for g in ("index", "mrp", "thumb", "opp")}
+        self._wpos = [0.0 for _ in self.wrist]
+        self._stage = 0
+        self._set_spaces(task)
         self._viewer, self._renderer = None, None
         self.steps = 0
         self.hand_door_collision = hand_door_collision
-        self.action_layout = [(k, self.SIZES[k]) for k in self.TASKS[task]]
 
         # ---- door physics: nominal values, randomization ranges (multipliers of the nominal value)
         self.door_body = m.jnt_bodyid[self.jh]
@@ -399,7 +497,58 @@ class DoorEnv(gym.Env):
                              grip_friction=m.geom_friction[self.handle_geoms, 0].copy())
         self.physics_ranges = dict(self.PHYSICS_RANGES, **(physics_ranges or {}))
         self.randomize_physics, self.fixed_physics = randomize_physics, physics
-        self.physics = {k: 1.0 for k in self.physics_ranges}
+        self.NOMINAL = dict(self.NOMINAL, unlock=unlock_frac)
+        self.physics = dict(self.NOMINAL)
+        b = self.door_body
+        while m.body_parentid[b] != 0:
+            b = m.body_parentid[b]
+        self.door_root = b
+        self._root_pos0, self._root_quat0 = m.body_pos[b].copy(), m.body_quat[b].copy()
+        self._grasp0 = self.geo["door"]["grasp"].copy()
+        self._normal0 = self.geo["door"]["normal"].copy()
+        self._door_yaw = 0.0
+
+    # ---- task / action layout
+    def channels(self, task=None):
+        t = task or self.task
+        return (self.TASKS_FULL if self.action_mode == "full" else self.TASKS)[t]
+
+    def _set_spaces(self, task):
+        self.task = task
+        self.action_layout = [(k, self.sizes[k]) for k in self.channels(task)]
+        n_act = sum(n for _, n in self.action_layout)
+        self.action_space = spaces.Box(-1.0, 1.0, shape=(n_act,), dtype=np.float32)
+        self._last_action = np.zeros(n_act, dtype=np.float32)
+        self.observation_space = spaces.Box(-1e3, 1e3, shape=self._obs().shape, dtype=np.float32)
+        if self._fixed_max_steps is None:
+            self.max_steps = self.MAX_STEPS[task] if hasattr(self, "frame_skip") else 250
+
+    def switch_task(self, task):
+        """Change task (action set, observation, reward) WITHOUT touching the simulation - for chaining the
+        three modular policies on one door: reach -> handle -> door."""
+        self._set_spaces(task)
+        self.steps = 0
+        self._prev = self._progress()
+        return self._obs()
+
+    # ---- simulation state (for start-state pools: start 'handle' where 'reach' ended, etc.)
+    def get_state(self):
+        d = self.data
+        return dict(qpos=d.qpos.copy(), qvel=d.qvel.copy(), ctrl=d.ctrl.copy(), act=d.act.copy(),
+                    mocap_pos=d.mocap_pos.copy(), mocap_quat=d.mocap_quat.copy(), target=dict(self._target),
+                    curl=dict(self._curl), wpos=list(self._wpos), arm_start=self._arm_start.copy(),
+                    physics=dict(self.physics), latched=self._latched)
+
+    def set_state(self, st):
+        m, d = self.model, self.data
+        d.qpos[:], d.qvel[:], d.ctrl[:] = st["qpos"], st["qvel"], st["ctrl"]
+        if m.na:
+            d.act[:] = st["act"]
+        d.mocap_pos[:], d.mocap_quat[:] = st["mocap_pos"], st["mocap_quat"]
+        self._target, self._curl, self._wpos = dict(st["target"]), dict(st["curl"]), list(st["wpos"])
+        self._latched = st.get("latched", True)
+        self._update_latch()
+        mujoco.mj_forward(m, d)
 
     # ---- helpers
     def _home(self, n):
@@ -417,15 +566,21 @@ class DoorEnv(gym.Env):
         nu = j["neutral"]
         self._target[n] = nu + x * (hi - nu) if x >= 0 else nu + x * (nu - lo)
 
-    def _place_arm(self, palm_offset, yaw):
-        """Put the mocap target AND the free joint so the palm is `palm_offset` from the handle."""
+    def _place_arm(self, palm_offset, yaw, at_handle=True):
+        """Put the mocap target AND the free joint so the palm is `palm_offset` from a handle.
+        at_handle=True : relative to the ACTUAL handle (the previous stage ended there: handle / door tasks)
+        at_handle=False: relative to the NOMINAL handle - the robot stands at a fixed spot in the world and a
+                         moved / turned door really is somewhere else (reach / full tasks)"""
         g = self.geo
-        Rz = np.array([[math.cos(yaw), -math.sin(yaw), 0], [math.sin(yaw), math.cos(yaw), 0], [0, 0, 1]])
         R0 = np.zeros(9)
         mujoco.mju_quat2Mat(R0, g["root_quat"])
+        if at_handle:
+            yaw = yaw + self._door_yaw                                  # face the (turned) door
+        Rz = np.array([[math.cos(yaw), -math.sin(yaw), 0], [math.sin(yaw), math.cos(yaw), 0], [0, 0, 1]])
         R = Rz @ R0.reshape(3, 3)
-        palm0 = g["door"]["grasp"] + g["door"]["normal"] * 0.30        # where build_scene put the palm
-        pos = g["door"]["grasp"] + palm_offset + Rz @ (g["root_pos"] - palm0)
+        palm0 = self._grasp0 + self._normal0 * 0.30                    # where build_scene put the palm
+        base = g["door"]["grasp"] if at_handle else self._grasp0
+        pos = base + palm_offset + Rz @ (g["root_pos"] - palm0)
         quat = _quat_from_mat(R)
         d = self.data
         d.mocap_pos[self.mid], d.mocap_quat[self.mid] = pos, quat
@@ -464,11 +619,29 @@ class DoorEnv(gym.Env):
             d.mocap_pos[self.mid] - d.qpos[self.free_q:self.free_q + 3]
         o = np.concatenate([grasp - palm_c, R[:, 0], R[:, 2], q, door, tip_flags, [1.0 if palm_t else 0.0],
                             off, self._last_action])
+        if self.obs_noise > 0 and hasattr(self, "np_random"):
+            n = len(o) - len(self._last_action)                 # noise on sensed values, not on own action
+            o[:n] = o[:n] + self.np_random.normal(0.0, self.obs_noise, n)
         return np.clip(o, -1e3, 1e3).astype(np.float32)
 
     # ---- door physics (domain randomization)
     def _apply_physics(self, mult):
+        mult = dict(self.NOMINAL, **mult)
         m, n = self.model, self._nominal
+        # door pose: turn about the vertical through the handle, then shift along the door face / up
+        yaw = math.radians(mult["door_yaw"])
+        c, s_ = math.cos(yaw), math.sin(yaw)
+        Rz = np.array([[c, -s_, 0], [s_, c, 0], [0, 0, 1]])
+        side = np.cross(self._normal0, [0.0, 0.0, 1.0])
+        side /= np.linalg.norm(side) + 1e-12
+        m.body_pos[self.door_root] = (self._grasp0 + Rz @ (self._root_pos0 - self._grasp0)
+                                      + side * mult["door_dx"] + np.array([0, 0, mult["door_dz"]]))
+        qz = np.array([math.cos(yaw / 2), 0, 0, math.sin(yaw / 2)])
+        q = np.zeros(4)
+        mujoco.mju_mulQuat(q, qz, self._root_quat0)
+        m.body_quat[self.door_root] = q
+        self._door_yaw = yaw
+        self.unlock_frac = float(mult["unlock"])
         m.body_mass[self.door_body] = n["door_mass"] * mult["door_mass"]
         m.body_inertia[self.door_body] = n["door_inertia"] * mult["door_mass"]
         m.dof_damping[self.dof_h] = n["hinge_damping"] * mult["hinge_damping"]
@@ -476,15 +649,19 @@ class DoorEnv(gym.Env):
         m.dof_frictionloss[self.dof_d] = n["handle_friction"] * mult["handle_friction"]
         m.geom_friction[self.handle_geoms, 0] = n["grip_friction"] * mult["grip_friction"]
         self.physics = dict(mult)
+        # where the handle / door face are now (used for placing the arm and by the scripted policies)
+        d = self.data                                   # (door joints are at rest: reset() just reset them)
+        mujoco.mj_forward(m, d)
+        self.geo["door"]["grasp"] = np.array(d.xipos[self.handle_body])
+        self.geo["door"]["normal"] = Rz @ self._normal0
 
     def _sample_physics(self):
         if self.fixed_physics is not None:
-            mult = {k: 1.0 for k in self.physics_ranges}
-            mult.update(self.fixed_physics)
+            mult = dict(self.NOMINAL, **self.fixed_physics)
         elif self.randomize_physics:
             mult = {k: float(self.np_random.uniform(lo, hi)) for k, (lo, hi) in self.physics_ranges.items()}
         else:
-            mult = {k: 1.0 for k in self.physics_ranges}
+            mult = dict(self.NOMINAL)
         self._apply_physics(mult)
 
     # ---- start pose: never start with the hand inside the door
@@ -499,13 +676,13 @@ class DoorEnv(gym.Env):
                 out.append((m.body(hb).name, m.body(ob).name, float(-c.dist)))
         return out
 
-    def _place_clear(self, normal_offset, lateral, yaw):
+    def _place_clear(self, normal_offset, lateral, yaw, at_handle=True):
         """Place the palm `normal_offset` in front of the handle (+ lateral offset); if any hand part overlaps
         the door/frame/handle/floor, move the arm back along the door normal 1 cm at a time until it is clear."""
-        nrm = self.geo["door"]["normal"]
+        nrm = self.geo["door"]["normal"] if at_handle else self._normal0
         pushed = 0.0
         for _ in range(120):
-            self._place_arm(nrm * (normal_offset + pushed) + lateral, yaw)
+            self._place_arm(nrm * (normal_offset + pushed) + lateral, yaw, at_handle)
             mujoco.mj_forward(self.model, self.data)
             if not self.hand_door_collision or not self.hand_overlaps():
                 break
@@ -516,6 +693,8 @@ class DoorEnv(gym.Env):
     # ---- gym API
     def reset(self, seed=None, options=None):
         super().reset(seed=seed)
+        if self.task != self.base_task:                         # after chaining (switch_task), start over
+            self._set_spaces(self.base_task)
         m, d = self.model, self.data
         mujoco.mj_resetData(m, d)
         self._target = {n: self._home(n) for n in self.hj}
@@ -525,10 +704,14 @@ class DoorEnv(gym.Env):
             d.qpos[h["qadr"]] = self._target[n]
             d.ctrl[h["act"]] = self._target[n]
         rnd = self.np_random
-        self._sample_physics()
+        if options and "physics" in options:                   # evaluate on a specific test door
+            self._apply_physics(dict(self.NOMINAL, **options["physics"]))
+        else:
+            self._sample_physics()
         noise = (rnd.uniform(-1, 1, 3) * 0.05) if self.randomize else np.zeros(3)
         yaw = rnd.uniform(-1, 1) * math.radians(10) if self.randomize else 0.0
-        nrm = self.geo["door"]["normal"]
+        at_handle = self.task in ("handle", "door")
+        nrm = self.geo["door"]["normal"] if at_handle else self._normal0
         lateral = noise - nrm * (noise @ nrm)                   # sideways / vertical part of the noise
         along = float(noise @ nrm)
         if self.task == "door":                                 # door: handle already turned open
@@ -536,9 +719,18 @@ class DoorEnv(gym.Env):
             if self.latch_eq >= 0:
                 d.eq_active[self.latch_eq] = 0
         start = {"reach": (0.30 + along, lateral, yaw),
+                 "full": (0.30 + along, lateral, yaw),
                  "handle": (0.07 + 0.3 * along, 0.3 * lateral, 0.3 * yaw),
                  "door": (0.05 + 0.3 * along, 0.3 * lateral, 0.3 * yaw)}[self.task]
-        self._place_clear(*start)
+        self._latched = self.task != "door"                     # door task: the handle is already turned
+        self._place_clear(*start, at_handle=at_handle)
+        self._arm_start = self.data.mocap_pos[self.mid].copy()
+        self._stage = 0
+        if self.start_states:                                   # start where a previous policy ended
+            self.set_state(self.start_states[int(rnd.integers(len(self.start_states)))])
+            self.start_pushed_back = 0.0
+            self._arm_start = st0 if (st0 := self.start_states[0].get("arm_start")) is not None else \
+                self.data.mocap_pos[self.mid].copy()
         self._update_latch()
         mujoco.mj_forward(m, d)
         self.steps = 0
@@ -549,8 +741,7 @@ class DoorEnv(gym.Env):
     def _apply_action(self, a):
         d = self.data
         k = 0
-        for name in self.TASKS[self.task]:
-            n = self.SIZES[name]
+        for name, n in self.action_layout:
             x = a[k:k + n]
             k += n
             if name == "arm_pos":
@@ -574,6 +765,11 @@ class DoorEnv(gym.Env):
                 for g in ("index", "mrp", "thumb"):
                     self._curl[g] = float(np.clip(self._curl[g] + self.STEP_FRAC * float(x[0]), 0, 1))
                     self._set_curl(g, self._curl[g])
+            elif name == "joints":                              # full mode: one action per hand joint
+                for jn, val in zip(self.joint_names, x):
+                    lo, hi = self.hj[jn]["cfg"]["range"]
+                    self._target[jn] = float(np.clip(self._target[jn] + self.STEP_FRAC * (hi - lo) * float(val),
+                                                     lo, hi))
         # leash: the target never runs more than LEASH ahead of the real arm. With the soft weld this caps the
         # arm's push at ~20 N, so it cannot force the hand through the door (a real arm is force-limited too)
         arm = d.qpos[self.free_q:self.free_q + 3]
@@ -581,15 +777,25 @@ class DoorEnv(gym.Env):
         n = np.linalg.norm(off)
         if n > self.LEASH:
             d.mocap_pos[self.mid] = arm + off * self.LEASH / n
+        ws = d.mocap_pos[self.mid] - self._arm_start                    # workspace limit
+        wn = np.linalg.norm(ws)
+        if wn > self.WORKSPACE:
+            d.mocap_pos[self.mid] = self._arm_start + ws * self.WORKSPACE / wn
 
     def _update_latch(self):
+        """A real latch: it stays latched until the handle is turned unlock_frac of its travel - however hard
+        the door is pushed - and re-latches only when the door is back near closed with the handle released."""
         m, d = self.model, self.data
         if not self.latch:
             return
         frac = (d.qpos[self.qd] - self.d0) / (self.handle_open - self.d0 + 1e-9)
         closed = abs(d.qpos[self.qh] - self.h0) < math.radians(1.5)
-        if frac < self.unlock_frac and closed:
-            m.jnt_range[self.jh] = [self.h0 - 1e-3, self.h0 + 1e-3]         # latched
+        if self._latched and frac >= self.unlock_frac:
+            self._latched = False
+        elif not self._latched and closed and frac < self.unlock_frac:
+            self._latched = True
+        if self._latched:
+            m.jnt_range[self.jh] = [self.h0 - 1e-3, self.h0 + 1e-3]
             m.jnt_limited[self.jh] = 1
         else:
             m.jnt_range[self.jh] = self.hinge_range
@@ -624,8 +830,17 @@ class DoorEnv(gym.Env):
         elif self.task == "handle":
             r = 10.0 * (p["handle"] - self._prev["handle"]) - 0.5 * p["dist"] + 0.05 * len(tips) + 0.05 * palm_t
             success = p["handle"] > 0.8
-        else:
+        elif self.task == "door":
             r = 5.0 * (p["door"] - self._prev["door"]) + 0.02 * touch
+            success = p["door"] > math.radians(60)
+        else:                                                   # full: staged reward, one policy does it all
+            r = 0.2 * (-p["dist"] + 5.0 * (self._prev["dist"] - p["dist"]))
+            r += 10.0 * (p["handle"] - self._prev["handle"]) + 0.05 * len(tips)
+            r += 5.0 * (p["door"] - self._prev["door"])
+            if self._stage == 0 and p["dist"] < 0.04:
+                self._stage, r = 1, r + 2.0                     # reached the handle
+            if self._stage <= 1 and p["handle"] > self.unlock_frac:
+                self._stage, r = 2, r + 5.0                     # handle turned
             success = p["door"] > math.radians(60)
         r -= 0.01 * float(np.sum(a ** 2))
         if success:
@@ -642,7 +857,7 @@ class DoorEnv(gym.Env):
 
     def _info(self, p=None, success=False, touch=False):
         p = p or self._progress()
-        return dict(palm_to_handle=p["dist"], handle_frac=p["handle"],
+        return dict(palm_to_handle=p["dist"], handle_frac=p["handle"], task=self.task, stage=self._stage,
                     door_deg=math.degrees(p["door"]), success=bool(success), touching_handle=bool(touch),
                     physics=dict(self.physics), start_pushed_back=getattr(self, "start_pushed_back", 0.0))
 
@@ -674,29 +889,60 @@ class DoorEnv(gym.Env):
 
 
 # --------------------------------------------------------------------------- scripted demo policies
+def named_action(env, **channels):
+    """Build an action vector from named channels, e.g. named_action(env, arm_pos=[0,0,1], mrp=1)."""
+    a = np.zeros(env.action_space.shape, dtype=np.float32)
+    k = 0
+    for name, n in env.action_layout:
+        if name in channels:
+            a[k:k + n] = channels[name]
+        k += n
+    return a
+
+
+def _close(env, amount):
+    """Finger-closing channels for either action mode (synergy curls or every flex joint)."""
+    names = [n for n, _ in env.action_layout]
+    if "joints" in names:
+        flex = np.array([1.0 if env.hj[j]["cfg"]["role"] == "flex" else 0.0 for j in env.joint_names])
+        return {"joints": flex * amount}
+    if "grip" in names:
+        return {"grip": amount}
+    return {k: amount for k in ("index", "mrp", "thumb", "opp") if k in names}
+
+
 def scripted_action(env):
-    """Simple hand-written policies (shows each task is solvable; also a baseline)."""
+    """Hand-written policies for every task (shows each task is solvable; a baseline; used by the tests).
+    For task 'full' it runs the three stages in order."""
     d = env.data
     palm_c = np.array(d.xipos[env.palm])
     grasp = np.array(d.xipos[env.handle_body])
-    a = np.zeros(env.action_space.shape, dtype=np.float32)
     to = np.clip((grasp - palm_c) / 0.01, -1, 1)
-    if env.task == "reach":
-        a[:3] = to
-    elif env.task == "handle":
-        near = np.linalg.norm(grasp - palm_c) < 0.05
-        a[8:12] = 1.0 if near else -1.0                                           # grip when close
+    near = np.linalg.norm(grasp - palm_c) < 0.05
+    stage = {"reach": 0, "handle": 1, "door": 2}.get(env.task, env._stage)
+    if env.task == "full" and stage == 0 and near:
+        stage = 1
+    if stage == 0:
+        return named_action(env, arm_pos=to, **_close(env, -1.0))
+    if stage == 1:
         if not near:
-            a[:3] = to
-        else:                                                                     # move along the lever's arc
-            ax, piv = np.array(d.xaxis[env.jd]), np.array(d.xanchor[env.jd])
-            tang = np.cross(ax, grasp - piv) * np.sign(env.handle_open - env.d0)
-            n = np.linalg.norm(tang)
-            a[:3] = np.clip(tang / (n + 1e-9) + 0.5 * to, -1, 1) if n > 1e-6 else to
-    else:
-        a[:3] = -env.geo["door"]["normal"] * env.door_goal_sign * env.geo["door"]["push_sign"]
-        a[3] = -1.0
-    return a
+            return named_action(env, arm_pos=to, **_close(env, -1.0))
+        ax, piv = np.array(d.xaxis[env.jd]), np.array(d.xanchor[env.jd])
+        tang = np.cross(ax, grasp - piv) * np.sign(env.handle_open - env.d0)
+        n = np.linalg.norm(tang)
+        move = np.clip(tang / (n + 1e-9) + 0.5 * to, -1, 1) if n > 1e-6 else to
+        return named_action(env, arm_pos=move, **_close(env, 1.0))
+    # push perpendicular to the door's CURRENT face (it turns as the door swings)
+    ang = float(d.qpos[env.qh] - env.h0)
+    q = np.zeros(4)
+    mujoco.mju_axisAngle2Quat(q, np.array(d.xaxis[env.jh]), ang)
+    nrm_now = np.zeros(3)
+    mujoco.mju_rotVecQuat(nrm_now, env.geo["door"]["normal"], q)
+    push = -nrm_now * env.door_goal_sign * env.geo["door"]["push_sign"]
+    door_c = np.array(d.xipos[env.door_body])                       # and keep the hand near the door
+    keep = np.clip((door_c - palm_c) / 0.3, -1, 1)
+    keep -= nrm_now * (keep @ nrm_now)
+    return named_action(env, arm_pos=np.clip(push + 0.3 * keep, -1, 1), **_close(env, -1.0))
 
 
 def main():

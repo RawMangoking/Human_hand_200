@@ -12,3 +12,7 @@ Mujoko/Hand_Door_env/
 sw2+mujoko+python/__pycache__/
 sw2+mujoko+python/env_test_report.json
 Mujoko/Hand_Door_env/
+
+sw2+mujoko+python/runs/
+sw2+mujoko+python/results/
+sw2+mujoko+python/videos/
