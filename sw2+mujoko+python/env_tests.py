@@ -171,8 +171,32 @@ def t_start(H, D):
                f"palm in front of the handle by {min(side) * 1000:.0f}-{max(side) * 1000:.0f} mm")
 
 
+def forearm_clearance(env):
+    """(distance of the hand's ROOT part (forearm) from the door face, of the palm centre) along the normal, m"""
+    from door_setup import geom_points
+    m, d = env.model, env.data
+    root = env.palm
+    while m.body_parentid[root] != 0:
+        root = m.body_parentid[root]
+    g = env.geo["door"]
+    front, _ = door_faces(env)
+    pts = [geom_points(m, d, gi) for gi in range(m.ngeom) if m.geom_bodyid[gi] == root
+           and (m.geom_contype[gi] or m.geom_conaffinity[gi])]
+    fa = min(float(((p - g["grasp"]) @ g["normal"]).min()) for p in pts) - front if pts else float("nan")
+    palm = float((np.array(d.xipos[env.palm]) - g["grasp"]) @ g["normal"]) - front
+    return fa, palm
+
+
 def t_collisions(H, D):
     print("\n== COLLISIONS")
+    for tilt in (0.0, "auto"):
+        env = DoorEnv(task="handle", hand_path=H, door_path=D, randomize=False, arm_tilt=tilt)
+        env.reset(seed=0)
+        fa, palm = forearm_clearance(env)
+        lab = "upright" if tilt == 0.0 else f"auto tilt = {math.degrees(env.arm_tilt):.0f} deg"
+        report("collisions", f"forearm clearance at the handle start ({lab})", True if tilt == 0.0 else fa >= palm - 0.005,
+               f"forearm {fa * 1000:.0f} mm, palm {palm * 1000:.0f} mm from the door face"
+               + ("  <- forearm closer than the palm: it will hit the door first" if fa < palm else ""))
     env = DoorEnv(task="handle", hand_path=H, door_path=D, randomize=False)
     env.reset(seed=0)
     worst_self = 0
@@ -430,6 +454,8 @@ def t_modes(H, D):
     env = DoorEnv(task="handle", hand_path=H, door_path=D, action_mode="full")
     for jn in env.joint_names[:: max(1, len(env.joint_names) // 4)]:
         env.reset(seed=0)
+        for _ in range(15):                                  # into free space first (no lever in the way)
+            env.step(act(env, arm_pos=env.geo["door"]["normal"]))
         q0 = {n: env.data.qpos[env.hj[n]["qadr"]] for n in env.joint_names}
         k = 6 + env.joint_names.index(jn)
         a = np.zeros(env.action_space.shape, dtype=np.float32)

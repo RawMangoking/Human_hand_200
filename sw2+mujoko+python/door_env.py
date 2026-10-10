@@ -17,13 +17,18 @@ TASKS (one small action set each; every action is in [-1, 1])
   reach   move the palm to the handle                 arm_pos(3) arm_rot(3)                              = 6
   handle  grasp the handle and turn it until the latch releases (+5 %)
                                                       arm_pos(3) arm_rot(3) wrist(2) index mrp thumb opp = 12
-  door    handle already turned: push/pull door open  arm_pos(3) grip                                    = 4
+  door    handle already turned (latch released for the whole episode): push the door open
+                                                      arm_pos(3) grip                                    = 4
 DOMAIN RANDOMIZATION: DoorEnv(randomize_physics=True) samples door mass, hinge damping / friction, handle
 friction and grip friction each reset (PHYSICS_RANGES, multipliers of the nominal door); DoorEnv(physics={...})
 fixes them (e.g. held-out test doors). info["physics"] reports what was used.
 
 DOOR SIDE: the robot works on the door face where most of the handle sticks out (the main lever);
 DoorEnv(door_side="front" / "back") chooses explicitly.
+
+ARM TILT: the arm starts tilted with the forearm leaning away from the door, so a thick forearm does not touch
+the door before the fingers reach the handle. arm_tilt="auto" (default) picks the smallest of 30 / 45 / 60 deg
+that keeps the forearm further from the door than the palm; DoorEnv(arm_tilt=0) for upright, or any angle.
 
 COLLISIONS (default): hand parts may overlap each other; the hand collides with the door, handle, frame and
 floor. --self-collision makes the hand collide with itself too; --no-hand-door-collision lets it pass through.
@@ -522,12 +527,14 @@ class DoorEnv(gym.Env):
                  control_hz=25, max_steps=None, door_dir="push", randomize=True, latch=True, unlock_frac=0.8,
                  hand_self_collision=False, hand_door_collision=True,
                  randomize_physics=False, physics=None, physics_ranges=None,
-                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto"):
+                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto", arm_tilt="auto"):
         assert task in self.TASKS, f"task must be one of {list(self.TASKS)}"
         assert action_mode in ("synergy", "full"), "action_mode must be 'synergy' or 'full'"
         self.task, self.render_mode, self.randomize = task, render_mode, randomize
         self.action_mode, self.obs_noise, self.start_states = action_mode, float(obs_noise), start_states
         self._fixed_max_steps = max_steps
+        self.arm_tilt = 0.0 if arm_tilt == "auto" else math.radians(arm_tilt)   # forearm leans away (start)
+        self._arm_tilt_request = arm_tilt
         self.base_task = task                                   # reset() always returns to this task
         self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
         # collision rules: hand may overlap itself, hand collides with the door / handle / frame / floor
@@ -638,6 +645,46 @@ class DoorEnv(gym.Env):
         self._grasp0 = self.geo["door"]["grasp"].copy()
         self._normal0 = self.geo["door"]["normal"].copy()
         self._door_yaw = 0.0
+        if self._arm_tilt_request == "auto":
+            self.arm_tilt, self.forearm_margin = self._choose_tilt()
+        else:
+            self.forearm_margin = self._forearm_margin()
+
+
+    def _forearm_margin(self):
+        """At the 'handle' start pose: (forearm distance to the door face) - (palm distance to the door face), m.
+        Negative = the forearm would touch the door before the palm reaches the handle."""
+        from door_setup import geom_points
+        m, d = self.model, self.data
+        mujoco.mj_resetData(m, d)
+        self._place_arm(self.geo["door"]["normal"] * 0.07, 0.0, True)
+        mujoco.mj_forward(m, d)
+        nrm, gp = self.geo["door"]["normal"], self.geo["door"]["grasp"]
+        front = max(float(((geom_points(m, d, g) - gp) @ nrm).max())
+                    for g in range(m.ngeom) if m.geom_bodyid[g] == self.door_body)
+        root = self.palm
+        while m.body_parentid[root] != 0:
+            root = m.body_parentid[root]
+        pts = [geom_points(m, d, g) for g in range(m.ngeom) if m.geom_bodyid[g] == root
+               and (m.geom_contype[g] or m.geom_conaffinity[g])]
+        if not pts:
+            return 1.0
+        fa = min(float(((p - gp) @ nrm).min()) for p in pts) - front
+        palm = float((np.array(d.xipos[self.palm]) - gp) @ nrm) - front
+        mujoco.mj_resetData(m, d)
+        return fa - palm
+
+    def _choose_tilt(self):
+        """Smallest start tilt (30 / 45 / 60 deg) at which the forearm stays further from the door than the palm."""
+        best = None
+        for deg in (30.0, 45.0, 60.0):
+            self.arm_tilt = math.radians(deg)
+            mg = self._forearm_margin()
+            if best is None or mg > best[1]:
+                best = (self.arm_tilt, mg)
+            if mg >= 0:
+                return self.arm_tilt, mg
+        return best
 
     # ---- task / action layout
     def channels(self, task=None):
@@ -708,6 +755,23 @@ class DoorEnv(gym.Env):
         if at_handle:
             yaw = yaw + self._door_yaw                                  # face the (turned) door
         Rz = np.array([[math.cos(yaw), -math.sin(yaw), 0], [math.sin(yaw), math.cos(yaw), 0], [0, 0, 1]])
+        # tilt: fingers lean toward the door, the forearm away from it - so a thick forearm does not touch the
+        # door before the palm and fingers reach the handle (rotation about the horizontal axis along the door)
+        nrm = g["door"]["normal"] if at_handle else self._normal0
+        side = np.cross(nrm, [0.0, 0.0, 1.0])
+        side /= np.linalg.norm(side) + 1e-12
+        Rt = np.eye(3)
+        if abs(self.arm_tilt) > 1e-6:
+            for sgn in (1.0, -1.0):
+                q = np.zeros(4)
+                mujoco.mju_axisAngle2Quat(q, side, sgn * self.arm_tilt)
+                M = np.zeros(9)
+                mujoco.mju_quat2Mat(M, q)
+                M = M.reshape(3, 3)
+                if (M @ np.array([0.0, 0.0, 1.0])) @ nrm < 0:          # top of the arm toward the door
+                    Rt = M
+                    break
+        Rz = Rt @ Rz
         R = Rz @ R0.reshape(3, 3)
         palm0 = self._palm_build                                        # where build_scene put the palm
         base = g["door"]["grasp"] if at_handle else self._grasp0
@@ -950,8 +1014,8 @@ class DoorEnv(gym.Env):
         closed = abs(d.qpos[self.qh] - self.h0) < math.radians(1.5)
         if self._latched and frac >= self.unlock_frac:
             self._latched = False
-        elif not self._latched and closed and frac < self.unlock_frac:
-            self._latched = True
+        elif not self._latched and closed and frac < self.unlock_frac and self.task != "door":
+            self._latched = True                    # (not in 'door': it starts after the handle was turned)
         if self._latched:
             m.jnt_range[self.jh] = [self.h0 - 1e-3, self.h0 + 1e-3]
             m.jnt_limited[self.jh] = 1

@@ -2562,6 +2562,9 @@ The gap appears on the moved doors (`shifted_side`, `handle_low`, `hard_combo`).
 | `door` task starts 18–21 cm from the lever | the start was placed at the *un-turned* lever; a long lever (≈ 17 cm) moves ≈ 25 cm when turned 90° | placed at the turned lever |
 | hand works the short rod behind the door | the robot's side was chosen from the handle's centre of mass (inside the slab for a through-door handle) | side = where more handle **surface area** sticks out; `DoorEnv(door_side="front"/"back")` to force it |
 
+| palm stalls ~50 mm from the lever, `base_link->door_1` in the trace | the forearm (the hand's root, a thick cylinder below the palm) touches the door first | the arm starts **tilted** with the forearm leaning away; `arm_tilt="auto"` picks the smallest of 30/45/60° that keeps the forearm further from the door than the palm (test "forearm clearance") |
+| `door` task: handle springs back from 87 % to 6 % in 5 steps and re-latches | the door has a return spring and nothing holds the handle at the start | in the `door` task the latch stays released for the whole episode (it starts after the handle stage) |
+
 `trace.py --task handle` (or `door`, `full`) prints, every few steps, the palm–lever distance, handle %, door angle, latch, arm lag (≈ 2 cm = pushing against something) and exactly which hand part touches which door part — the first tool to run when a task fails on the real models.
 
 ## 39.5 Running the experiments
