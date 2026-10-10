@@ -22,6 +22,9 @@ DOMAIN RANDOMIZATION: DoorEnv(randomize_physics=True) samples door mass, hinge d
 friction and grip friction each reset (PHYSICS_RANGES, multipliers of the nominal door); DoorEnv(physics={...})
 fixes them (e.g. held-out test doors). info["physics"] reports what was used.
 
+DOOR SIDE: the robot works on the door face where most of the handle sticks out (the main lever);
+DoorEnv(door_side="front" / "back") chooses explicitly.
+
 COLLISIONS (default): hand parts may overlap each other; the hand collides with the door, handle, frame and
 floor. --self-collision makes the hand collide with itself too; --no-hand-door-collision lets it pass through.
 
@@ -149,7 +152,7 @@ def hand_geometry(hand_path, cfg):
                 root_pos=np.array(d.xpos[root]), root_quat=np.array(d.xquat[root]))
 
 
-def door_geometry(door_path, cfg):
+def door_geometry(door_path, cfg, door_side="auto"):
     m = mujoco.MjModel.from_xml_path(door_path)
     d = mujoco.MjData(m)
     mujoco.mj_forward(m, d)
@@ -162,14 +165,45 @@ def door_geometry(door_path, cfg):
     u /= np.linalg.norm(u)
     v = np.cross(z, u)
     grasp = np.array(d.xipos[hand_b])                      # handle centre of mass = where to grip
-    side = 1.0 if (grasp - p) @ v >= 0 else -1.0            # the door face the handle is on
+    # which face of the door does the robot work on? The side where MORE of the handle sticks out (the main
+    # lever) - not the centre of mass, which for a handle through the door sits almost inside the slab.
+    from door_setup import geom_points_dense
+    def area(g):                                            # surface area, so big parts count more
+        if int(m.geom_type[g]) == 7 and m.geom_dataid[g] >= 0:
+            mid = m.geom_dataid[g]
+            V = m.mesh_vert[m.mesh_vertadr[mid]: m.mesh_vertadr[mid] + m.mesh_vertnum[mid]]
+            F = m.mesh_face[m.mesh_faceadr[mid]: m.mesh_faceadr[mid] + m.mesh_facenum[mid]]
+            return float(0.5 * np.linalg.norm(np.cross(V[F[:, 1]] - V[F[:, 0]], V[F[:, 2]] - V[F[:, 0]]), axis=1).sum())
+        hx, hy, hz = m.geom_aabb[g][3:]
+        return float(8 * (hx * hy + hy * hz + hz * hx))
+    Dp = np.vstack([geom_points_dense(m, d, g) for g in range(m.ngeom) if m.geom_bodyid[g] == door_b])
+    sd = (Dp - p) @ v
+    out_front = out_back = 0.0
+    for g in range(m.ngeom):
+        if m.geom_bodyid[g] != hand_b:
+            continue
+        pts = geom_points_dense(m, d, g)
+        w = area(g) / len(pts)
+        sh = (pts - p) @ v
+        out_front += w * float(np.sum(sh > sd.max() + 0.005))
+        out_back += w * float(np.sum(sh < sd.min() - 0.005))
+    out_front, out_back = round(out_front * 1e4, 1), round(out_back * 1e4, 1)     # cm^2
+    if door_side == "front":
+        side = 1.0
+    elif door_side == "back":
+        side = -1.0
+    elif out_front + out_back > 0:
+        side = 1.0 if out_front >= out_back else -1.0
+    else:
+        side = 1.0 if (grasp - p) @ v >= 0 else -1.0
     # which hinge direction moves the door AWAY from the handle side (= push)?
     adr = m.jnt_qposadr[jh]
     c0 = np.array(d.xipos[door_b])
     d.qpos[adr] += 0.05
     mujoco.mj_forward(m, d)
     push_sign = -1.0 if (np.array(d.xipos[door_b]) - c0) @ v * side > 0 else 1.0
-    return dict(grasp=grasp, normal=v * side, push_sign=push_sign)
+    return dict(grasp=grasp, normal=v * side, push_sign=push_sign,
+                handle_out=dict(front=out_front, back=out_back, chosen="front" if side > 0 else "back"))
 
 
 def refresh_body_masks(model):
@@ -262,11 +296,11 @@ def fit_boxes(model, geoms, k=6, n_pts=4000, seed=0):
     return out
 
 
-def build_scene(hand_path, door_path, standoff=0.30, handle_boxes=6):
+def build_scene(hand_path, door_path, standoff=0.30, handle_boxes=6, door_side="auto"):
     hand_cfg_path = os.path.join(os.path.dirname(hand_path), "hand_config.json")
     door_cfg_path = os.path.join(os.path.dirname(door_path), "door_config.json")
     hcfg, dcfg = json.load(open(hand_cfg_path)), json.load(open(door_cfg_path))
-    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg)
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
 
     # initial arm placement: palm `standoff` in front of the handle, palm facing the door (yaw about z)
     target_palm = dg["grasp"] + dg["normal"] * standoff
@@ -488,14 +522,14 @@ class DoorEnv(gym.Env):
                  control_hz=25, max_steps=None, door_dir="push", randomize=True, latch=True, unlock_frac=0.8,
                  hand_self_collision=False, hand_door_collision=True,
                  randomize_physics=False, physics=None, physics_ranges=None,
-                 action_mode="synergy", obs_noise=0.0, start_states=None):
+                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto"):
         assert task in self.TASKS, f"task must be one of {list(self.TASKS)}"
         assert action_mode in ("synergy", "full"), "action_mode must be 'synergy' or 'full'"
         self.task, self.render_mode, self.randomize = task, render_mode, randomize
         self.action_mode, self.obs_noise, self.start_states = action_mode, float(obs_noise), start_states
         self._fixed_max_steps = max_steps
         self.base_task = task                                   # reset() always returns to this task
-        self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path)
+        self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
         # collision rules: hand may overlap itself, hand collides with the door / handle / frame / floor
         n_hand, n_door = set_collisions(self.model, hand_self=hand_self_collision, hand_door=hand_door_collision)
         if n_hand == 0 and hand_door_collision:
@@ -840,6 +874,8 @@ class DoorEnv(gym.Env):
             d.qpos[self.qd] = self.handle_open
             if self.latch_eq >= 0:
                 d.eq_active[self.latch_eq] = 0
+            mujoco.mj_forward(m, d)                             # the lever is now somewhere else (a long
+            self.geo["door"]["grasp"] = self.grasp_point()      # lever moves ~25 cm when turned 90 deg)
         start = {"reach": (0.30 + along, lateral, yaw),
                  "full": (0.30 + along, lateral, yaw),
                  "handle": (0.07 + 0.3 * along, 0.3 * lateral, 0.3 * yaw),

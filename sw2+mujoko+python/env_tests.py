@@ -96,6 +96,10 @@ def t_info(H, D):
            f"handle at {np.round(g['grasp'], 3).tolist()} m, door normal {np.round(g['normal'], 2).tolist()}, "
            f"push sign {g['push_sign']:+.0f}; collision geoms hand {env.n_collision_geoms[0]}, "
            f"other {env.n_collision_geoms[1]}; control {1 / (env.frame_skip * env.model.opt.timestep):.0f} Hz")
+    ho = env.geo["door"].get("handle_out", {})
+    report("info", "robot works on the side with the main lever", True,
+           f"handle surface sticking out: front {ho.get('front')} cm2, back {ho.get('back')} cm2 -> robot on the "
+           f"'{ho.get('chosen')}' side (DoorEnv(door_side=...) to choose)")
     gp = env.grasp_point() - np.array(env.data.xipos[env.handle_body])
     report("info", "grasp point = the handle's lever in front of the door", env.lever_found,
            f"{'lever found' if env.lever_found else 'no lever in front of the door - using the centre of mass'}; "

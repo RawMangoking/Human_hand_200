@@ -71,6 +71,7 @@ Human_Hand_200mm/
 │   ├── ars.py                       RL: Augmented Random Search trainer (numpy only, parallel)
 │   ├── experiment.py                RL: plan / train / eval / chain / report (§39)
 │   ├── record.py                    RL: videos of policies on test doors
+│   ├── trace.py                     RL: step-by-step log of a scripted episode (contacts, latch, lever)
 │   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
 │   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
 │   └── output/                      ← sw2robot packages (generated, in .gitignore)
@@ -2558,6 +2559,10 @@ The gap appears on the moved doors (`shifted_side`, `handle_low`, `hard_combo`).
 | reach impossible, stages start 12 cm too far back | the target was the handle's centre of mass, which lies **inside** the door slab (lever in front + spindle / rod behind) | target = centre of the handle's **lever in front of the door face**, moving with the door (`env.grasp_point()`) |
 | a turned handle springs back while the door is still shut | real latch behaviour (re-engages) | handle-stage success = latch released with a 5 % margin, or the door already moving; scripted door stage keeps gripping the lever while pushing |
 | door stops at ~55° | following the lever while the door swings needs ~0.7 m of arm travel | arm reach 1.0 m |
+| `door` task starts 18–21 cm from the lever | the start was placed at the *un-turned* lever; a long lever (≈ 17 cm) moves ≈ 25 cm when turned 90° | placed at the turned lever |
+| hand works the short rod behind the door | the robot's side was chosen from the handle's centre of mass (inside the slab for a through-door handle) | side = where more handle **surface area** sticks out; `DoorEnv(door_side="front"/"back")` to force it |
+
+`trace.py --task handle` (or `door`, `full`) prints, every few steps, the palm–lever distance, handle %, door angle, latch, arm lag (≈ 2 cm = pushing against something) and exactly which hand part touches which door part — the first tool to run when a task fails on the real models.
 
 ## 39.5 Running the experiments
 
