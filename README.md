@@ -2719,3 +2719,44 @@ Start fresh (`runs`, `starts`, `results` from the synergy run can be moved away 
 ## 42.4 The GPU
 
 The simulation is MuJoCo on the **CPU**; ARS only does a small matrix update — the 32 CPU threads (`--workers 30`) are what make training fast, a GPU would not. The GPU helps **neural-network** RL: `experiment.py train --algo sac --n-envs 16 --device cuda --steps 1000000` (16 simulation processes feed a SAC network trained on the RTX 4080; needs `pip install stable-baselines3` and a CUDA build of PyTorch) — an optional algorithm comparison (deep RL vs the Fourier-feature ARS policy). This path is written but untested here (no PyTorch in the test container).
+
+
+# 43. Results v2 — design actions (real hand + door, 3 seeds, 3.6 h, 0 failures)
+
+## 43.1 Q1 — chained three policies, end-to-end
+
+| training | nominal | in-distribution | unseen |
+|---|:-:|:-:|:-:|
+| fixed | 93 ± 5 % | 86 ± 2 % | 72 ± 4 % |
+| randomized | 100 ± 0 % | 88 ± 1 % | 76 ± 4 % |
+
+Unseen: randomized − fixed = +4 points, 95 % interval [−5, +13] → no clear difference end-to-end. (v1, synergy actions: 59 % / 53 % unseen — v2 is +13 / +23 points.)
+
+**The stage that learned from scratch shows the effect**: handle stage alone, unseen doors — randomized **94 ± 4 %** vs fixed **86 ± 2 %**; per door randomized is much better on `turned_door` (97 vs 67 %) and `deep_latch` (97 vs 87 %), worse on `shifted_side` (60 vs 83 %).
+
+**The cloned stages dilute it**: the door stage scored *exactly* 100 / 90 / 89 % in all six runs — fixed and randomized alike. Cloned from the same hand-written controller, both conditions end up with the same policy, failing on the same two doors (`in_dist_2`, `handle_low`: handle turned, door 0 %). Per stage, nearly all remaining end-to-end losses are those two doors, `hard_combo` (handle 43–47 %) and `shifted_side`.
+
+→ v3: **every stage learns from scratch** (`run_all.py` default now), door with 300 iterations: `python run_all.py --runs-dir runs_v3 --no-baselines`.
+
+## 43.2 Q2a — action space (handle stage from scratch, randomized)
+
+| actions | unseen success | spread over seeds | steps to 80 % |
+|---|:-:|:-:|:-:|
+| **design** (index + thumb independent, middle/ring/little coupled; 18) | **94 %** | ± 4 | 131 k |
+| full (every joint; 24) | 91 % | ± 13 | 120 k |
+| synergy (finger curls; 12) | 80 % | ± 12 | 152 k |
+
+The planned coupling loses nothing against every joint and is the most consistent across seeds; coupling too much (one curl per finger group) costs 14 points. Learning speed is similar for 18 and 24 actions — no evidence that fewer actions learn faster here.
+
+## 43.3 Q2b — three chained policies vs one policy (both cloned from the same controller)
+
+| | nominal | in-distribution | unseen |
+|---|:-:|:-:|:-:|
+| three chained | 100 % | 88 % | 76 % |
+| one policy | 87 % | 81 % | 73 % |
+
+The modular chain is better, mostly on the nominal and in-distribution doors (+13 / +7); on unseen doors the gap is small (+3).
+
+## 43.4 Tools
+
+`trace.py --task door --test-door handle_low [--policy runs\door_ars_random_design_s0] [--view]` — watch one test door with the hand-written or a trained policy. `run_all.py --runs-dir runs_v3` keeps a new run beside the old one (report in `results_runs_v3`).

@@ -1,0 +1,2 @@
+door,physics,episodes,success_rate,time_s,final_door_deg,handle_frac,palm_to_handle_mm,mean_return
+nominal,{},10,1.0,1.4680000000000002,0.6165457137500336,0.905432598784128,65.70007406679653,19.818767498007603

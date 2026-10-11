@@ -1,0 +1,25 @@
+task door, seed 0: lever at [2.186, 2.344, 0.842], handle opens toward -90 deg, latch releases at 80 %, start palm->lever 108 mm
+step stage palm-lever  handle   door  latch  arm lag  action (arm xyz | fingers)            contacts hand->door
+   0     0      111mm     87%  -0.0d   free    1.2cm  [-0.4 +1.0 +1.0 | ]  Middle_Distal_4->handle_1[handle_box0]
+   5     0      256mm      6%   0.1d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  -
+  10     0      241mm     -1%   0.7d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Middle_Distal_4->handle_1[handle_box0]
+  15     0      214mm     -0%   1.6d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Distal_1->handle_1[handle_box0], Middle_Distal_4->handle_1[handle_box0], Ring_Distal_1->handle_1[handle_box0]
+  20     0      189mm     -0%   3.0d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Distal_1->handle_1[handle_box0], Middle_Distal_4->handle_1[handle_box0], Pinky_Distal_1->handle_1[handle_box0], Pinky_Middle_1->handle_1[handle_box0], Ring_Distal_1->handle_1[handle_box0]
+  25     0      165mm     -0%   5.3d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Distal_1->handle_1[handle_box0], Middle_Distal_4->handle_1[handle_box0], Ring_Distal_1->handle_1[handle_box0], Ring_Middle_1->handle_1[handle_box0]
+  30     0      143mm     -0%   8.2d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Distal_1->handle_1[handle_box0], Middle_Distal_4->handle_1[handle_box0], Pinky_Distal_1->handle_1[handle_box0], Pinky_Middle_1->handle_1[handle_box0], Ring_Distal_1->handle_1[handle_box0], Ring_Middle_1->handle_1[handle_box0]
+  35     0      122mm     -0%  11.2d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Distal_1->handle_1[handle_box0], Middle_Distal_4->handle_1[handle_box0], Middle_Proximal_5->handle_1[handle_box0], Pinky_Proximal_1->handle_1[handle_box0], Ring_Distal_1->door_1[door_1_collision0], Ring_Proximal_1->handle_1[handle_box0]
+  40     0      112mm     -0%  15.6d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Proximal_1->handle_1[handle_box0], Middle_Proximal_5->handle_1[handle_box0], Pinky_Proximal_1->handle_1[handle_box0], Ring_Proximal_1->handle_1[handle_box0]
+  45     0       98mm     -0%  20.3d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  Index_Middle_1->handle_1[handle_box0], Middle_Middle_4->handle_1[handle_box0]
+  50     0      111mm      0%  24.9d   free    1.3cm  [+1.0 +1.0 +1.0 | ]  -
+  55     0      122mm      0%  29.2d   free    1.3cm  [+0.4 +1.0 -0.1 | ]  -
+  60     0      120mm      0%  33.2d   free    1.3cm  [+0.4 +1.0 +0.0 | ]  -
+  65     0      116mm     -0%  36.8d   free    1.3cm  [+0.5 +1.0 -0.0 | ]  -
+  70     0      109mm     -0%  40.2d   free    1.3cm  [+0.4 +1.0 +0.0 | ]  -
+  75     0       99mm     -0%  43.2d   free    1.3cm  [+0.4 +1.0 +0.0 | ]  -
+  80     0       86mm     -0%  46.0d   free    1.3cm  [+0.4 +1.0 -0.0 | ]  -
+  85     0       73mm     -0%  48.6d   free    1.3cm  [+0.4 +1.0 +0.0 | ]  -
+  90     0       70mm      0%  51.2d   free    1.3cm  [+1.0 +0.9 -0.4 | ]  Palm_1->handle_1[handle_box4]
+  95     0       71mm     -0%  54.6d   free    1.3cm  [+0.9 +1.0 +0.1 | ]  Palm_1->handle_1[handle_box4]
+ 100     0       73mm     -0%  59.1d   free    1.3cm  [+1.0 +1.0 -0.0 | ]  Palm_1->handle_1[handle_box4]
+ 101     0       73mm      0%  60.1d   free    1.3cm  [+1.0 +1.0 -0.0 | ]  Palm_1->handle_1[handle_box4]
+RESULT: SUCCESS after 102 steps; handle 0 %, door 60.1 deg  (arm lag near 2 cm = the arm is pushing against something)

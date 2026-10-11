@@ -6,6 +6,8 @@ trace.py - step-by-step log of the hand-written policy on YOUR models, to see wh
   python trace.py --task door --every 2         #   whether the arm is blocked, and which hand part touches
   python trace.py --task full --seed 1          #   which door part
   python trace.py --task handle --view          # same, in the viewer (slowed down)
+  python trace.py --task door --test-door handle_low                     # one of the test doors
+  python trace.py --task door --test-door handle_low --policy runs/door_ars_random_design_s0 --view
 Writes trace_<task>.txt too.
 """
 import argparse
@@ -14,7 +16,7 @@ import time
 import mujoco
 import numpy as np
 
-from door_env import DEFAULT_DOOR, DEFAULT_HAND, DoorEnv, pick_scripted_variant, scripted_action
+from door_env import DEFAULT_DOOR, DEFAULT_HAND, DoorEnv, door_set, pick_scripted_variant, scripted_action
 
 
 def short(name):
@@ -38,17 +40,33 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--task", choices=list(DoorEnv.TASKS), default="handle")
     ap.add_argument("--seed", type=int, default=0)
+    ap.add_argument("--test-door", default=None, help="one of the test doors, e.g. handle_low, in_dist_2, turned_door")
+    ap.add_argument("--policy", default="scripted", help="'scripted' or a run directory (a trained policy)")
+    ap.add_argument("--action-mode", choices=["synergy", "design", "full"], default="design")
     ap.add_argument("--every", type=int, default=5)
     ap.add_argument("--view", action="store_true")
     ap.add_argument("--hand", default=DEFAULT_HAND)
     ap.add_argument("--door", default=DEFAULT_DOOR)
     a = ap.parse_args()
-    env = DoorEnv(task=a.task, hand_path=a.hand, door_path=a.door)
-    sc = pick_scripted_variant(env)
-    print(f"hand-written handle strategy: tried {sc} -> using '{env.scripted_variant}'")
-    obs, info = env.reset(seed=a.seed)
+    phys = None
+    if a.test_door:
+        doors = dict(door_set("all"))
+        if a.test_door not in doors:
+            raise SystemExit(f"unknown test door '{a.test_door}'; choose from: {', '.join(doors)}")
+        phys = doors[a.test_door]
+    pol = None
+    if a.policy != "scripted":
+        from experiment import load_policy
+        pol, cfg = load_policy(a.policy)
+        a.action_mode = cfg.get("action_mode", a.action_mode)
+    env = DoorEnv(task=a.task, hand_path=a.hand, door_path=a.door, action_mode=a.action_mode)
+    if pol is None:
+        sc = pick_scripted_variant(env)
+        print(f"hand-written handle strategy: tried {sc} -> using '{env.scripted_variant}'")
+    obs, info = env.reset(seed=a.seed, options={"physics": phys} if phys else None)
     d = env.data
-    lines = [f"task {a.task}, seed {a.seed}: lever at {np.round(env.grasp_point(), 3).tolist()}, "
+    lines = [f"task {a.task}, seed {a.seed}, door {a.test_door or 'nominal'}, "
+             f"policy {a.policy}: lever at {np.round(env.grasp_point(), 3).tolist()}, "
              f"handle opens toward {np.degrees(env.handle_open - env.d0):+.0f} deg, latch releases at "
              f"{env.unlock_frac * 100:.0f} %, start palm->lever {info['palm_to_handle'] * 1000:.0f} mm",
              f"{'step':>4} {'stage':>5} {'palm-lever':>10} {'handle':>7} {'door':>6} {'latch':>6} {'arm lag':>8}  "
@@ -61,7 +79,7 @@ def main():
         viewer.cam.distance, viewer.cam.azimuth, viewer.cam.elevation = 1.0, 135, -15
     done, k = False, 0
     while not done:
-        act = scripted_action(env)
+        act = scripted_action(env) if pol is None else pol.predict(obs, deterministic=True)[0]
         obs, r, term, trunc, info = env.step(act)
         done = term or trunc
         lag = np.linalg.norm(d.mocap_pos[env.mid] - d.qpos[env.free_q:env.free_q + 3])
