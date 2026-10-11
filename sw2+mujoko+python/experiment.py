@@ -43,6 +43,8 @@ def load_policy(run_dir):
         return ars_mod.LinearPolicy.load(best if os.path.exists(best) else os.path.join(run_dir, "policy.npz")), cfg
     from stable_baselines3 import PPO, SAC
     cls = {"sac": SAC, "ppo": PPO}[cfg["algo"]]
+    if os.path.exists(os.path.join(run_dir, "best_model.zip")):
+        return cls.load(os.path.join(run_dir, "best_model.zip"), device="cpu"), cfg
     return cls.load(os.path.join(run_dir, "model.zip"), device="cpu"), cfg
 
 
@@ -72,7 +74,7 @@ def cmd_train(a):
     if a.algo == "ars":
         a.iters = a.iters or 100
         a.dirs, a.top, a.step, a.noise = a.dirs, a.top, a.lr, a.noise
-        a.eval_every, a.eval_episodes = 5, 10
+        a.eval_every, a.eval_episodes = 5, a.eval_episodes
         a.workers = a.workers or max(1, min(16, (os.cpu_count() or 2) - 1))
         ars_mod.train(a)
         return
@@ -83,8 +85,14 @@ def cmd_train(a):
     except ImportError:
         raise SystemExit("needs stable-baselines3:  python -m pip install stable-baselines3   (or use --algo ars)")
     json.dump(dict(vars(a)), open(os.path.join(a.out, "config.json"), "w"), indent=2)
-    env = Monitor(make_env(a), os.path.join(a.out, "monitor.csv"), info_keywords=("success",))
-    eval_env = make_env(a, randomize_physics=False, start_states=None)
+    from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecMonitor
+    n_envs = max(1, a.n_envs)
+    fns = [(lambda rank: (lambda: make_env(a, seed_offset=rank)))(i) for i in range(n_envs)]
+    vec = SubprocVecEnv(fns) if n_envs > 1 else DummyVecEnv(fns)       # parallel simulation on CPU cores
+    env = VecMonitor(vec, os.path.join(a.out, "monitor.csv"), info_keywords=("success",))
+    pool = bool(getattr(a, "starts", None))
+    eval_env = make_env(a, randomize_physics=False) if pool else make_env(a, randomize_physics=False,
+                                                                           start_states=None)
 
     class Progress(BaseCallback):
         def __init__(self):
@@ -92,14 +100,15 @@ def cmd_train(a):
             self.f = open(os.path.join(a.out, "progress.csv"), "w", newline="")
             self.w = csv.writer(self.f)
             self.w.writerow(["iteration", "env_steps", "mean_return", "eval_return", "eval_success", "seconds"])
-            self.t0, self.k = time.time(), 0
+            self.t0, self.k, self.next_eval, self.best = time.time(), 0, a.eval_every_steps, (-1.0, -np.inf)
 
         def _on_step(self):
-            if self.num_timesteps % a.eval_every_steps == 0:
+            if self.num_timesteps >= self.next_eval:            # (n_envs steps arrive at once)
+                self.next_eval += a.eval_every_steps
                 self.k += 1
                 rets, succ = [], []
-                for i in range(10):
-                    obs, _ = eval_env.reset(seed=10_000_000 + i)
+                for i in range(a.eval_episodes):
+                    obs, _ = eval_env.reset(seed=10_000_000 + i, options={"start": "pool"} if pool else None)
                     done, ret = False, 0.0
                     while not done:
                         act, _ = self.model.predict(obs, deterministic=True)
@@ -111,15 +120,21 @@ def cmd_train(a):
                 self.w.writerow([self.k, self.num_timesteps, "", f"{np.mean(rets):.4f}", f"{np.mean(succ):.3f}",
                                  f"{time.time() - self.t0:.1f}"])
                 self.f.flush()
+                if (np.mean(succ), np.mean(rets)) > self.best:  # keep the best, like ARS
+                    self.best = (np.mean(succ), np.mean(rets))
+                    self.model.save(os.path.join(a.out, "best_model.zip"))
                 print(f"[{a.algo}] steps {self.num_timesteps:8d}  eval return {np.mean(rets):8.2f}  "
-                      f"eval success {np.mean(succ) * 100:5.1f} %")
+                      f"eval success {np.mean(succ) * 100:5.1f} %  ({time.time() - self.t0:.0f} s)")
             return True
 
     algo = {"sac": SAC, "ppo": PPO}[a.algo]
-    kw = dict(verbose=0, seed=a.seed, device="auto")
+    kw = dict(verbose=0, seed=a.seed, device=a.device)
     if a.algo == "sac":
-        kw.update(learning_starts=2000, batch_size=256)
+        kw.update(learning_starts=2000, batch_size=256, gradient_steps=n_envs)   # one update per env step
+    else:
+        kw.update(n_steps=max(64, 2048 // n_envs), batch_size=256)
     model = algo("MlpPolicy", env, **kw)
+    print(f"[train] {a.algo.upper()} on {model.device}, {n_envs} parallel environment(s)")
     model.learn(total_timesteps=a.steps, callback=Progress())
     model.save(os.path.join(a.out, "model.zip"))
     print(f"[train] saved {a.out}/model.zip")
@@ -337,10 +352,11 @@ def research_summary(runs_dir, groups):
         md += "(no chained runs yet)\n"
 
     # ---- Q2a: reduced (synergy) vs full-joint actions on the handle stage
-    md += ("\n## Q2a - reduced (synergy) actions vs every joint (handle stage, randomized training, "
-           "trained FROM SCRATCH - no cloning, so the learning itself is compared)\n\n")
+    md += ("\n## Q2a - action space of the hand (handle stage, randomized training, trained FROM SCRATCH - no "
+           "cloning, so the learning itself is compared): design = index + thumb independent, middle/ring/little "
+           "coupled (18 actions); synergy = finger curls (12); full = every joint (24)\n\n")
     rows = []
-    for mode in ("synergy", "full"):
+    for mode in ("design", "synergy", "full"):
         g = groups.get(("handle", "ars", "random", f"{mode}/scratch"))
         if not g:
             continue
@@ -361,7 +377,7 @@ def research_summary(runs_dir, groups):
     # ---- Q2b: three chained policies vs one policy for everything
     md += ("\n## Q2b - three chained policies vs one policy for the whole sequence (randomized training; both "
            "cloned from the same hand-written controller with the same budget)\n\n")
-    g = groups.get(("full", "ars", "random", "synergy"))
+    g = next((groups[k] for k in sorted(groups) if k[0] == "full" and k[2] == "random"), None)
     if g and "random" in ch:
         md += "| approach | nominal | in-distribution | unseen |\n|---|:-:|:-:|:-:|\n"
         cells = []
@@ -499,6 +515,8 @@ def cmd_report(a):
 
 # --------------------------------------------------------------------------- plan
 def cmd_plan(a):
+    print("# The whole experiment runs unattended with:  python run_all.py   (see python run_all.py --dry-run)")
+    print("# The commands below are the same steps written out (older 'synergy' naming).\n")
     seeds = range(a.seeds)
     al = a.algo
     bc = " --bc-episodes 40" if al == "ars" else ""
@@ -544,6 +562,9 @@ def main():
     t.add_argument("--steps", type=int, default=300_000, help="sac/ppo environment steps")
     t.add_argument("--eval-every-steps", type=int, default=10_000)
     t.add_argument("--iters", type=int, default=None, help="ars iterations (default 100)")
+    t.add_argument("--eval-episodes", type=int, default=20, help="episodes per evaluation during training")
+    t.add_argument("--n-envs", type=int, default=1, help="sac/ppo: parallel simulation processes (e.g. 16)")
+    t.add_argument("--device", default="auto", help="sac/ppo: 'cuda' (GPU), 'cpu' or 'auto'")
     t.add_argument("--dirs", type=int, default=16)
     t.add_argument("--top", type=int, default=8)
     t.add_argument("--lr", type=float, default=0.02, help="ars step size")
@@ -574,7 +595,7 @@ def main():
     st.add_argument("--policy", default="scripted", help="'scripted' or a run directory")
     st.add_argument("--episodes", type=int, default=200)
     st.add_argument("--condition", choices=["fixed", "random"], default="random")
-    st.add_argument("--action-mode", choices=["synergy", "full"], default="synergy")
+    st.add_argument("--action-mode", choices=["synergy", "design", "full"], default="design")
     st.add_argument("--hand", default=DEFAULT_HAND)
     st.add_argument("--door", default=DEFAULT_DOOR)
     st.add_argument("--out", required=True)

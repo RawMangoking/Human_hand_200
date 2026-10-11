@@ -2678,3 +2678,44 @@ Unseen: randomized − fixed = +22 points, 95 % interval [+6, +39].
 | every joint (24 actions) | 0 % | not reached |
 
 All 26 steps completed in ~6 min on one CPU core; a rerun skipped all finished steps.
+
+
+# 42. The planned hand (`design` actions) and the first real results
+
+## 42.1 `action_mode="design"` — the hardware as planned (now the default)
+
+| Channel | Actions | What it drives |
+|---|:-:|---|
+| `index_j` | 3 | index MCP, PIP, DIP — each independently |
+| `thumb_j` | 4 | thumb CMC (base), MCP, IP and the MCP side-to-side joint — each independently |
+| `mrp_j` | 3 | **middle + ring + little coupled joint by joint**: action 1 = all three MCPs, 2 = all three PIPs, 3 = all three DIPs |
+| `wrist` | 2 | flexion, deviation |
+
+Handle stage: **18 actions** (arm 6 + hand 12) — vs 12 for finger curls (`synergy`) and 24 for every joint (`full`). Tests (`env_tests.py --only design`): every `index_j` / `thumb_j` action moves exactly its joint; every `mrp_j[k]` moves joint k of the three fingers together and nothing else.
+
+## 42.2 First real run (real hand v5 + door v4, synergy actions, 3 seeds; seed 0 with 60 iterations, seeds 1–2 with 150)
+
+| Chained three policies | nominal | in-distribution | unseen |
+|---|:-:|:-:|:-:|
+| fixed training | 80 ± 8 % | 68 ± 4 % | 59 ± 9 % |
+| randomized training | 53 ± 5 % | 63 ± 11 % | 53 ± 7 % |
+
+Per stage: **reach ≈ 100 %**; the **door stage almost never fails after a turned handle** (except `handle_low`, 0 % for both); **nearly every loss is in the handle stage** (50–90 % on the nominal door).
+
+Two findings changed the pipeline:
+1. **Handle learned from scratch generalized better than handle started from cloning**: 85 % (synergy) / 91 % (every joint) on unseen doors vs 67 %. Cloning copies the hand-written controller's weaknesses, and its 10-episode evaluation saturated at 100 %, so "keep the best" kept the cloned start and ARS never got credit.
+2. **The in-training evaluation was too small and too easy** (10 episodes, half from easy pool starts).
+
+Changes: the handle stage now learns **from scratch with 300 iterations** (reach and door keep cloning — both ≈ 100 %); evaluation during training uses **20 episodes from the pool starts** (what the chain will give), and the best policy is chosen by **success first**, then return.
+
+## 42.3 `run_all.py` now
+
+* pipeline in `design` actions (`--mode`), cloning for `--bc-stages reach door`, `--handle-iters 300`
+* Q2a: handle **from scratch** with design (18) / synergy (12) / every joint (24) actions — the design run is the pipeline's own randomized handle run
+* Q2b: one policy for the whole sequence (design actions, cloned, 300 iterations)
+
+Start fresh (`runs`, `starts`, `results` from the synergy run can be moved away or kept; the new runs have new names).
+
+## 42.4 The GPU
+
+The simulation is MuJoCo on the **CPU**; ARS only does a small matrix update — the 32 CPU threads (`--workers 30`) are what make training fast, a GPU would not. The GPU helps **neural-network** RL: `experiment.py train --algo sac --n-envs 16 --device cuda --steps 1000000` (16 simulation processes feed a SAC network trained on the RTX 4080; needs `pip install stable-baselines3` and a CUDA build of PyTorch) — an optional algorithm comparison (deep RL vs the Fourier-feature ARS policy). This path is written but untested here (no PyTorch in the test container).

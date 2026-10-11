@@ -82,11 +82,12 @@ def _init_worker(env_kwargs):
 
 
 def _rollout(job):
-    W, mean, var, seed, collect, Omega, b = job
+    W, mean, var, seed, collect, Omega, b = job[:7]
+    start = job[7] if len(job) > 7 else None              # evaluation: "pool" = the starts the chain will give
     env = _ENV
     pol = LinearPolicy(len(mean), W.shape[0])
     pol.W, pol.mean, pol.var, pol.Omega, pol.b = W, mean, var, Omega, b
-    obs, _ = env.reset(seed=int(seed))
+    obs, _ = env.reset(seed=int(seed), options={"start": start} if start else None)
     ret, steps, done, info = 0.0, 0, False, {}
     s = np.zeros_like(mean)
     ss = np.zeros_like(mean)
@@ -186,15 +187,20 @@ def train(args, log=print):
         _init_worker(kw)
     run = (lambda jobs: pool.map(_rollout, jobs)) if pool else (lambda jobs: [_rollout(j) for j in jobs])
 
-    env_steps, t0, best = 0, time.time(), -np.inf
+    env_steps, t0, best = 0, time.time(), (-np.inf, -np.inf)
     seed_ctr = int(args.seed) * 1_000_000
-    ev = run([(pol.W, pol.mean, pol.var, 10_000_000 + i, False, pol.Omega, pol.b) for i in range(args.eval_episodes)])
-    ev_ret, ev_succ = float(np.mean([x[0] for x in ev])), float(np.mean([x[2] for x in ev]))
+    eval_start = "pool" if kw.get("start_states") else None
+
+    def evaluate_now():
+        ev = run([(pol.W, pol.mean, pol.var, 10_000_000 + i, False, pol.Omega, pol.b, eval_start)
+                  for i in range(args.eval_episodes)])
+        return float(np.mean([x[0] for x in ev])), float(np.mean([x[2] for x in ev]))
+    ev_ret, ev_succ = evaluate_now()
     wr.writerow([0, 0, "", f"{ev_ret:.4f}", f"{ev_succ:.3f}", "0"])
     log(f"[ars] it    0  (start{' = behaviour cloning' if getattr(args, 'bc_episodes', 0) else ''})  "
         f"eval return {ev_ret:8.2f}  eval success {ev_succ * 100:5.1f} %")
     pol.save(os.path.join(args.out, "best.npz"))
-    best = ev_ret
+    best = (ev_succ, ev_ret)                               # best = highest success, then highest return
     for it in range(1, args.iters + 1):
         deltas = rng.standard_normal((args.dirs,) + pol.W.shape)
         jobs = []
@@ -217,17 +223,15 @@ def train(args, log=print):
             pol.update_stats(S, SS, N)                  # W was fitted to it (and the Fourier features use it)
 
         if it % args.eval_every == 0 or it == args.iters:
-            ev = run([(pol.W, pol.mean, pol.var, 10_000_000 + i, False, pol.Omega, pol.b) for i in range(args.eval_episodes)])
-            ev_ret = float(np.mean([x[0] for x in ev]))
-            ev_succ = float(np.mean([x[2] for x in ev]))
+            ev_ret, ev_succ = evaluate_now()
             wr.writerow([it, env_steps, f"{r.mean():.4f}", f"{ev_ret:.4f}", f"{ev_succ:.3f}",
                          f"{time.time() - t0:.1f}"])
             log_f.flush()
             log(f"[ars] it {it:4d}  steps {env_steps:8d}  return {r.mean():8.2f}  "
                 f"eval return {ev_ret:8.2f}  eval success {ev_succ * 100:5.1f} %  ({time.time() - t0:.0f} s)")
             pol.save(os.path.join(args.out, "policy.npz"))
-            if ev_ret > best:
-                best = ev_ret
+            if (ev_succ, ev_ret) > best:
+                best = (ev_succ, ev_ret)
                 pol.save(os.path.join(args.out, "best.npz"))
     if pool:
         pool.close()
@@ -258,7 +262,8 @@ def add_args(ap):
     ap.add_argument("--task", choices=list(DoorEnv.TASKS), default="reach")
     ap.add_argument("--condition", choices=["fixed", "random"], default="fixed",
                     help="fixed = nominal door every episode, random = domain-randomized door physics")
-    ap.add_argument("--action-mode", choices=["synergy", "full"], default="synergy")
+    ap.add_argument("--action-mode", choices=["synergy", "design", "full"], default="design",
+                    help="design = the planned hand (default), synergy = finger curls, full = every joint")
     ap.add_argument("--obs-noise", type=float, default=0.0)
     ap.add_argument("--hand", default=DEFAULT_HAND)
     ap.add_argument("--door", default=DEFAULT_DOOR)
@@ -285,7 +290,7 @@ def main():
     ap.add_argument("--step", type=float, default=0.02, help="step size")
     ap.add_argument("--noise", type=float, default=0.03, help="exploration noise")
     ap.add_argument("--eval-every", type=int, default=5)
-    ap.add_argument("--eval-episodes", type=int, default=10)
+    ap.add_argument("--eval-episodes", type=int, default=20)
     ap.add_argument("--workers", type=int, default=max(1, min(16, (os.cpu_count() or 2) - 1)))
     ap.add_argument("--out", default=None)
     ap.add_argument("--play", metavar="RUN_DIR")

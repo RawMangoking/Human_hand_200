@@ -33,6 +33,9 @@ that keeps the forearm further from the door than the palm; DoorEnv(arm_tilt=0) 
 COLLISIONS (default): hand parts may overlap each other; the hand collides with the door, handle, frame and
 floor. --self-collision makes the hand collide with itself too; --no-hand-door-collision lets it pass through.
 
+ACTION MODES: synergy (curl per finger group; mrp = 1 action), design (the planned hardware: index 3 and thumb 4
+independent joints, middle + ring + little coupled joint by joint = 3 actions), full (every joint its own action).
+
   arm_pos : target moves up to 1 cm per step        arm_rot : up to 3 deg per step (world x, y, z)
   wrist   : flexion, tilt          index / mrp / thumb / opp / grip : finger curl
             all of these are RATES: 0 = hold, +-1 = move 10 % of the range per step
@@ -505,6 +508,12 @@ class DoorEnv(gym.Env):
         "door": ["arm_pos", "arm_rot", "joints"],
         "full": ["arm_pos", "arm_rot", "joints"],
     }
+    TASKS_DESIGN = {                            # action_mode="design": the planned HARDWARE - index and thumb
+        "reach": ["arm_pos", "arm_rot"],        # fully independent, middle + ring + little coupled joint by
+        "handle": ["arm_pos", "arm_rot", "wrist", "index_j", "thumb_j", "mrp_j"],   # joint (3 shared actions)
+        "door": ["arm_pos", "grip"],
+        "full": ["arm_pos", "arm_rot", "wrist", "index_j", "thumb_j", "mrp_j"],
+    }
     MAX_STEPS = {"reach": 250, "handle": 250, "door": 250, "full": 600}
     SIZES = {"arm_pos": 3, "arm_rot": 3, "wrist": 2, "index": 1, "mrp": 1, "thumb": 1, "opp": 1, "grip": 1}
     LEASH = 0.02             # m: how far the arm target may run ahead of the arm
@@ -529,7 +538,7 @@ class DoorEnv(gym.Env):
                  randomize_physics=False, physics=None, physics_ranges=None,
                  action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto", arm_tilt="auto", start_mix=0.5):
         assert task in self.TASKS, f"task must be one of {list(self.TASKS)}"
-        assert action_mode in ("synergy", "full"), "action_mode must be 'synergy' or 'full'"
+        assert action_mode in ("synergy", "full", "design"), "action_mode must be 'synergy', 'full' or 'design'"
         self.task, self.render_mode, self.randomize = task, render_mode, randomize
         self.action_mode, self.obs_noise, self.start_states = action_mode, float(obs_noise), start_states
         self.start_mix = start_mix                              # share of episodes started from the pool
@@ -610,7 +619,10 @@ class DoorEnv(gym.Env):
         self.free_v = m.jnt_dofadr[J("hand/base_free")]
 
         self.joint_names = list(self.hj)
-        self.sizes = dict(self.SIZES, joints=len(self.joint_names))
+        self.thumb_joints = list(f.get("thumb", [])) + [j for j in self.hcfg.get("spread", []) if j in self.hj]
+        self.mrp_fingers = [f.get(k, []) for k in ("middle", "ring", "pinky")]
+        self.sizes = dict(self.SIZES, joints=len(self.joint_names), index_j=len(f.get("index", [])),
+                          thumb_j=len(self.thumb_joints), mrp_j=max((len(x) for x in self.mrp_fingers), default=0))
         self._target = {n: self._home(n) for n in self.hj}
         self._curl = {g: 0.0 for g in ("index", "mrp", "thumb", "opp")}
         self._wpos = [0.0 for _ in self.wrist]
@@ -690,7 +702,7 @@ class DoorEnv(gym.Env):
     # ---- task / action layout
     def channels(self, task=None):
         t = task or self.task
-        return (self.TASKS_FULL if self.action_mode == "full" else self.TASKS)[t]
+        return {"full": self.TASKS_FULL, "design": self.TASKS_DESIGN}.get(self.action_mode, self.TASKS)[t]
 
     def _set_spaces(self, task):
         self.task = task
@@ -950,8 +962,9 @@ class DoorEnv(gym.Env):
         self._place_clear(*start, at_handle=at_handle)
         self._arm_start = self.data.mocap_pos[self.mid].copy()
         self._stage = 0
-        use_pool = (self.start_states and not (options and "physics" in options)
-                    and rnd.random() < self.start_mix)
+        want = (options or {}).get("start")                     # "pool" / "default" / None (= start_mix)
+        use_pool = bool(self.start_states) and not (options and "physics" in options) and (
+            want == "pool" or (want is None and rnd.random() < self.start_mix))
         self.started_from_pool = bool(use_pool)
         if use_pool:                                            # start where a previous policy ended
             st = self.start_states[int(rnd.integers(len(self.start_states)))]
@@ -995,6 +1008,18 @@ class DoorEnv(gym.Env):
                 for g in ("index", "mrp", "thumb"):
                     self._curl[g] = float(np.clip(self._curl[g] + self.STEP_FRAC * float(x[0]), 0, 1))
                     self._set_curl(g, self._curl[g])
+            elif name in ("index_j", "thumb_j", "mrp_j"):       # design mode
+                if name == "index_j":
+                    pairs = [([jn], v) for jn, v in zip(self.groups["index"], x)]
+                elif name == "thumb_j":
+                    pairs = [([jn], v) for jn, v in zip(self.thumb_joints, x)]
+                else:                                           # k-th action -> k-th joint of middle, ring, little
+                    pairs = [([fj[k] for fj in self.mrp_fingers if k < len(fj)], v) for k, v in enumerate(x)]
+                for names, val in pairs:
+                    for jn in names:
+                        lo, hi = self.hj[jn]["cfg"]["range"]
+                        self._target[jn] = float(np.clip(self._target[jn] + self.STEP_FRAC * (hi - lo) * float(val),
+                                                         lo, hi))
             elif name == "joints":                              # full mode: one action per hand joint
                 for jn, val in zip(self.joint_names, x):
                     lo, hi = self.hj[jn]["cfg"]["range"]
@@ -1136,6 +1161,10 @@ def named_action(env, **channels):
 def _close(env, amount):
     """Finger-closing channels for either action mode (synergy curls or every flex joint)."""
     names = [n for n, _ in env.action_layout]
+    if "index_j" in names:                                          # design mode
+        th = np.array([1.0 if env.hj[j]["cfg"]["role"] == "flex" else 0.0 for j in env.thumb_joints])
+        return {"index_j": np.full(env.sizes["index_j"], amount), "thumb_j": th * amount,
+                "mrp_j": np.full(env.sizes["mrp_j"], amount)}
     if "joints" in names:
         flex = np.array([1.0 if env.hj[j]["cfg"]["role"] == "flex" else 0.0 for j in env.joint_names])
         return {"joints": flex * amount}

@@ -11,8 +11,9 @@ RESUMABLE: every step checks for its output first (policy / start pool / chain r
 skipped if it is already there - after a crash, a reboot or Ctrl+C just run the same command again.
 A failing step is logged and the rest continues. Everything is logged to run_all.log.
 
-Order per condition (fixed / random) and seed:
-  reach -> start pool after reach -> handle (from that pool) -> pool after handle -> door (from it) -> chain
+Order per condition (fixed / random) and seed, in the planned hand's action space (design):
+  reach (cloned) -> start pool after reach -> handle (from scratch, from that pool) -> pool after handle
+  -> door (cloned, from it) -> chain
 then the baselines - Q2a: handle with synergy vs every-joint actions, both FROM SCRATCH (the DOF effect on
 learning); Q2b: one policy for the whole sequence - then evaluation of every run, and the report.
 """
@@ -66,7 +67,14 @@ def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--seeds", type=int, default=3)
     ap.add_argument("--conditions", nargs="+", default=["fixed", "random"], choices=["fixed", "random"])
-    ap.add_argument("--iters", type=int, default=150, help="ARS iterations per policy (default 150)")
+    ap.add_argument("--mode", choices=["design", "synergy", "full"], default="design",
+                    help="action space of the pipeline (default design = the planned hand)")
+    ap.add_argument("--iters", type=int, default=150, help="ARS iterations for reach / door (default 150)")
+    ap.add_argument("--handle-iters", type=int, default=300, help="ARS iterations for handle and full (default 300)")
+    ap.add_argument("--bc-stages", nargs="*", default=["reach", "door"],
+                    help="stages started from behaviour cloning (default reach door; handle learns from scratch, "
+                         "which generalized better on the real models: 85-91 %% vs 67 %% unseen)")
+    ap.add_argument("--train-eval-episodes", type=int, default=20, help="evaluation episodes during training")
     ap.add_argument("--dirs", type=int, default=32, help="ARS directions per iteration (default 32)")
     ap.add_argument("--bc", type=int, default=40, help="behaviour-cloning demonstrations (default 40)")
     ap.add_argument("--workers", type=int, default=max(1, min(30, (os.cpu_count() or 2) - 2)))
@@ -79,47 +87,55 @@ def main():
     a = ap.parse_args()
     a.model_args = (["--hand", a.hand] if a.hand else []) + (["--door", a.door] if a.door else [])
     r = Runner(a)
-    tr = ["--algo", "ars", "--iters", str(a.iters), "--dirs", str(a.dirs), "--top", str(a.dirs // 2),
-          "--workers", str(a.workers)]
-    r.log(f"=== run_all: conditions {a.conditions}, {a.seeds} seed(s), {a.iters} iterations, {a.workers} workers")
+    tr = ["--algo", "ars", "--dirs", str(a.dirs), "--top", str(a.dirs // 2), "--workers", str(a.workers),
+          "--eval-episodes", str(a.train_eval_episodes)]
+    iters = lambda task: str(a.handle_iters if task == "handle" else a.iters)
+    bc = lambda task: (["--bc-episodes", str(a.bc)] if task in a.bc_stages else ["--tag", "scratch"])
+    tag = lambda task: "" if task in a.bc_stages else "_scratch"
+    M = a.mode
+    r.log(f"=== run_all: mode {M}, conditions {a.conditions}, {a.seeds} seed(s), {a.iters} iterations "
+          f"(handle {a.handle_iters}), cloning for {a.bc_stages}, {a.workers} workers")
 
     for cond in a.conditions:
         for sd in range(a.seeds):
-            tag = f"{cond}_s{sd}"
-            run = {t: f"runs/{t}_ars_{cond}_synergy_s{sd}" for t in ("reach", "handle", "door")}
-            pool_r, pool_h = f"starts/after_reach_{tag}.pkl", f"starts/after_handle_{tag}.pkl"
-            base = ["--condition", cond, "--seed", str(sd)]
-            r.step(f"{tag}: train reach", ["train", "--task", "reach"] + base + tr + ["--bc-episodes", str(a.bc)],
+            tg = f"{cond}_s{sd}"
+            run = {t: f"runs/{t}_ars_{cond}_{M}{tag(t)}_s{sd}" for t in ("reach", "handle", "door")}
+            pool_r, pool_h = f"starts/after_reach_{M}_{tg}.pkl", f"starts/after_handle_{M}_{tg}.pkl"
+            base = ["--condition", cond, "--seed", str(sd), "--action-mode", M]
+            r.step(f"{tg}: train reach", ["train", "--task", "reach", "--iters", iters("reach")] + base + tr + bc("reach"),
                    run["reach"] + "/best.npz")
-            r.step(f"{tag}: pool after reach", ["starts", "--task", "reach", "--policy", run["reach"],
-                                                "--condition", cond, "--episodes", str(a.pool_episodes),
-                                                "--out", pool_r], pool_r)
-            r.step(f"{tag}: train handle", ["train", "--task", "handle"] + base + tr +
-                   ["--bc-episodes", str(a.bc), "--starts", pool_r], run["handle"] + "/best.npz")
-            r.step(f"{tag}: pool after handle", ["starts", "--task", "handle", "--policy", run["handle"],
-                                                 "--condition", cond, "--episodes", str(a.pool_episodes),
-                                                 "--out", pool_h], pool_h)
-            r.step(f"{tag}: train door", ["train", "--task", "door"] + base + tr +
-                   ["--bc-episodes", str(a.bc), "--starts", pool_h], run["door"] + "/best.npz")
-            r.step(f"{tag}: chain (all test doors)",
+            r.step(f"{tg}: pool after reach", ["starts", "--task", "reach", "--policy", run["reach"], "--action-mode", M,
+                                               "--condition", cond, "--episodes", str(a.pool_episodes),
+                                               "--out", pool_r], pool_r)
+            r.step(f"{tg}: train handle", ["train", "--task", "handle", "--iters", iters("handle")] + base + tr +
+                   bc("handle") + ["--starts", pool_r], run["handle"] + "/best.npz")
+            r.step(f"{tg}: pool after handle", ["starts", "--task", "handle", "--policy", run["handle"],
+                                                "--action-mode", M, "--condition", cond,
+                                                "--episodes", str(a.pool_episodes), "--out", pool_h], pool_h)
+            r.step(f"{tg}: train door", ["train", "--task", "door", "--iters", iters("door")] + base + tr + bc("door") +
+                   ["--starts", pool_h], run["door"] + "/best.npz")
+            r.step(f"{tg}: chain (all test doors)",
                    ["chain", "--reach", run["reach"], "--handle", run["handle"], "--door", run["door"],
-                    "--doors", "all", "--episodes", str(a.eval_episodes), "--out", f"runs/chain_ars_{tag}"],
-                   f"runs/chain_ars_{tag}/chain_eval.csv")
+                    "--doors", "all", "--episodes", str(a.eval_episodes), "--out", f"runs/chain_ars_{tg}"],
+                   f"runs/chain_ars_{tg}/chain_eval.csv")
 
     if not a.no_baselines:
         for sd in range(a.seeds):
             base = ["--condition", "random", "--seed", str(sd)]
-            pool_r = f"starts/after_reach_random_s{sd}.pkl"
-            # Q2a: the DOF question needs learning FROM SCRATCH (no cloning) for both action spaces,
-            # everything else identical (same starts, same budget)
-            for mode in ("synergy", "full"):
+            pool_r = f"starts/after_reach_{M}_random_s{sd}.pkl"
+            # Q2a: the handle stage FROM SCRATCH with each action space (same starts, same budget). The main
+            # pipeline's random-condition handle run is already the from-scratch run of mode M.
+            for mode in ("design", "synergy", "full"):
+                if mode == M and "handle" not in a.bc_stages:
+                    continue
                 r.step(f"Q2a s{sd}: handle from scratch, {mode} actions",
-                       ["train", "--task", "handle", "--action-mode", mode, "--tag", "scratch"] + base + tr +
-                       ["--starts", pool_r], f"runs/handle_ars_random_{mode}_scratch_s{sd}/best.npz")
-            # Q2b: one policy for everything, cloned from the same controller as the chained three
+                       ["train", "--task", "handle", "--action-mode", mode, "--tag", "scratch",
+                        "--iters", iters("handle")] + base + tr + ["--starts", pool_r],
+                       f"runs/handle_ars_random_{mode}_scratch_s{sd}/best.npz")
+            # Q2b: one policy for the whole sequence (cloned from the same controller)
             r.step(f"Q2b s{sd}: one policy for everything",
-                   ["train", "--task", "full"] + base + tr + ["--bc-episodes", str(a.bc)],
-                   f"runs/full_ars_random_synergy_s{sd}/best.npz")
+                   ["train", "--task", "full", "--action-mode", M, "--iters", str(a.handle_iters)] + base + tr +
+                   ["--bc-episodes", str(a.bc)], f"runs/full_ars_random_{M}_s{sd}/best.npz")
 
     # evaluate every trained run on every test-door set, then report
     runs_dir = os.path.join(HERE, "runs")

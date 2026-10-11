@@ -5,7 +5,7 @@ env_tests.py - checks the hand + door environment (door_env.py) before training 
   python env_tests.py                       # all tests on Mujoko/Hand_forearm_v5 + Mujoko/Full_door_v4
   python env_tests.py --quick               # everything except the slower learning tests (learn, bc)
   python env_tests.py --only collisions     # one group: info start collisions latch actions obs reward random
-                                            #            modes chain doors speed learn
+                                            #            modes design chain doors speed learn bc
   python env_tests.py --hand <xml> --door <xml>
 A JSON copy of the results is written to env_test_report.json.
 """
@@ -443,7 +443,7 @@ def t_modes(H, D):
     report("modes", "hand-written handle strategy for this door", max(sc.values()) > 0,
            f"tried {sc} (successes / 4) -> using '{probe.scripted_variant}'")
     variant = probe.scripted_variant
-    for mode in ("synergy", "full"):
+    for mode in ("synergy", "design", "full"):
         for task in DoorEnv.TASKS:
             env = DoorEnv(task=task, hand_path=H, door_path=D, action_mode=mode)
             env.scripted_variant = variant
@@ -474,6 +474,39 @@ def t_modes(H, D):
         report("modes", f"full: joint action moves only {jn.split('__')[-1][:22]}",
                dq[jn] > math.radians(5) and others < math.radians(3),
                f"it moved {math.degrees(dq[jn]):.0f} deg, others max {math.degrees(others):.1f} deg")
+
+
+def t_design(H, D):
+    print("\n== DESIGN ACTION MODE (index + thumb independent, middle/ring/little coupled joint by joint)")
+    env = DoorEnv(task="handle", hand_path=H, door_path=D, action_mode="design", randomize=False)
+    away = env.geo["door"]["normal"]
+
+    def moved_by(channel, k):
+        env.reset(seed=0)
+        for _ in range(15):
+            env.step(act(env, arm_pos=away))
+        q0 = {n: env.data.qpos[env.hj[n]["qadr"]] for n in env.joint_names}
+        v = np.zeros(env.sizes[channel])
+        v[k] = 1.0
+        for _ in range(20):
+            env.step(act(env, **{channel: v}))
+        return {n for n in env.joint_names if abs(env.data.qpos[env.hj[n]["qadr"]] - q0[n]) > math.radians(5)}
+    short = lambda ns: ", ".join(sorted(n.split("__")[-1] for n in ns)) or "nothing"
+    for k, jn in enumerate(env.groups["index"]):
+        m = moved_by("index_j", k)
+        report("design", f"index_j[{k}] moves only {jn.split('__')[-1]}", m == {jn}, f"moved: {short(m)}")
+    for k, jn in enumerate(env.thumb_joints):
+        m = moved_by("thumb_j", k)
+        report("design", f"thumb_j[{k}] moves only {jn.split('__')[-1]}", m == {jn}, f"moved: {short(m)}")
+    for k in range(env.sizes["mrp_j"]):
+        want = {fj[k] for fj in env.mrp_fingers if k < len(fj)}
+        m = moved_by("mrp_j", k)
+        report("design", f"mrp_j[{k}] moves joint {k + 1} of middle, ring and little together", m == want,
+               f"moved: {short(m)}")
+    report("design", "action count", True,
+           f"handle stage {env.action_space.shape[0]} actions (arm 6, wrist 2, index {env.sizes['index_j']}, "
+           f"thumb {env.sizes['thumb_j']}, middle/ring/little {env.sizes['mrp_j']}) vs "
+           f"{DoorEnv(task='handle', hand_path=H, door_path=D, action_mode='full').action_space.shape[0]} for every joint")
 
 
 def t_chain(H, D):
@@ -589,7 +622,8 @@ def t_bc(H, D):
 
 
 GROUPS = dict(info=t_info, start=t_start, collisions=t_collisions, latch=t_latch, actions=t_actions,
-              obs=t_obs, reward=t_reward, random=t_random, modes=t_modes, chain=t_chain, doors=t_doors,
+              obs=t_obs, reward=t_reward, random=t_random, modes=t_modes, design=t_design, chain=t_chain,
+              doors=t_doors,
               speed=t_speed, learn=t_learn, bc=t_bc)
 
 
