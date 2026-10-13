@@ -1,0 +1,7 @@
+action_mode,algo,condition,in_dist,nominal,seeds,task,unseen
+design/scratch,ars,fixed,0.47333333333333333,0.6666666666666666,3,door,0.5
+design/scratch,ars,random,0.9,1.0,3,door,0.8814814814814814
+design/scratch,ars,fixed,0.9700000000000001,0.9666666666666667,3,handle,0.9481481481481482
+design/scratch,ars,random,0.9700000000000001,0.9666666666666667,3,handle,0.9296296296296296
+design/scratch,ars,fixed,0.71,0.9,3,reach,0.6296296296296297
+design/scratch,ars,random,0.7866666666666666,0.9333333333333332,3,reach,0.762962962962963
