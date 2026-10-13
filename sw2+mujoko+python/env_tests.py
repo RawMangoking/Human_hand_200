@@ -5,7 +5,7 @@ env_tests.py - checks the hand + door environment (door_env.py) before training 
   python env_tests.py                       # all tests on Mujoko/Hand_forearm_v5 + Mujoko/Full_door_v4
   python env_tests.py --quick               # everything except the slower learning tests (learn, bc)
   python env_tests.py --only collisions     # one group: info start collisions latch actions obs reward random
-                                            #            modes design chain doors speed learn bc
+                                            #            modes design skills chain doors speed learn bc
   python env_tests.py --hand <xml> --door <xml>
 A JSON copy of the results is written to env_test_report.json.
 """
@@ -509,6 +509,86 @@ def t_design(H, D):
            f"{DoorEnv(task='handle', hand_path=H, door_path=D, action_mode='full').action_space.shape[0]} for every joint")
 
 
+def t_skills(H, D):
+    print("\n== SKILLS (v4): a real grasp on the handle, the hand - not the forearm - on the door")
+    from door_env import named_action, pick_scripted_variant, scripted_action
+    env = DoorEnv(task="handle", hand_path=H, door_path=D, action_mode="design")
+    d = env.data
+    # 1. a stiff open hand pressing the lever down must never count as a grasp, nor succeed
+    g_steps, peak, succ = 0, 0.0, False
+    for sd in range(2):
+        env.reset(seed=sd)
+        done = False
+        while not done:
+            grasp, palm = env.grasp_point(), np.array(d.xipos[env.palm])
+            to = np.clip((grasp - palm) / 0.01, -1, 1)
+            ax, piv = np.array(d.xaxis[env.jd]), np.array(d.xanchor[env.jd])
+            tang = np.cross(ax, grasp - piv) * np.sign(env.handle_open - env.d0)
+            tang /= np.linalg.norm(tang) + 1e-9
+            move = to if np.linalg.norm(grasp - palm) > 0.05 else np.clip(tang + 0.5 * to, -1, 1)
+            _, _, term, trunc, info = env.step(named_action(env, arm_pos=move))
+            done = term or trunc
+            g_steps += info["grasped"]
+            peak = max(peak, info["handle_frac"])
+        succ |= info["success"]
+    report("skills", "stiff open hand pressing the lever is NOT a grasp", g_steps == 0 and not succ,
+           f"handle pushed to {peak * 100:.0f} %, grasped steps {g_steps}, success {succ}")
+    # 2. the hand-written grip: thumb opposite the fingers around the lever
+    sc = pick_scripted_variant(env)
+    best_opp, g_eps, ok = 0.0, 0, 0
+    for sd in range(3):
+        env.reset(seed=sd)
+        done, g = False, 0
+        while not done:
+            _, _, term, trunc, info = env.step(scripted_action(env))
+            done = term or trunc
+            g += info["grasped"]
+            best_opp = max(best_opp, info["opposition_deg"] if info["thumb_on"] else 0.0)
+        g_eps += g > 0
+        ok += info["success"]
+    report("skills", "hand-written grip wraps the lever (thumb opposite the fingers)", g_eps >= 1,
+           f"'{env.scripted_variant}' strategy {sc}: grasp in {g_eps}/3 episodes, best opposition {best_opp:.0f} deg, "
+           f"handle success {ok}/3")
+    # 3. the door pushed by the hand: success without the forearm
+    envd = DoorEnv(task="door", hand_path=H, door_path=D, action_mode="design")
+    pick_scripted_variant(envd)
+    ok, fr = 0, []
+    for sd in range(3):
+        envd.reset(seed=sd)
+        done = False
+        while not done:
+            _, _, term, trunc, info = envd.step(scripted_action(envd))
+            done = term or trunc
+        ok += info["success"]
+        fr.append(info["arm_touch_frac"])
+    report("skills", "hand pushes the door open without the forearm", ok >= 1,
+           f"{ok}/3 opened, forearm on the door in {np.mean(fr) * 100:.0f} % of the steps")
+    # 4. forearm contact is detected and costs reward
+    envf = DoorEnv(task="full", hand_path=H, door_path=D, action_mode="design", latch=False)
+    nrm = envf.geo["door"]["normal"]
+    side = np.cross(nrm, [0, 0, 1.0])
+    side /= np.linalg.norm(side)
+    push = -nrm * envf.door_goal_sign * envf.geo["door"]["push_sign"]
+    envf.reset(seed=0)
+    for _ in range(14):
+        envf.step(named_action(envf, arm_rot=side, arm_pos=nrm * 0.6))
+    for _ in range(25):
+        envf.step(named_action(envf, arm_pos=np.array([0, 0, -0.6])))
+    at, ret = 0, 0.0
+    for _ in range(200):
+        _, r, _, _, info = envf.step(named_action(envf, arm_pos=push))
+        at += info["arm_touch"]
+        ret += r
+    report("skills", "forearm on the door is detected and penalised", at > 0 and ret < 0,
+           f"forearm-first push: arm contact in {at}/200 steps, return {ret:.1f}")
+    # 5. old runs: without the skills the observation is 6 shorter (their policies still load)
+    old = DoorEnv(task="handle", hand_path=H, door_path=D, action_mode="design", grasp_required=False,
+                  palm_push=False)
+    report("skills", "v1-v3 behaviour still available for old runs",
+           old.observation_space.shape[0] == env.observation_space.shape[0] - 6,
+           f"observation {old.observation_space.shape[0]} (old) vs {env.observation_space.shape[0]} (skills)")
+
+
 def t_chain(H, D):
     print("\n== CHAINING THE MODULAR POLICIES (scripted)")
     from door_env import scripted_action, pick_scripted_variant
@@ -622,7 +702,8 @@ def t_bc(H, D):
 
 
 GROUPS = dict(info=t_info, start=t_start, collisions=t_collisions, latch=t_latch, actions=t_actions,
-              obs=t_obs, reward=t_reward, random=t_random, modes=t_modes, design=t_design, chain=t_chain,
+              obs=t_obs, reward=t_reward, random=t_random, modes=t_modes, design=t_design, skills=t_skills,
+              chain=t_chain,
               doors=t_doors,
               speed=t_speed, learn=t_learn, bc=t_bc)
 

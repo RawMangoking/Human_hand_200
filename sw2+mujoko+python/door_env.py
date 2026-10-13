@@ -30,6 +30,16 @@ ARM TILT: the arm starts tilted with the forearm leaning away from the door, so 
 the door before the fingers reach the handle. arm_tilt="auto" (default) picks the smallest of 30 / 45 / 60 deg
 that keeps the forearm further from the door than the palm; DoorEnv(arm_tilt=0) for upright, or any angle.
 
+SKILLS (grasp_required=True, palm_push=True - the defaults since v4):
+  handle: turning the handle only pays fully WHILE GRASPED - the thumb and >= 2 fingers on OPPOSITE sides of the
+          lever's long axis (>= 100 deg apart around it), or >= 3 fingers hooked >= 90 deg around it; success =
+          latch released with a grasp held >= 3 steps.
+          A stiff hand pressing the lever down no longer counts.
+  door  : door progress only pays while the forearm / wrist does NOT touch the door; touching costs; success =
+          60 deg with no arm contact at the end and arm contact in <= 10 % of the steps.
+  6 extra observations: thumb on lever, fingers on lever, opposition, grasped, arm touching, palm on door.
+  grasp_required=False / palm_push=False = the v1-v3 behaviour (old runs load that way).
+
 COLLISIONS (default): hand parts may overlap each other; the hand collides with the door, handle, frame and
 floor. --self-collision makes the hand collide with itself too; --no-hand-door-collision lets it pass through.
 
@@ -536,12 +546,18 @@ class DoorEnv(gym.Env):
                  control_hz=25, max_steps=None, door_dir="push", randomize=True, latch=True, unlock_frac=0.8,
                  hand_self_collision=False, hand_door_collision=True,
                  randomize_physics=False, physics=None, physics_ranges=None,
-                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto", arm_tilt="auto", start_mix=0.5):
+                 action_mode="synergy", obs_noise=0.0, start_states=None, door_side="auto", arm_tilt="auto", start_mix=0.5,
+                 grasp_required=True, palm_push=True, grasp_fingers=2, grasp_opposition_deg=100.0):
         assert task in self.TASKS, f"task must be one of {list(self.TASKS)}"
         assert action_mode in ("synergy", "full", "design"), "action_mode must be 'synergy', 'full' or 'design'"
         self.task, self.render_mode, self.randomize = task, render_mode, randomize
         self.action_mode, self.obs_noise, self.start_states = action_mode, float(obs_noise), start_states
         self.start_mix = start_mix                              # share of episodes started from the pool
+        # skills (v4): the handle must be GRASPED (thumb opposite >= grasp_fingers fingers around the lever), the
+        # door must be pushed with the HAND (forearm / wrist contact with the door is penalised)
+        self.grasp_required, self.palm_push = bool(grasp_required), bool(palm_push)
+        self.grasp_fingers, self.grasp_opposition = int(grasp_fingers), math.radians(grasp_opposition_deg)
+        self._grasp_run, self._arm_touch_steps, self._gs = 0, 0, None
         self._fixed_max_steps = max_steps
         self.arm_tilt = 0.0 if arm_tilt == "auto" else math.radians(arm_tilt)   # forearm leans away (start)
         self._arm_tilt_request = arm_tilt
@@ -653,6 +669,7 @@ class DoorEnv(gym.Env):
         self._root_pos0, self._root_quat0 = m.body_pos[b].copy(), m.body_quat[b].copy()
         self._palm_build = self.geo["door"]["grasp"] + self.geo["door"]["normal"] * 0.30   # where build put the palm
         self._lever_local = self._find_lever()
+        self._skill_bodies()
         mujoco.mj_forward(m, self.data)
         self.geo["door"]["grasp"] = self.grasp_point()
         self._grasp0 = self.geo["door"]["grasp"].copy()
@@ -719,6 +736,7 @@ class DoorEnv(gym.Env):
         three modular policies on one door: reach -> handle -> door."""
         self._set_spaces(task)
         self.steps = 0
+        self._grasp_run, self._arm_touch_steps = 0, 0
         self._prev = self._progress()
         return self._obs()
 
@@ -826,7 +844,7 @@ class DoorEnv(gym.Env):
         off = d.mocap_pos[self.mid] - d.xpos[m.body_weldid[self.palm]] if False else \
             d.mocap_pos[self.mid] - d.qpos[self.free_q:self.free_q + 3]
         o = np.concatenate([grasp - palm_c, R[:, 0], R[:, 2], q, door, tip_flags, [1.0 if palm_t else 0.0],
-                            off, self._last_action])
+                            off, self._last_action, self._skill_obs()])
         if self.obs_noise > 0 and hasattr(self, "np_random"):
             n = len(o) - len(self._last_action)                 # noise on sensed values, not on own action
             o[:n] = o[:n] + self.np_random.normal(0.0, self.obs_noise, n)
@@ -847,7 +865,111 @@ class DoorEnv(gym.Env):
         pick = lever.mean(0) if len(lever) >= 4 else np.array(d.xipos[self.handle_body])
         R = np.array(d.xmat[self.handle_body]).reshape(3, 3)
         self.lever_found = len(lever) >= 4
+        ax = np.array([1.0, 0.0, 0.0])
+        if len(lever) >= 4:                                     # long axis of the lever (largest spread)
+            w, V = np.linalg.eigh(np.cov((lever - pick).T))
+            ax = V[:, int(np.argmax(w))]
+        else:
+            ax = R @ ax
+        self._lever_axis_local = R.T @ ax
         return R.T @ (pick - np.array(d.xpos[self.handle_body]))
+
+    def _skill_bodies(self):
+        """Which hand body belongs to which finger; which bodies are the ARM (forearm / wrist: everything between
+        the hand's root and the palm); which bodies belong to the door model."""
+        m = self.model
+        J = lambda n: mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_JOINT, n)
+        self.finger_of_body = {}
+        for g, names in self.hcfg["fingers"].items():
+            for n in names:
+                j = J("hand/" + n)
+                if j >= 0:
+                    self.finger_of_body[int(m.jnt_bodyid[j])] = g
+        for n in self.hcfg.get("spread", []):                          # the thumb's side-to-side joint
+            j = J("hand/" + n)
+            if j >= 0 and "thumb" in n.lower():
+                self.finger_of_body[int(m.jnt_bodyid[j])] = "thumb"
+        for b in range(m.nbody):                                      # bodies below a finger body: same finger
+            p = b
+            while p > 0 and p not in self.finger_of_body:
+                p = m.body_parentid[p]
+            if p > 0 and b in self.hand_bodies:
+                self.finger_of_body.setdefault(b, self.finger_of_body[p])
+        self.arm_bodies = set()
+        b = int(m.body_parentid[self.palm])
+        while b > 0:
+            self.arm_bodies.add(b)
+            b = int(m.body_parentid[b])
+        self.door_bodies = {b for b in range(m.nbody) if m.body(b).name.startswith("door/")}
+
+    def lever_axis(self):
+        """World direction of the lever's long axis (it turns with the handle)."""
+        R = np.array(self.data.xmat[self.handle_body]).reshape(3, 3)
+        return R @ getattr(self, "_lever_axis_local", np.array([1.0, 0.0, 0.0]))
+
+    def skill_contacts(self):
+        """What the hand is doing to the door, from the contacts:
+        fingers  : {finger: [contact points on the handle]}
+        grasped  : a real grip, not a stiff hand pressing on one face of the lever - either
+                   thumb_grip : the thumb and >= grasp_fingers fingers on OPPOSITE sides of the lever's long axis
+                                (>= grasp_opposition_deg apart around it), or
+                   finger_wrap: >= 3 fingers whose contacts go >= 90 deg AROUND the lever (fingers hooked round it)
+        arm_touch: the forearm / wrist touches any part of the door, handle or frame
+        palm_door: the palm touches the door leaf"""
+        m, d = self.model, self.data
+        fingers, arm_touch, palm_door, palm_handle = {}, False, False, False
+        for c in d.contact[:d.ncon]:
+            b1, b2 = int(m.geom_bodyid[c.geom1]), int(m.geom_bodyid[c.geom2])
+            h1, h2 = b1 in self.hand_bodies, b2 in self.hand_bodies
+            if h1 == h2:
+                continue
+            hb, ob = (b1, b2) if h1 else (b2, b1)
+            if hb in self.arm_bodies and ob in self.door_bodies:
+                arm_touch = True
+            if ob == self.handle_body:
+                g = self.finger_of_body.get(hb)
+                if g:
+                    fingers.setdefault(g, []).append(np.array(c.pos))
+                if hb == self.palm:
+                    palm_handle = True
+            elif ob == self.door_body and hb == self.palm:
+                palm_door = True
+        thumb = "thumb" in fingers
+        others = [g for g in fingers if g != "thumb"]
+        angle, wrap = 0.0, 0.0
+        if fingers:
+            ctr, ax = self.grasp_point(), self.lever_axis()
+
+            def unit_radial(p):
+                r = (p - ctr) - ax * float((p - ctr) @ ax)
+                return r / (np.linalg.norm(r) + 1e-9)
+
+            def radial(points):
+                v = sum(unit_radial(p) for p in points)
+                return v / (np.linalg.norm(v) + 1e-9)
+            if thumb and others:
+                rt = radial(fingers["thumb"])
+                rf = radial([p for g in others for p in fingers[g]])
+                angle = float(np.arccos(np.clip(rt @ rf, -1.0, 1.0)))
+            if len(others) >= 3:                                # how far the fingers' contacts go AROUND the lever
+                U = np.array([unit_radial(p) for g in others for p in fingers[g]])
+                wrap = float(np.arccos(np.clip((U @ U.T).min(), -1.0, 1.0)))
+        thumb_grip = thumb and len(others) >= self.grasp_fingers and angle >= self.grasp_opposition
+        finger_wrap = len(others) >= 3 and wrap >= math.radians(90)
+        grasped = thumb_grip or finger_wrap
+        return dict(fingers=fingers, thumb=thumb, n_fingers=len(others), opposition=angle, wrap=wrap,
+                    grasped=bool(grasped), thumb_grip=bool(thumb_grip), finger_wrap=bool(finger_wrap),
+                    arm_touch=bool(arm_touch), palm_door=bool(palm_door), palm_handle=bool(palm_handle))
+
+    def _skill_obs(self):
+        if not (self.grasp_required or self.palm_push):
+            return np.zeros(0)
+        if not hasattr(self, "arm_bodies"):
+            return np.zeros(6)
+        gs = self.skill_contacts()
+        return np.array([float(gs["thumb"]), gs["n_fingers"] / 4.0, math.cos(gs["opposition"]) if gs["thumb"] and
+                         gs["n_fingers"] else 1.0, float(gs["grasped"]), float(gs["arm_touch"]),
+                         float(gs["palm_door"])])
 
     def grasp_point(self):
         """World position of the handle's lever (moves with the door and the handle)."""
@@ -959,6 +1081,7 @@ class DoorEnv(gym.Env):
                  "door": (0.05 + 0.3 * along, 0.3 * lateral, 0.3 * yaw)}[self.task]
         self._latched = self.task != "door"                     # door task: the handle is already turned
         self._scripted_grip = False
+        self._grasp_run, self._arm_touch_steps, self._gs = 0, 0, None
         self._place_clear(*start, at_handle=at_handle)
         self._arm_start = self.data.mocap_pos[self.mid].copy()
         self._stage = 0
@@ -1078,8 +1201,40 @@ class DoorEnv(gym.Env):
         self.steps += 1
         p = self._progress()
         tips, palm_t, touch = self._contacts()
+        gs = self.skill_contacts() if (self.grasp_required or self.palm_push) else None
+        self._gs = gs
+        if gs is not None:
+            self._grasp_run = self._grasp_run + 1 if gs["grasped"] else 0
+            self._arm_touch_steps += int(gs["arm_touch"])
+        arm_ok = gs is None or not self.palm_push or (not gs["arm_touch"] and
+                                                       self._arm_touch_steps <= 0.1 * max(self.steps, 1))
+        dh, dd = p["handle"] - self._prev["handle"], p["door"] - self._prev["door"]
         # ---- rewards
-        if self.task == "reach":
+        if self.task == "handle" and self.grasp_required:
+            # turning only pays fully WHILE GRASPED; shaping for thumb, fingers on the lever and opposition
+            r = 10.0 * dh * (1.0 if gs["grasped"] else 0.15) - 0.5 * p["dist"]
+            r += 0.04 * gs["n_fingers"] + 0.06 * gs["thumb"] + 0.1 * gs["grasped"]
+            r += 0.1 * (gs["thumb"] and gs["n_fingers"] > 0) * max(0.0, -math.cos(gs["opposition"]))
+            r += 0.05 * gs["finger_wrap"] - (0.1 * gs["arm_touch"] if self.palm_push else 0.0)   # clean motion
+            success = (not self._latched) and self._grasp_run >= 3 and (
+                p["handle"] >= min(self.unlock_frac + 0.05, 0.98) or p["door"] > math.radians(3))
+        elif self.task == "door" and self.palm_push:
+            # the door only pays while the forearm / wrist is NOT touching it; touching costs
+            r = 5.0 * dd * (0.0 if gs["arm_touch"] else 1.0) - 0.3 * gs["arm_touch"] + 0.02 * touch
+            r += 0.02 * gs["palm_door"]
+            success = p["door"] > math.radians(60) and arm_ok
+        elif self.task == "full" and (self.grasp_required or self.palm_push):
+            g_ok = gs["grasped"] or not self.grasp_required
+            a_t = gs["arm_touch"] and self.palm_push
+            r = 0.2 * (-p["dist"] + 5.0 * (self._prev["dist"] - p["dist"]))
+            r += 10.0 * dh * (1.0 if g_ok else 0.15) + 0.04 * gs["n_fingers"] + 0.06 * gs["thumb"]
+            r += 5.0 * dd * (0.0 if a_t else 1.0) - 0.3 * a_t
+            if self._stage == 0 and p["dist"] < 0.04:
+                self._stage, r = 1, r + 2.0
+            if self._stage <= 1 and p["handle"] > self.unlock_frac and g_ok:
+                self._stage, r = 2, r + 5.0
+            success = p["door"] > math.radians(60) and arm_ok
+        elif self.task == "reach":
             r = -p["dist"] + 5.0 * (self._prev["dist"] - p["dist"])
             success = p["dist"] < 0.04
         elif self.task == "handle":
@@ -1115,7 +1270,12 @@ class DoorEnv(gym.Env):
 
     def _info(self, p=None, success=False, touch=False):
         p = p or self._progress()
-        return dict(palm_to_handle=p["dist"], handle_frac=p["handle"], task=self.task, stage=self._stage,
+        gs = self._gs
+        skill = {} if gs is None else dict(grasped=gs["grasped"], thumb_on=gs["thumb"], fingers_on=gs["n_fingers"],
+                                           opposition_deg=math.degrees(gs["opposition"]), arm_touch=gs["arm_touch"],
+                                           palm_on_door=gs["palm_door"], grasp_run=self._grasp_run,
+                                           arm_touch_frac=self._arm_touch_steps / max(self.steps, 1))
+        return dict(**skill, palm_to_handle=p["dist"], handle_frac=p["handle"], task=self.task, stage=self._stage,
                     door_deg=math.degrees(p["door"]), success=bool(success), touching_handle=bool(touch),
                     physics=dict(self.physics), start_pushed_back=getattr(self, "start_pushed_back", 0.0))
 
@@ -1173,7 +1333,7 @@ def _close(env, amount):
     return {k: amount for k in ("index", "mrp", "thumb", "opp") if k in names}
 
 
-SCRIPTED_VARIANTS = ("direct", "pregrasp")
+SCRIPTED_VARIANTS = ("wrap", "direct", "pregrasp")
 
 
 def pick_scripted_variant(env, episodes=2, seed0=7000):
@@ -1226,8 +1386,15 @@ def scripted_action(env):
                 {m_.geom_bodyid[c.geom1], m_.geom_bodyid[c.geom2]} & set(env.tips) and
                 env.door_body in (m_.geom_bodyid[c.geom1], m_.geom_bodyid[c.geom2]) for c in d.contact[:d.ncon])
         if not gripping:
-            # 'direct': straight for the lever. 'pregrasp': if fingertips touch the door, aim 3 cm in front of it
+            # 'direct': straight for the lever. 'pregrasp': if fingertips touch the door, aim 3 cm in front of it.
+            # 'wrap': aim 2.5 cm along the lever's TURNING direction, so the fingers come over the side they push
+            #         and the thumb closes on the other side (a wrapping grasp, thumb opposite the fingers)
             aim = grasp + nrm * 0.03 if tips_on_door else grasp
+            if variant == "wrap":
+                ax_, piv_ = np.array(d.xaxis[env.jd]), np.array(d.xanchor[env.jd])
+                tg = np.cross(ax_, grasp - piv_) * np.sign(env.handle_open - env.d0)
+                tg -= nrm * (tg @ nrm)
+                aim = grasp + tg / (np.linalg.norm(tg) + 1e-9) * 0.025 + nrm * 0.005
             return named_action(env, arm_pos=np.clip((aim - palm_c) / 0.01, -1, 1), **_close(env, -1.0))
         # follow the lever's arc IN THE DOOR PLANE with only a light touch toward the door (pressing the whole
         # arm into the door pushed the forearm against it and broke the grip)
@@ -1238,6 +1405,25 @@ def scripted_action(env):
         lat = to - nrm * (to @ nrm)                                 # stay on the lever, sideways / up-down
         depth = float((palm_c - grasp) @ nrm)
         inward = nrm * 0.3 if tips_on_door else -nrm * (0.15 if depth > 0.02 else 0.0)
+        if variant == "wrap" and "arm_rot" in [k for k, _ in env.action_layout]:
+            # turn the hand WITH the lever: rotate about the handle axis while sliding along the arc slowly
+            # enough that both match (a wrapped grasp cannot follow a turning lever by sliding alone)
+            # arm_rot turns the arm about its BASE (3 deg per step at 1): shift the arm by the opposite of the
+            # palm's swing so the hand turns about the PALM, like turning a key
+            k = 0.4                                                 # 1.2 deg per step
+            th = math.radians(3.0) * k
+            spin_axis = ax * float(np.sign(env.handle_open - env.d0))
+            qr = np.zeros(4)
+            mujoco.mju_axisAngle2Quat(qr, spin_axis, th)
+            Rr = np.zeros(9)
+            mujoco.mju_quat2Mat(Rr, qr)
+            v = palm_c - np.array(d.mocap_pos[env.mid])
+            comp = -((Rr.reshape(3, 3) - np.eye(3)) @ v) / 0.01         # arm_pos = 1 -> 1 cm per step
+            r_lever = max(float(np.linalg.norm((grasp - piv) - ax * float((grasp - piv) @ ax))), 0.03)
+            slide = th * r_lever / 0.01                             # arc speed matching the rotation
+            move = (tang / (n + 1e-9) * slide if n > 1e-6 else 0) + 0.5 * lat + inward + comp
+            return named_action(env, arm_pos=np.clip(move, -1, 1), arm_rot=np.clip(spin_axis * k, -1, 1),
+                                **_close(env, 1.0))
         move = (tang / (n + 1e-9) if n > 1e-6 else 0) + 0.5 * lat + inward
         return named_action(env, arm_pos=np.clip(move, -1, 1), **_close(env, 1.0))
     # push perpendicular to the door's CURRENT face, while gripping the lever and holding it turned

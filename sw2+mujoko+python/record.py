@@ -83,7 +83,10 @@ def rollout(env, stages, label, grab, max_steps=None):
                 f"door: {label}",
                 f"stage: {env.task}" + (f" ({env._stage})" if env.task == "full" else ""),
                 f"door {info['door_deg']:5.1f} deg   handle {info['handle_frac'] * 100:4.0f} %",
-                f"palm-handle {info['palm_to_handle'] * 1000:4.0f} mm   {'SUCCESS' if info['success'] else ''}"]))
+                f"palm-handle {info['palm_to_handle'] * 1000:4.0f} mm   {'SUCCESS' if info['success'] else ''}",
+                (lambda sk: f"{'GRASP' if sk['grasped'] else 'no grasp'} (thumb {'on' if sk['thumb'] else 'off'}, "
+                            f"{sk['n_fingers']} fingers){'   FOREARM ON DOOR' if sk['arm_touch'] else ''}")(
+                    env.skill_contacts())]))
         if not info.get("success"):
             break
     return frames, info

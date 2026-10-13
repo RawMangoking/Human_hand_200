@@ -59,6 +59,12 @@ def make_env(cfg_or_args, **over):
     kw = dict(task=g("task"), hand_path=g("hand", DEFAULT_HAND), door_path=g("door", DEFAULT_DOOR),
               action_mode=g("action_mode", "synergy"), obs_noise=g("obs_noise", 0.0),
               randomize_physics=(g("condition", "fixed") == "random"))
+    # skills (v4): runs that do not record them were trained without them (v1-v3) and load that way
+    for key, flag in (("grasp_required", "no_grasp"), ("palm_push", "no_palm_push")):
+        val = g(key, None)
+        if val is None:
+            val = (not g(flag)) if g(flag, None) is not None else False
+        kw[key] = bool(val)
     starts = ars_mod.load_starts(g("starts", None))
     if starts:
         kw.update(start_states=starts, start_mix=g("start_mix", 0.5))
@@ -204,13 +210,16 @@ def cmd_starts(a):
     import pickle
     from door_env import pick_scripted_variant, scripted_action
     env = DoorEnv(task=a.task, hand_path=a.hand, door_path=a.door, action_mode=a.action_mode,
-                  randomize_physics=(a.condition == "random"))
+                  randomize_physics=(a.condition == "random"), grasp_required=not a.no_grasp,
+                  palm_push=not a.no_palm_push)
     if a.policy == "scripted":
         sc = pick_scripted_variant(env)
         print(f"[starts] hand-written policy, strategy '{env.scripted_variant}' ({sc})")
         act_fn = lambda obs: scripted_action(env)
     else:
-        pol, cfg = load_policy(a.policy)
+        pol, cfg = load_policy(a.policy)                   # the env as the policy was trained (skills, mode)
+        env = make_env(cfg, task=a.task, randomize_physics=(a.condition == "random"), start_states=None,
+                       hand_path=a.hand, door_path=a.door)
         act_fn = lambda obs: pol.predict(obs, deterministic=True)[0]
     states, t0 = [], time.time()
     for ep in range(a.episodes):
@@ -245,16 +254,22 @@ def cmd_chain(a):
     out_rows = []
     for set_name in (["nominal", "in_dist", "unseen"] if a.doors == "all" else [a.doors]):
         for label, phys in door_set(set_name):
-            stats = dict(reach=0, handle=0, door=0, total=0, time=[], recover=[])
+            stats = dict(reach=0, handle=0, door=0, total=0, time=[], recover=[], grasp=[], arm=[])
             for i in range(a.episodes):
                 obs, _ = env.reset(seed=200_000 + i, options={"physics": phys})
                 stage, steps_total, in_stage, recov, done_all = "reach", 0, 0, 0, False
                 reached = set()
+                h_steps = h_grasp = d_steps = d_arm = 0             # skill metrics (measured for every run)
                 while steps_total < a.max_steps:
                     act, _ = pols[stage][0].predict(obs, deterministic=True)
                     obs, r, term, trunc, info = env.step(act)
                     steps_total += 1
                     in_stage += 1
+                    sk = env.skill_contacts()
+                    if stage == "handle":
+                        h_steps, h_grasp = h_steps + 1, h_grasp + sk["grasped"]
+                    elif stage == "door":
+                        d_steps, d_arm = d_steps + 1, d_arm + sk["arm_touch"]
                     nxt = None
                     if info["success"]:
                         reached.add(stage)
@@ -277,19 +292,32 @@ def cmd_chain(a):
                     stats["total"] += 1
                     stats["time"].append(steps_total * DT)
                 stats["recover"].append(recov)
+                if h_steps:
+                    stats["grasp"].append(h_grasp / h_steps)
+                if d_steps:
+                    stats["arm"].append(d_arm / d_steps)
             n = a.episodes
             row = dict(set=set_name, door=label, episodes=n, reach=stats["reach"] / n, handle=stats["handle"] / n,
                        door_open=stats["door"] / n, end_to_end=stats["total"] / n,
                        time_s=float(np.mean(stats["time"])) if stats["time"] else float("nan"),
-                       recoveries=float(np.mean(stats["recover"])))
+                       recoveries=float(np.mean(stats["recover"])),
+                       grasped=float(np.mean(stats["grasp"])) if stats["grasp"] else float("nan"),
+                       arm_on_door=float(np.mean(stats["arm"])) if stats["arm"] else float("nan"))
             out_rows.append(row)
             print(f"  {set_name:<8} {label:<16} reach {row['reach'] * 100:4.0f}%  handle {row['handle'] * 100:4.0f}%"
                   f"  door {row['door_open'] * 100:4.0f}%  END-TO-END {row['end_to_end'] * 100:4.0f}%  "
-                  f"time {row['time_s']:5.1f} s  recoveries {row['recoveries']:.1f}")
+                  f"time {row['time_s']:5.1f} s  recoveries {row['recoveries']:.1f}  grasped {row['grasped'] * 100:3.0f}%  "
+                  f"arm-on-door {row['arm_on_door'] * 100:3.0f}%")
     os.makedirs(a.out, exist_ok=True)
     write_rows(os.path.join(a.out, "chain_eval.csv"), out_rows)
     print(f"[chain] mean end-to-end {np.mean([r['end_to_end'] for r in out_rows]) * 100:.0f} %  -> "
           f"{a.out}/chain_eval.csv")
+
+
+def _pct(rows, key):
+    v = [float(r[key]) for r in rows if r.get(key) not in (None, "", "nan")]
+    v = [x for x in v if x == x]
+    return f"{np.mean(v) * 100:.0f} %" if v else "-"
 
 
 def _chain_runs(runs_dir):
@@ -427,8 +455,9 @@ def cmd_report(a):
     chains = sorted(glob.glob(os.path.join(a.runs, "*", "chain_eval.csv")))
     if chains:
         md += ("\n# Chained three-policy runs (reach -> handle -> door)\n\n"
-               "| run | door set | doors | reach | handle | door | END-TO-END | time (s) | recoveries |\n"
-               "|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|\n")
+               "| run | door set | doors | reach | handle | door | END-TO-END | time (s) | recoveries | grasped "
+               "(handle stage) | arm on door (door stage) |\n"
+               "|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|\n")
         for c in chains:
             rows = list(csv.DictReader(open(c)))
             for sname in sorted({r["set"] for r in rows}):
@@ -437,7 +466,8 @@ def cmd_report(a):
                 tm = [float(r["time_s"]) for r in rs if r["time_s"] not in ("", "nan")]
                 md += (f"| {os.path.basename(os.path.dirname(c))} | {sname} | {len(rs)} | {f('reach') * 100:.0f} % | "
                        f"{f('handle') * 100:.0f} % | {f('door_open') * 100:.0f} % | **{f('end_to_end') * 100:.0f} %** | "
-                       f"{(np.mean(tm) if tm else float('nan')):.1f} | {f('recoveries'):.1f} |\n")
+                       f"{(np.mean(tm) if tm else float('nan')):.1f} | {f('recoveries'):.1f} | "
+                       f"{_pct(rs, 'grasped')} | {_pct(rs, 'arm_on_door')} |\n")
     md += research_summary(a.runs, groups)
     open(os.path.join(a.out, "results.md"), "w").write(md)
     if table:
@@ -564,6 +594,8 @@ def main():
     t.add_argument("--iters", type=int, default=None, help="ars iterations (default 100)")
     t.add_argument("--eval-episodes", type=int, default=20, help="episodes per evaluation during training")
     t.add_argument("--n-envs", type=int, default=1, help="sac/ppo: parallel simulation processes (e.g. 16)")
+    t.add_argument("--no-grasp", action="store_true", help="v1-v3 behaviour: turning the handle needs no grasp")
+    t.add_argument("--no-palm-push", action="store_true", help="v1-v3 behaviour: the forearm may push the door")
     t.add_argument("--device", default="auto", help="sac/ppo: 'cuda' (GPU), 'cpu' or 'auto'")
     t.add_argument("--dirs", type=int, default=16)
     t.add_argument("--top", type=int, default=8)
@@ -596,6 +628,8 @@ def main():
     st.add_argument("--episodes", type=int, default=200)
     st.add_argument("--condition", choices=["fixed", "random"], default="random")
     st.add_argument("--action-mode", choices=["synergy", "design", "full"], default="design")
+    st.add_argument("--no-grasp", action="store_true")
+    st.add_argument("--no-palm-push", action="store_true")
     st.add_argument("--hand", default=DEFAULT_HAND)
     st.add_argument("--door", default=DEFAULT_DOOR)
     st.add_argument("--out", required=True)

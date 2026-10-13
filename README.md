@@ -73,6 +73,8 @@ Human_Hand_200mm/
 │   ├── record.py                    RL: videos of policies on test doors
 │   ├── trace.py                     RL: step-by-step log of a scripted episode (contacts, latch, lever)
 │   ├── run_all.py                   RL: the whole experiment, unattended and resumable (§41)
+│   ├── watch.py                     RL: watch trained policies live in the MuJoCo viewer
+│   ├── make_standins.py             test models of the hand and door (no CAD needed, §44.5)
 │   ├── Hand_forearm.joints.yaml     ← repo copy of the hand's sw2robot joint config
 │   ├── Full_door_v4.joints.yaml     ← repo copy of the door's sw2robot joint config
 │   └── output/                      ← sw2robot packages (generated, in .gitignore)
@@ -2760,3 +2762,55 @@ The modular chain is better, mostly on the nominal and in-distribution doors (+1
 ## 43.4 Tools
 
 `trace.py --task door --test-door handle_low [--policy runs\door_ars_random_design_s0] [--view]` — watch one test door with the hand-written or a trained policy. `run_all.py --runs-dir runs_v3` keeps a new run beside the old one (report in `results_runs_v3`).
+
+
+# 44. v3 results (Review 3) and v4: a real grasp, the hand on the door
+
+## 44.1 v3 — every stage from scratch (design actions, 3 seeds, 8.1 h, 0 failures)
+
+| chained three policies | nominal | in-distribution | unseen |
+|---|:-:|:-:|:-:|
+| fixed | 77 ± 5 % | 40 ± 4 % | 41 ± 3 % |
+| randomized | 77 ± 17 % | 40 ± 9 % | 37 ± 4 % |
+
+Per stage, unseen doors: reach 63 % (fixed) / 76 % (random), handle 95 / 93 %, door 50 / 88 %. Learning everything from scratch is clearly harder than v2 (reach and door cloned: 72–76 % end-to-end). Kept in `runs_v3`, `results_runs_v3` for Review 3.
+
+## 44.2 What was wrong with the behaviour — the rewards allowed it
+
+Watching the policies: the hand **pressed the lever down with a stiff, open hand**, and sometimes **pushed the door with the forearm**. Both were exactly what the environment paid for: the handle stage rewarded the handle turning however it turned, the door stage rewarded the door opening whatever pushed it.
+
+## 44.3 v4 skills (`grasp_required=True`, `palm_push=True`, the defaults)
+
+**Grasp detector** (`env.skill_contacts()`): which fingers touch the lever and where around its long axis (found from the lever's shape). A grasp is
+
+* **thumb grip**: the thumb and ≥ 2 fingers on opposite sides of the lever (≥ 100° apart around its axis), or
+* **finger wrap**: ≥ 3 fingers whose contacts go ≥ 90° around the lever (hooked round it).
+
+A stiff hand pressing on one face of the lever is neither (test: 0 grasped steps).
+
+| stage | reward | success |
+|---|---|---|
+| handle | turning pays fully only **while grasped** (15 % otherwise); bonuses for thumb, fingers, opposition, wrap; small cost for forearm contact | latch released **with a grasp held ≥ 3 steps** |
+| door | door progress pays **nothing while the forearm / wrist touches** the door, handle or frame; contact costs | 60° with no arm contact at the end and arm contact in ≤ 10 % of the steps |
+
+Six extra observations: thumb on lever, fingers on lever, opposition, grasped, arm touching, palm on door.
+
+**Hand-written controller**: a `wrap` approach — comes in slightly below the lever (fingers over, thumb under) and **turns the hand with the lever about the palm**, like turning a key (the arm's rotation is about its base, so the arm also shifts by the opposite of the palm's swing). Stand-in: handle turned 80–86 % (was ≤ 65 %), grasp in 3/3 episodes, opposition up to 180°.
+
+**Measured for every run** (also v2 / v3): the chained evaluation, report, `watch.py`, `trace.py` (`GRASP T+3 150d`, `ARM`) and video overlays show the share of the handle stage **grasped** and of the door stage with the **forearm on the door**.
+
+**Old runs** load with their own rules (`config.json` without the skills = v1–v3 behaviour); `--no-skills` (run_all) / `--no-grasp --no-palm-push` (experiment) train that way.
+
+## 44.4 v4 pipeline
+
+```powershell
+python env_tests.py --quick            # group "skills": 5 checks on YOUR models
+python trace.py --task handle          # GRASP / ARM per step
+python run_all.py --runs-dir runs_v4 --no-baselines
+```
+
+All three stages start from the hand-written demonstrations (a wrapping grasp is hard to find by chance) and ARS fine-tunes them under the new rules.
+
+## 44.5 Stand-in models
+
+`python make_standins.py` builds a test hand (thick forearm, exporter-style collision flags) and door (Y-up, long lever + spindle + rear stub as ONE mesh) through `add_actuators.py` and `door_setup.py` — for testing without the CAD files. 103/111 tests pass on them; the 8 failures are the stand-in's handle (reaches 80–86 %, its latch needs 85 % while grasped).

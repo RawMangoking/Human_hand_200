@@ -11,6 +11,7 @@ trace.py - step-by-step log of the hand-written policy on YOUR models, to see wh
 Writes trace_<task>.txt too.
 """
 import argparse
+import math
 import time
 
 import mujoco
@@ -70,6 +71,7 @@ def main():
              f"handle opens toward {np.degrees(env.handle_open - env.d0):+.0f} deg, latch releases at "
              f"{env.unlock_frac * 100:.0f} %, start palm->lever {info['palm_to_handle'] * 1000:.0f} mm",
              f"{'step':>4} {'stage':>5} {'palm-lever':>10} {'handle':>7} {'door':>6} {'latch':>6} {'arm lag':>8}  "
+             f"grasp (thumb+fingers, opposition) arm  "
              f"action (arm xyz | fingers)            contacts hand->door"]
     viewer = None
     if a.view:
@@ -84,8 +86,11 @@ def main():
         done = term or trunc
         lag = np.linalg.norm(d.mocap_pos[env.mid] - d.qpos[env.free_q:env.free_q + 3])
         if k % a.every == 0 or done:
+            sk = env.skill_contacts()
+            gtxt = (f"{'GRASP' if sk['grasped'] else '     '} {'T' if sk['thumb'] else '-'}+{sk['n_fingers']} "
+                    f"{math.degrees(sk['opposition']):3.0f}d {'ARM' if sk['arm_touch'] else '   '}")
             lines.append(f"{k:4d} {env._stage:5d} {info['palm_to_handle'] * 1000:8.0f}mm {info['handle_frac'] * 100:6.0f}%"
-                         f" {info['door_deg']:5.1f}d {'LOCK' if env._latched else 'free':>6} {lag * 100:6.1f}cm  "
+                         f" {info['door_deg']:5.1f}d {'LOCK' if env._latched else 'free':>6} {lag * 100:6.1f}cm  {gtxt}  "
                          f"[{' '.join(f'{x:+.1f}' for x in act[:3])} | {' '.join(f'{x:+.1f}' for x in act[6:])}]"
                          f"  {', '.join(contacts(env)) or '-'}")
             print(lines[-1])

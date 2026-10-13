@@ -11,7 +11,8 @@ watch.py - watch your TRAINED policies in the MuJoCo viewer.
   python watch.py --speed 0.5                        # slow motion
 
 In the viewer:  SPACE = pause / continue,  N = next episode,  close the window = quit.
-The console prints each stage change (reach -> handle -> door), recoveries and the result.
+The console prints each stage change (reach -> handle -> door), recoveries and the result, plus how much of the
+handle stage the hand really GRASPED the lever and how much of the door stage the FOREARM touched the door.
 """
 import argparse
 import glob
@@ -101,6 +102,7 @@ def main():
                 obs, _ = env.reset(seed=200_000 + ep, options={"physics": phys})
                 viewer.cam.lookat[:] = env.geo["door"]["grasp"]
                 stage, in_stage, recov, steps, success = stages[0], 0, 0, 0, False
+                hs = hg = ds = da = 0
                 print(f"\n[watch] door '{label}', episode {ep + 1}: {stage}", end="", flush=True)
                 state["next"] = False
                 while viewer.is_running() and steps < 750 and not state["next"]:
@@ -113,6 +115,11 @@ def main():
                     obs, r, term, trunc, info = env.step(act)
                     steps += 1
                     in_stage += 1
+                    sk = env.skill_contacts()
+                    if stage == "handle":
+                        hs, hg = hs + 1, hg + sk["grasped"]
+                    elif stage == "door":
+                        ds, da = ds + 1, da + sk["arm_touch"]
                     viewer.sync()
                     nxt = None
                     if info["success"]:
@@ -135,7 +142,9 @@ def main():
                 wins += success
                 print(f"   {'SUCCESS' if success else 'failed'}  ({steps * CONTROL_DT:.1f} s, door "
                       f"{info['door_deg']:.0f} deg, handle {info['handle_frac'] * 100:.0f} %"
-                      f"{f', {recov} recoveries' if recov else ''})")
+                      f"{f', {recov} recoveries' if recov else ''})"
+                      + (f"   grasped {hg / hs * 100:.0f}% of the handle stage" if hs else "")
+                      + (f", forearm on the door {da / ds * 100:.0f}% of the door stage" if ds else ""))
                 for _ in range(int(1.0 / 0.05)):                      # 1 s pause to see the end state
                     if not viewer.is_running():
                         break

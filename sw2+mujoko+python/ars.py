@@ -112,7 +112,8 @@ def load_starts(path):
 
 def env_kwargs_from(args):
     kw = dict(task=args.task, hand_path=args.hand, door_path=args.door, action_mode=args.action_mode,
-              randomize_physics=(args.condition == "random"), obs_noise=args.obs_noise)
+              randomize_physics=(args.condition == "random"), obs_noise=args.obs_noise,
+              grasp_required=not getattr(args, "no_grasp", False), palm_push=not getattr(args, "no_palm_push", False))
     starts = load_starts(getattr(args, "starts", None))
     if starts:
         kw.update(start_states=starts, start_mix=getattr(args, "start_mix", 0.5))

@@ -14,7 +14,9 @@ A failing step is logged and the rest continues. Everything is logged to run_all
 Order per condition (fixed / random) and seed, in the planned hand's action space (design):
   reach -> start pool after reach -> handle (from that pool) -> pool after handle -> door (from it) -> chain
   (every stage learns from scratch by default; --bc-stages reach door starts those two from cloning)
-  python run_all.py --runs-dir runs_v3 --no-baselines   # a new run beside the old one, Q1 only
+  python run_all.py --runs-dir runs_v4 --no-baselines   # a new run beside the old one, Q1 only
+  (v4 default: the skills ON - a real grasp on the handle, the hand not the forearm on the door - and all three
+   stages cloned from the hand-written controller, then fine-tuned)
 then the baselines - Q2a: handle with synergy vs every-joint actions, both FROM SCRATCH (the DOF effect on
 learning); Q2b: one policy for the whole sequence - then evaluation of every run, and the report.
 """
@@ -73,9 +75,12 @@ def main():
     ap.add_argument("--iters", type=int, default=150, help="ARS iterations for reach / door (default 150)")
     ap.add_argument("--handle-iters", type=int, default=300,
                     help="ARS iterations for handle, full, and door when it learns from scratch (default 300)")
-    ap.add_argument("--bc-stages", nargs="*", default=[],
-                    help="stages started from behaviour cloning (default: none - every stage learns from scratch; "
-                         "cloning made the fixed and randomized policies nearly identical, e.g. 'reach door')")
+    ap.add_argument("--bc-stages", nargs="*", default=["reach", "handle", "door"],
+                    help="stages started from behaviour cloning, then fine-tuned by ARS (default: all three - with the "
+                         "v4 grasp rule a wrapping grasp is hard to find by chance; the hand-written 'wrap' controller "
+                         "demonstrates it). '--bc-stages' with nothing after it = everything from scratch (v3)")
+    ap.add_argument("--no-skills", action="store_true",
+                    help="v1-v3 rules: no grasp needed on the handle, the forearm may push the door")
     ap.add_argument("--runs-dir", default="runs", help="where runs and start pools go (e.g. runs_v3)")
     ap.add_argument("--results-dir", default=None, help="report folder (default results, or results_<runs-dir>)")
     ap.add_argument("--train-eval-episodes", type=int, default=20, help="evaluation episodes during training")
@@ -92,7 +97,7 @@ def main():
     a.model_args = (["--hand", a.hand] if a.hand else []) + (["--door", a.door] if a.door else [])
     r = Runner(a)
     tr = ["--algo", "ars", "--dirs", str(a.dirs), "--top", str(a.dirs // 2), "--workers", str(a.workers),
-          "--eval-episodes", str(a.train_eval_episodes)]
+          "--eval-episodes", str(a.train_eval_episodes)] + (["--no-grasp", "--no-palm-push"] if a.no_skills else [])
     R = a.runs_dir.rstrip("/\\")
     iters = lambda task: str(a.handle_iters if task == "handle" or (task == "door" and task not in a.bc_stages)
                              else a.iters)
@@ -100,7 +105,8 @@ def main():
     tag = lambda task: "" if task in a.bc_stages else "_scratch"
     M = a.mode
     r.log(f"=== run_all: mode {M}, conditions {a.conditions}, {a.seeds} seed(s), {a.iters} iterations "
-          f"(handle {a.handle_iters}), cloning for {a.bc_stages}, {a.workers} workers")
+          f"(handle {a.handle_iters}), cloning for {a.bc_stages}, skills {'OFF' if a.no_skills else 'ON'}, "
+          f"{a.workers} workers")
 
     for cond in a.conditions:
         for sd in range(a.seeds):
