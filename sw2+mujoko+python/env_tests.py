@@ -563,24 +563,30 @@ def t_skills(H, D):
         fr.append(info["arm_touch_frac"])
     report("skills", "hand pushes the door open without the forearm", ok >= 1,
            f"{ok}/3 opened, forearm on the door in {np.mean(fr) * 100:.0f} % of the steps")
-    # 4. forearm contact is detected and costs reward
-    envf = DoorEnv(task="full", hand_path=H, door_path=D, action_mode="design", latch=False)
-    nrm = envf.geo["door"]["normal"]
-    side = np.cross(nrm, [0, 0, 1.0])
-    side /= np.linalg.norm(side)
-    push = -nrm * envf.door_goal_sign * envf.geo["door"]["push_sign"]
+    # 4. forearm contact is detected and costs reward: place the forearm INTO the door face, then check
+    import mujoco
+    envf = DoorEnv(task="door", hand_path=H, door_path=D, action_mode="design", randomize=False)
     envf.reset(seed=0)
-    for _ in range(14):
-        envf.step(named_action(envf, arm_rot=side, arm_pos=nrm * 0.6))
-    for _ in range(25):
-        envf.step(named_action(envf, arm_pos=np.array([0, 0, -0.6])))
-    at, ret = 0, 0.0
-    for _ in range(200):
-        _, r, _, _, info = envf.step(named_action(envf, arm_pos=push))
-        at += info["arm_touch"]
-        ret += r
-    report("skills", "forearm on the door is detected and penalised", at > 0 and ret < 0,
-           f"forearm-first push: arm contact in {at}/200 steps, return {ret:.1f}")
+    mf, df = envf.model, envf.data
+    from door_setup import geom_points
+    nrm, gp = envf.geo["door"]["normal"], envf.geo["door"]["grasp"]
+    front, _ = door_faces(envf)
+    arm_geoms = [g for g in range(mf.ngeom) if mf.geom_bodyid[g] in envf.arm_bodies
+                 and (mf.geom_contype[g] or mf.geom_conaffinity[g])]
+    detected, depth = False, 0.0
+    if arm_geoms:
+        # the forearm point nearest the door, and how far the whole hand must move to put it 1 cm into the door
+        near = min(float(((geom_points(mf, df, g) - gp) @ nrm).min()) for g in arm_geoms)
+        depth = near - front + 0.01
+        df.qpos[envf.free_q:envf.free_q + 3] -= nrm * depth
+        mujoco.mj_forward(mf, df)
+        detected = envf.skill_contacts()["arm_touch"]
+    envf._prev = envf._progress()
+    envf._gs = None
+    _, r, _, _, info = envf.step(np.zeros(envf.action_space.shape, dtype=np.float32))
+    report("skills", "forearm on the door is detected and penalised", detected and info["arm_touch"] and r < 0,
+           f"forearm placed {depth * 100:.0f} cm toward the door: detected {detected}, next step arm contact "
+           f"{info['arm_touch']}, reward {r:.2f} (door progress does not pay while it touches)")
     # 5. old runs: without the skills the observation is 6 shorter (their policies still load)
     old = DoorEnv(task="handle", hand_path=H, door_path=D, action_mode="design", grasp_required=False,
                   palm_push=False)

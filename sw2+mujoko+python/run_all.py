@@ -97,7 +97,8 @@ def main():
     a.model_args = (["--hand", a.hand] if a.hand else []) + (["--door", a.door] if a.door else [])
     r = Runner(a)
     tr = ["--algo", "ars", "--dirs", str(a.dirs), "--top", str(a.dirs // 2), "--workers", str(a.workers),
-          "--eval-episodes", str(a.train_eval_episodes)] + (["--no-grasp", "--no-palm-push"] if a.no_skills else [])
+          "--eval-episodes", str(a.train_eval_episodes)] + (["--no-grasp", "--no-palm-push", "--no-door-wrist"]
+                                                            if a.no_skills else [])
     R = a.runs_dir.rstrip("/\\")
     iters = lambda task: str(a.handle_iters if task == "handle" or (task == "door" and task not in a.bc_stages)
                              else a.iters)

@@ -60,7 +60,7 @@ def make_env(cfg_or_args, **over):
               action_mode=g("action_mode", "synergy"), obs_noise=g("obs_noise", 0.0),
               randomize_physics=(g("condition", "fixed") == "random"))
     # skills (v4): runs that do not record them were trained without them (v1-v3) and load that way
-    for key, flag in (("grasp_required", "no_grasp"), ("palm_push", "no_palm_push")):
+    for key, flag in (("grasp_required", "no_grasp"), ("palm_push", "no_palm_push"), ("door_wrist", "no_door_wrist")):
         val = g(key, None)
         if val is None:
             val = (not g(flag)) if g(flag, None) is not None else False
@@ -211,7 +211,7 @@ def cmd_starts(a):
     from door_env import pick_scripted_variant, scripted_action
     env = DoorEnv(task=a.task, hand_path=a.hand, door_path=a.door, action_mode=a.action_mode,
                   randomize_physics=(a.condition == "random"), grasp_required=not a.no_grasp,
-                  palm_push=not a.no_palm_push)
+                  palm_push=not a.no_palm_push, door_wrist=not a.no_door_wrist)
     if a.policy == "scripted":
         sc = pick_scripted_variant(env)
         print(f"[starts] hand-written policy, strategy '{env.scripted_variant}' ({sc})")
@@ -596,6 +596,7 @@ def main():
     t.add_argument("--n-envs", type=int, default=1, help="sac/ppo: parallel simulation processes (e.g. 16)")
     t.add_argument("--no-grasp", action="store_true", help="v1-v3 behaviour: turning the handle needs no grasp")
     t.add_argument("--no-palm-push", action="store_true", help="v1-v3 behaviour: the forearm may push the door")
+    t.add_argument("--no-door-wrist", action="store_true", help="v1-v4 door stage: arm_pos + grip only")
     t.add_argument("--device", default="auto", help="sac/ppo: 'cuda' (GPU), 'cpu' or 'auto'")
     t.add_argument("--dirs", type=int, default=16)
     t.add_argument("--top", type=int, default=8)
@@ -630,6 +631,7 @@ def main():
     st.add_argument("--action-mode", choices=["synergy", "design", "full"], default="design")
     st.add_argument("--no-grasp", action="store_true")
     st.add_argument("--no-palm-push", action="store_true")
+    st.add_argument("--no-door-wrist", action="store_true")
     st.add_argument("--hand", default=DEFAULT_HAND)
     st.add_argument("--door", default=DEFAULT_DOOR)
     st.add_argument("--out", required=True)

@@ -2814,3 +2814,43 @@ All three stages start from the hand-written demonstrations (a wrapping grasp is
 ## 44.5 Stand-in models
 
 `python make_standins.py` builds a test hand (thick forearm, exporter-style collision flags) and door (Y-up, long lever + spindle + rear stub as ONE mesh) through `add_actuators.py` and `door_setup.py` — for testing without the CAD files. 103/111 tests pass on them; the 8 failures are the stand-in's handle (reaches 80–86 %, its latch needs 85 % while grasped).
+
+
+# 45. v4 results and v5: palm push, wrist on the door, the low doors fixed
+
+## 45.1 v4 (1 seed): skills work
+
+| chained three policies | nominal | in-dist | unseen | grasped (handle stage) | forearm on door (door stage) |
+|---|:-:|:-:|:-:|:-:|:-:|
+| fixed | 0 % | 17 % | 13 % | 22–24 % | 13–14 % |
+| randomized | 70 % | 70 % | **62 %** | **54–60 %** | **0–10 %** |
+
+Q1: unseen randomized − fixed = **+49 points, 95 % interval [+32, +64]** — the first clear result (1 seed: the fixed policy's 0 % on its own door needs more seeds to confirm).
+
+## 45.2 Why `handle_low` and `in_dist_2` failed in every version
+
+Both are the two LOW doors (door moved down 10 / 5.3 cm). The trace showed the door stage chasing the lever as it sprang back up and the forearm catching on it — the door stage opened the door *through the lever*.
+
+## 45.3 v5 changes
+
+| | |
+|---|---|
+| **Palm push** (door stage) | the hand-written door stage pushes the **door leaf with a flat hand**, not via the lever: spot 18 cm below the lever pivot, 4 cm away from the side the lever points to (fingers stay below the lever, the forearm hangs in free space); the spot moves with the door and the hand follows it |
+| **Wrist + arm rotation in the door stage** (`door_wrist=True`) | door actions = arm_pos, **arm_rot, wrist**, grip (9 in design mode): the wrist bends back so the palm is flat on the leaf while the forearm stays away; the arm turns about the vertical with the swinging door (compensated so the palm stays put) |
+| **World geoms** | geoms in the world body (a floor, or parts the exporter put there) collide with the HAND only, never with the door leaf / handle — a door moved down cannot jam on them |
+
+Stand-in, hand-written palm push: **10/10 on nominal, in_dist_2, handle_low, turned_door, hard_combo** (in_dist_2 and handle_low failed in every earlier version), forearm on the door 2–10 %; in every action mode 3/3 (forearm 4–7 %).
+
+Old runs: configs without `door_wrist` load with the 4-action door stage. `--no-door-wrist` (experiment) / `--no-skills` (run_all) train without it.
+
+## 45.4 The v5 run (long)
+
+```powershell
+python run_all.py --runs-dir runs_v5 --no-baselines --seeds 5 --iters 300 --handle-iters 600 --dirs 48 --pool-episodes 400 --eval-episodes 20 --train-eval-episodes 30
+```
+
+5 seeds (narrower intervals), 2× the iterations, 1.5× the search directions, bigger start pools, 20 episodes per test door. Then the baselines under the same rules (adds only the Q2a / Q2b runs):
+
+```powershell
+python run_all.py --runs-dir runs_v5 --seeds 5 --iters 300 --handle-iters 600 --dirs 48 --pool-episodes 400 --eval-episodes 20 --train-eval-episodes 30
+```
