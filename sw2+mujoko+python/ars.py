@@ -239,6 +239,9 @@ def train(args, log=print):
         pool.close()
         pool.join()
     log_f.close()
+    with open(os.path.join(args.out, "DONE"), "w") as f:     # written only when ALL iterations finished
+        f.write(f"finished {args.iters} iterations, {env_steps} env steps, {time.time() - t0:.0f} s, "
+                f"best eval success {best[0] * 100:.1f} %\n")
     return pol
 
 

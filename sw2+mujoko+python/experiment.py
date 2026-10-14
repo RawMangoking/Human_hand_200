@@ -143,6 +143,7 @@ def cmd_train(a):
     print(f"[train] {a.algo.upper()} on {model.device}, {n_envs} parallel environment(s)")
     model.learn(total_timesteps=a.steps, callback=Progress())
     model.save(os.path.join(a.out, "model.zip"))
+    open(os.path.join(a.out, "DONE"), "w").write(f"finished {a.steps} steps\n")
     print(f"[train] saved {a.out}/model.zip")
 
 
@@ -233,8 +234,10 @@ def cmd_starts(a):
         if (ep + 1) % 20 == 0:
             print(f"[starts] {ep + 1}/{a.episodes} episodes, {len(states)} successful end states")
     os.makedirs(os.path.dirname(os.path.abspath(a.out)), exist_ok=True)
-    with open(a.out, "wb") as f:
+    tmp = a.out + ".tmp"
+    with open(tmp, "wb") as f:                             # atomic: a crash never leaves a half-written pool
         pickle.dump(states, f)
+    os.replace(tmp, a.out)
     nxt = {"reach": "handle", "handle": "door"}.get(a.task, "?")
     print(f"[starts] {len(states)}/{a.episodes} successes ({time.time() - t0:.0f} s) -> {a.out}\n"
           f"         train the next stage from them:  python experiment.py train --task {nxt} --starts {a.out} ...")

@@ -43,7 +43,16 @@ class Runner:
         self.log_f.flush()
 
     def step(self, name, args, output):
-        """Run `experiment.py args` unless `output` exists."""
+        """Run `experiment.py args` unless `output` exists. A training step counts as done only when its DONE
+        marker exists (written after the LAST iteration) - a run cut off half-way is trained again from the start.
+        Runs from before DONE existed count as done if their progress.csv reached the final iteration."""
+        if output and output.endswith("/DONE") and not os.path.exists(os.path.join(HERE, output)):
+            prog = os.path.join(HERE, os.path.dirname(output), "progress.csv")
+            want = args[args.index("--iters") + 1] if "--iters" in args else None
+            if want and os.path.exists(prog):
+                rows = [l.split(",")[0] for l in open(prog).read().splitlines()[1:] if l.strip()]
+                if rows and rows[-1] == want:
+                    open(os.path.join(HERE, output), "w").write("finished (older run, from progress.csv)\n")
         if output and os.path.exists(os.path.join(HERE, output)):
             self.skipped += 1
             self.log(f"skip  {name}  (already done: {output})")
@@ -116,17 +125,17 @@ def main():
             pool_r, pool_h = f"{R}/starts/after_reach_{M}_{tg}.pkl", f"{R}/starts/after_handle_{M}_{tg}.pkl"
             base = ["--condition", cond, "--seed", str(sd), "--action-mode", M, "--runs", R]
             r.step(f"{tg}: train reach", ["train", "--task", "reach", "--iters", iters("reach")] + base + tr + bc("reach"),
-                   run["reach"] + "/best.npz")
+                   run["reach"] + "/DONE")
             r.step(f"{tg}: pool after reach", ["starts", "--task", "reach", "--policy", run["reach"], "--action-mode", M,
                                                "--condition", cond, "--episodes", str(a.pool_episodes),
                                                "--out", pool_r], pool_r)
             r.step(f"{tg}: train handle", ["train", "--task", "handle", "--iters", iters("handle")] + base + tr +
-                   bc("handle") + ["--starts", pool_r], run["handle"] + "/best.npz")
+                   bc("handle") + ["--starts", pool_r], run["handle"] + "/DONE")
             r.step(f"{tg}: pool after handle", ["starts", "--task", "handle", "--policy", run["handle"],
                                                 "--action-mode", M, "--condition", cond,
                                                 "--episodes", str(a.pool_episodes), "--out", pool_h], pool_h)
             r.step(f"{tg}: train door", ["train", "--task", "door", "--iters", iters("door")] + base + tr + bc("door") +
-                   ["--starts", pool_h], run["door"] + "/best.npz")
+                   ["--starts", pool_h], run["door"] + "/DONE")
             r.step(f"{tg}: chain (all test doors)",
                    ["chain", "--reach", run["reach"], "--handle", run["handle"], "--door", run["door"],
                     "--doors", "all", "--episodes", str(a.eval_episodes), "--out", f"{R}/chain_ars_{tg}"],
@@ -144,11 +153,11 @@ def main():
                 r.step(f"Q2a s{sd}: handle from scratch, {mode} actions",
                        ["train", "--task", "handle", "--action-mode", mode, "--tag", "scratch",
                         "--iters", iters("handle")] + base + tr + ["--starts", pool_r],
-                       f"{R}/handle_ars_random_{mode}_scratch_s{sd}/best.npz")
+                       f"{R}/handle_ars_random_{mode}_scratch_s{sd}/DONE")
             # Q2b: one policy for the whole sequence (cloned from the same controller)
             r.step(f"Q2b s{sd}: one policy for everything",
                    ["train", "--task", "full", "--action-mode", M, "--iters", str(a.handle_iters)] + base + tr +
-                   ["--bc-episodes", str(a.bc)], f"{R}/full_ars_random_{M}_s{sd}/best.npz")
+                   ["--bc-episodes", str(a.bc)], f"{R}/full_ars_random_{M}_s{sd}/DONE")
 
     # evaluate every trained run on every test-door set, then report
     runs_dir = os.path.join(HERE, R)
