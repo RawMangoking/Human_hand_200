@@ -5,8 +5,10 @@ trace.py - step-by-step log of the hand-written policy on YOUR models, to see wh
   python trace.py --task handle                 # every 5th step: palm-lever distance, handle %, door, latch,
   python trace.py --task door --every 2         #   whether the arm is blocked, and which hand part touches
   python trace.py --task full --seed 1          #   which door part
-  python trace.py --task handle --view          # same, in the viewer (slowed down)
+  python trace.py --task handle --view          # same, in the viewer (slowed down; stays open at the end)
+  python trace.py --task full --view            # the WHOLE sequence: reach, grip + turn the handle, push the door
   python trace.py --task door --test-door handle_low                     # one of the test doors
+  python trace.py --task door --test-door handle_low --door-contacts     # + what ELSE touches the door / handle
   python trace.py --task door --test-door handle_low --policy runs/door_ars_random_design_s0 --view
 Writes trace_<task>.txt too.
 """
@@ -37,6 +39,21 @@ def contacts(env):
     return sorted(out)
 
 
+def door_contacts(env):
+    """Contacts on the door leaf / handle that do NOT involve the hand (frame, floor, world, latch ...)."""
+    m, d = env.model, env.data
+    out = set()
+    for c in d.contact[:d.ncon]:
+        b1, b2 = int(m.geom_bodyid[c.geom1]), int(m.geom_bodyid[c.geom2])
+        if b1 in env.hand_bodies or b2 in env.hand_bodies:
+            continue
+        for b, g, ob, og in ((b1, c.geom1, b2, c.geom2), (b2, c.geom2, b1, c.geom1)):
+            if b in (env.door_body, env.handle_body):
+                out.add(f"{short(m.body(b).name)}[{m.geom(g).name.split('/')[-1]}]~"
+                        f"{short(m.body(ob).name) if ob else 'WORLD'}[{m.geom(og).name.split('/')[-1]}]")
+    return sorted(out)
+
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--task", choices=list(DoorEnv.TASKS), default="handle")
@@ -46,6 +63,8 @@ def main():
     ap.add_argument("--action-mode", choices=["synergy", "design", "full"], default="design")
     ap.add_argument("--every", type=int, default=5)
     ap.add_argument("--view", action="store_true")
+    ap.add_argument("--door-contacts", action="store_true",
+                    help="also list what touches the door leaf / handle that is NOT the hand (frame, floor, ...)")
     ap.add_argument("--hand", default=DEFAULT_HAND)
     ap.add_argument("--door", default=DEFAULT_DOOR)
     a = ap.parse_args()
@@ -78,7 +97,7 @@ def main():
         import mujoco.viewer as mv
         viewer = mv.launch_passive(env.model, d)
         viewer.cam.lookat[:] = env.grasp_point()
-        viewer.cam.distance, viewer.cam.azimuth, viewer.cam.elevation = 1.0, 135, -15
+        viewer.cam.distance, viewer.cam.azimuth, viewer.cam.elevation = 1.6, 135, -20   # door + hand in view
     done, k = False, 0
     while not done:
         act = scripted_action(env) if pol is None else pol.predict(obs, deterministic=True)[0]
@@ -93,6 +112,8 @@ def main():
                          f" {info['door_deg']:5.1f}d {'LOCK' if env._latched else 'free':>6} {lag * 100:6.1f}cm  {gtxt}  "
                          f"[{' '.join(f'{x:+.1f}' for x in act[:3])} | {' '.join(f'{x:+.1f}' for x in act[6:])}]"
                          f"  {', '.join(contacts(env)) or '-'}")
+            if a.door_contacts:
+                lines[-1] += "   || door: " + (", ".join(door_contacts(env)) or "-")
             print(lines[-1])
         if viewer:
             viewer.sync()
@@ -106,6 +127,11 @@ def main():
     print(lines[-1])
     open(f"trace_{a.task}.txt", "w").write("\n".join(lines) + "\n")
     print(f"written trace_{a.task}.txt")
+    if viewer is not None and viewer.is_running():               # keep the final state on screen
+        print("[trace] episode finished - the viewer stays open on the final state; close the window to exit")
+        while viewer.is_running():
+            viewer.sync()
+            time.sleep(0.05)
 
 
 if __name__ == "__main__":
