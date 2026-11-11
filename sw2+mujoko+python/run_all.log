@@ -9420,3 +9420,2388 @@ Unseen doors, randomized minus fixed: **-4 percentage points**, 95 % bootstrap i
 [07:52:07] done  report  (0.0 min)
 [07:52:07] === finished in 8.10 h: 55 done, 0 skipped, 0 failed 
 [07:52:07] results: results_runs_v3/results.md (tables), results_runs_v3/*.png (plots)
+[18:01:23] === run_all: mode design, conditions ['fixed', 'random'], 1 seed(s), 150 iterations (handle 300), cloning for ['reach', 'handle', 'door'], skills ON, 30 workers
+[18:01:23] start fixed_s0: train reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] reach_ars_fixed_design_s0 -> runs_v4\reach_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 40/40 succeeded, 1973 labelled samples
+[bc] round 1: cloned policy drove 10/10 succeeded, 2403 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 2827 labelled samples
+[bc] round 3: cloned policy drove 10/10 succeeded, 3263 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return     3.56  eval success 100.0 %
+[ars] it    5  steps    14281  return     3.46  eval return     4.07  eval success 100.0 %  (3 s)
+[ars] it   10  steps    27994  return     3.68  eval return     4.34  eval success 100.0 %  (5 s)
+[ars] it   15  steps    40771  return     3.74  eval return     4.64  eval success 100.0 %  (7 s)
+[ars] it   20  steps    53370  return     3.99  eval return     4.79  eval success 100.0 %  (9 s)
+[ars] it   25  steps    66762  return     4.17  eval return     4.78  eval success 100.0 %  (11 s)
+[ars] it   30  steps    80288  return     2.78  eval return     4.81  eval success 100.0 %  (12 s)
+[ars] it   35  steps    94651  return     2.20  eval return     4.78  eval success 100.0 %  (15 s)
+[ars] it   40  steps   106972  return     4.38  eval return     4.92  eval success 100.0 %  (17 s)
+[ars] it   45  steps   121066  return     0.82  eval return     5.04  eval success 100.0 %  (20 s)
+[ars] it   50  steps   135064  return     2.39  eval return     5.03  eval success 100.0 %  (23 s)
+[ars] it   55  steps   148666  return     3.76  eval return     5.05  eval success 100.0 %  (26 s)
+[ars] it   60  steps   161959  return     3.65  eval return     5.08  eval success 100.0 %  (29 s)
+[ars] it   65  steps   173817  return     5.17  eval return     5.18  eval success 100.0 %  (30 s)
+[ars] it   70  steps   186314  return     4.41  eval return     5.20  eval success 100.0 %  (32 s)
+[ars] it   75  steps   198967  return     3.75  eval return     5.24  eval success 100.0 %  (34 s)
+[ars] it   80  steps   211903  return     4.85  eval return     5.25  eval success 100.0 %  (37 s)
+[ars] it   85  steps   225497  return     2.93  eval return     5.30  eval success 100.0 %  (39 s)
+[ars] it   90  steps   237904  return     4.64  eval return     5.26  eval success 100.0 %  (42 s)
+[ars] it   95  steps   251298  return     3.34  eval return     5.35  eval success 100.0 %  (45 s)
+[ars] it  100  steps   264293  return     3.67  eval return     5.39  eval success 100.0 %  (48 s)
+[ars] it  105  steps   277875  return     2.58  eval return     5.40  eval success 100.0 %  (50 s)
+[ars] it  110  steps   291949  return     2.67  eval return     5.40  eval success 100.0 %  (54 s)
+[ars] it  115  steps   306215  return     4.02  eval return     5.41  eval success 100.0 %  (57 s)
+[ars] it  120  steps   320376  return     3.26  eval return     5.44  eval success 100.0 %  (60 s)
+[ars] it  125  steps   333344  return     5.09  eval return     5.47  eval success 100.0 %  (62 s)
+[ars] it  130  steps   345501  return     5.01  eval return     5.47  eval success 100.0 %  (64 s)
+[ars] it  135  steps   358966  return     3.29  eval return     5.45  eval success 100.0 %  (67 s)
+[ars] it  140  steps   372939  return     3.46  eval return     5.47  eval success 100.0 %  (70 s)
+[ars] it  145  steps   386933  return     4.01  eval return     5.45  eval success 100.0 %  (73 s)
+[ars] it  150  steps   400923  return     2.24  eval return     5.47  eval success 100.0 %  (76 s)
+[18:02:50] done  fixed_s0: train reach  (1.5 min)
+[18:02:50] start fixed_s0: pool after reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/200 episodes, 20 successful end states
+[starts] 40/200 episodes, 40 successful end states
+[starts] 60/200 episodes, 60 successful end states
+[starts] 80/200 episodes, 80 successful end states
+[starts] 100/200 episodes, 100 successful end states
+[starts] 120/200 episodes, 120 successful end states
+[starts] 140/200 episodes, 140 successful end states
+[starts] 160/200 episodes, 160 successful end states
+[starts] 180/200 episodes, 180 successful end states
+[starts] 200/200 episodes, 200 successful end states
+[starts] 200/200 successes (8 s) -> runs_v4/starts/after_reach_design_fixed_s0.pkl
+         train the next stage from them:  python experiment.py train --task handle --starts runs_v4/starts/after_reach_design_fixed_s0.pkl ...
+[18:02:59] done  fixed_s0: pool after reach  (0.1 min)
+[18:02:59] start fixed_s0: train handle
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] handle_ars_fixed_design_s0 -> runs_v4\handle_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 3/40 succeeded, 9784 labelled samples
+[bc] round 1: cloned policy drove 0/10 succeeded, 12284 labelled samples
+[bc] round 2: cloned policy drove 4/10 succeeded, 14495 labelled samples
+[bc] round 3: cloned policy drove 4/10 succeeded, 16748 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return   -16.95  eval success  55.0 %
+[ars] it    5  steps    76360  return   -17.42  eval return    -6.47  eval success  30.0 %  (17 s)
+[ars] it   10  steps   150891  return    -4.51  eval return     5.12  eval success  45.0 %  (34 s)
+[ars] it   15  steps   224687  return    -4.32  eval return     8.24  eval success  60.0 %  (50 s)
+[ars] it   20  steps   298654  return     5.70  eval return    13.02  eval success  30.0 %  (67 s)
+[ars] it   25  steps   374820  return     8.97  eval return    17.26  eval success  10.0 %  (85 s)
+[ars] it   30  steps   452504  return    10.80  eval return    26.86  eval success   5.0 %  (105 s)
+[ars] it   35  steps   530994  return    10.60  eval return    26.60  eval success   0.0 %  (125 s)
+[ars] it   40  steps   609036  return    15.70  eval return    37.39  eval success   5.0 %  (144 s)
+[ars] it   45  steps   687292  return    22.51  eval return    38.72  eval success   5.0 %  (165 s)
+[ars] it   50  steps   766174  return    17.16  eval return    40.95  eval success   0.0 %  (187 s)
+[ars] it   55  steps   845154  return    23.49  eval return    32.70  eval success   0.0 %  (208 s)
+[ars] it   60  steps   924188  return    17.89  eval return    48.71  eval success   5.0 %  (230 s)
+[ars] it   65  steps  1003380  return    30.90  eval return    48.26  eval success   0.0 %  (251 s)
+[ars] it   70  steps  1081922  return    31.90  eval return    46.10  eval success   0.0 %  (272 s)
+[ars] it   75  steps  1157985  return    32.60  eval return    33.08  eval success  15.0 %  (292 s)
+[ars] it   80  steps  1235016  return    30.65  eval return    46.29  eval success   5.0 %  (313 s)
+[ars] it   85  steps  1313180  return    28.07  eval return    40.61  eval success   0.0 %  (333 s)
+[ars] it   90  steps  1390876  return    27.77  eval return    39.98  eval success   5.0 %  (354 s)
+[ars] it   95  steps  1469590  return    25.86  eval return    54.09  eval success   0.0 %  (375 s)
+[ars] it  100  steps  1547670  return    32.02  eval return    46.35  eval success   0.0 %  (395 s)
+[ars] it  105  steps  1625437  return    29.03  eval return    30.94  eval success   5.0 %  (415 s)
+[ars] it  110  steps  1704000  return    33.20  eval return    46.37  eval success   0.0 %  (435 s)
+[ars] it  115  steps  1782885  return    31.62  eval return    45.05  eval success  10.0 %  (456 s)
+[ars] it  120  steps  1862002  return    26.45  eval return    52.71  eval success   0.0 %  (477 s)
+[ars] it  125  steps  1941145  return    32.57  eval return    44.14  eval success   0.0 %  (499 s)
+[ars] it  130  steps  2019548  return    34.82  eval return    32.86  eval success   5.0 %  (519 s)
+[ars] it  135  steps  2098416  return    31.10  eval return    56.22  eval success   0.0 %  (541 s)
+[ars] it  140  steps  2177613  return    38.63  eval return    57.96  eval success   0.0 %  (562 s)
+[ars] it  145  steps  2256951  return    38.30  eval return    60.71  eval success   0.0 %  (584 s)
+[ars] it  150  steps  2336446  return    33.83  eval return    53.17  eval success   0.0 %  (605 s)
+[ars] it  155  steps  2414847  return    38.04  eval return    57.94  eval success   5.0 %  (625 s)
+[ars] it  160  steps  2494220  return    37.75  eval return    44.74  eval success   0.0 %  (647 s)
+[ars] it  165  steps  2572125  return    39.28  eval return    54.82  eval success   0.0 %  (668 s)
+[ars] it  170  steps  2651387  return    37.50  eval return    56.69  eval success   0.0 %  (689 s)
+[ars] it  175  steps  2731050  return    41.67  eval return    60.41  eval success   0.0 %  (712 s)
+[ars] it  180  steps  2809761  return    44.49  eval return    59.07  eval success   0.0 %  (733 s)
+[ars] it  185  steps  2888837  return    41.23  eval return    60.54  eval success   0.0 %  (755 s)
+[ars] it  190  steps  2966645  return    45.79  eval return    63.78  eval success   0.0 %  (776 s)
+[ars] it  195  steps  3045022  return    48.48  eval return    61.84  eval success   0.0 %  (798 s)
+[ars] it  200  steps  3123990  return    41.24  eval return    63.40  eval success   0.0 %  (820 s)
+[ars] it  205  steps  3203231  return    50.75  eval return    60.28  eval success   0.0 %  (843 s)
+[ars] it  210  steps  3281578  return    45.24  eval return    57.84  eval success   0.0 %  (865 s)
+[ars] it  215  steps  3360589  return    43.54  eval return    65.02  eval success   0.0 %  (886 s)
+[ars] it  220  steps  3439062  return    52.49  eval return    57.24  eval success   0.0 %  (908 s)
+[ars] it  225  steps  3518692  return    45.46  eval return    59.41  eval success   0.0 %  (930 s)
+[ars] it  230  steps  3597796  return    51.17  eval return    64.49  eval success   0.0 %  (952 s)
+[ars] it  235  steps  3677305  return    48.13  eval return    65.82  eval success   0.0 %  (975 s)
+[ars] it  240  steps  3756664  return    53.38  eval return    62.51  eval success   5.0 %  (997 s)
+[ars] it  245  steps  3835913  return    53.06  eval return    68.91  eval success   0.0 %  (1019 s)
+[ars] it  250  steps  3915751  return    54.42  eval return    70.61  eval success   0.0 %  (1041 s)
+[ars] it  255  steps  3995340  return    49.16  eval return    68.38  eval success   0.0 %  (1064 s)
+[ars] it  260  steps  4074628  return    50.29  eval return    68.01  eval success   0.0 %  (1086 s)
+[ars] it  265  steps  4154179  return    55.01  eval return    68.69  eval success   0.0 %  (1108 s)
+[ars] it  270  steps  4234101  return    61.98  eval return    68.63  eval success   0.0 %  (1130 s)
+[ars] it  275  steps  4313722  return    57.62  eval return    66.55  eval success   0.0 %  (1152 s)
+[ars] it  280  steps  4393456  return    60.19  eval return    66.25  eval success   0.0 %  (1174 s)
+[ars] it  285  steps  4473155  return    56.85  eval return    71.26  eval success   0.0 %  (1196 s)
+[ars] it  290  steps  4552967  return    58.57  eval return    68.45  eval success   0.0 %  (1218 s)
+[ars] it  295  steps  4632626  return    55.75  eval return    71.30  eval success   0.0 %  (1240 s)
+[ars] it  300  steps  4712540  return    54.91  eval return    68.73  eval success   0.0 %  (1261 s)
+[18:24:57] done  fixed_s0: train handle  (22.0 min)
+[18:24:57] start fixed_s0: pool after handle
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/200 episodes, 7 successful end states
+[starts] 40/200 episodes, 13 successful end states
+[starts] 60/200 episodes, 23 successful end states
+[starts] 80/200 episodes, 30 successful end states
+[starts] 100/200 episodes, 36 successful end states
+[starts] 120/200 episodes, 43 successful end states
+[starts] 140/200 episodes, 48 successful end states
+[starts] 160/200 episodes, 54 successful end states
+[starts] 180/200 episodes, 62 successful end states
+[starts] 200/200 episodes, 69 successful end states
+[starts] 69/200 successes (116 s) -> runs_v4/starts/after_handle_design_fixed_s0.pkl
+         train the next stage from them:  python experiment.py train --task door --starts runs_v4/starts/after_handle_design_fixed_s0.pkl ...
+[18:26:53] done  fixed_s0: pool after handle  (1.9 min)
+[18:26:53] start fixed_s0: train door
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] door_ars_fixed_design_s0 -> runs_v4\door_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 40/40 succeeded, 2090 labelled samples
+[bc] round 1: cloned policy drove 10/10 succeeded, 2676 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 3285 labelled samples
+[bc] round 3: cloned policy drove 10/10 succeeded, 3845 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return    11.39  eval success 100.0 %
+[ars] it    5  steps    21988  return    12.75  eval return    11.38  eval success 100.0 %  (3 s)
+[ars] it   10  steps    42811  return    12.66  eval return    11.36  eval success 100.0 %  (7 s)
+[ars] it   15  steps    64642  return    12.71  eval return    11.34  eval success 100.0 %  (11 s)
+[ars] it   20  steps    84694  return    12.86  eval return    11.34  eval success 100.0 %  (15 s)
+[ars] it   25  steps   104167  return    12.77  eval return    11.30  eval success 100.0 %  (18 s)
+[ars] it   30  steps   124887  return    12.36  eval return    11.28  eval success 100.0 %  (22 s)
+[ars] it   35  steps   147577  return    13.48  eval return    11.28  eval success 100.0 %  (26 s)
+[ars] it   40  steps   167288  return    13.13  eval return    11.27  eval success 100.0 %  (30 s)
+[ars] it   45  steps   189263  return    13.63  eval return    11.25  eval success 100.0 %  (34 s)
+[ars] it   50  steps   209337  return    12.72  eval return    11.26  eval success 100.0 %  (37 s)
+[ars] it   55  steps   229508  return    12.67  eval return    11.24  eval success 100.0 %  (41 s)
+[ars] it   60  steps   250632  return    12.84  eval return    11.25  eval success 100.0 %  (45 s)
+[ars] it   65  steps   273107  return    13.67  eval return    11.25  eval success 100.0 %  (49 s)
+[ars] it   70  steps   292180  return    13.46  eval return    11.26  eval success 100.0 %  (53 s)
+[ars] it   75  steps   311805  return    12.92  eval return    11.26  eval success 100.0 %  (57 s)
+[ars] it   80  steps   332292  return    13.20  eval return    11.26  eval success 100.0 %  (61 s)
+[ars] it   85  steps   352880  return    12.94  eval return    11.25  eval success 100.0 %  (65 s)
+[ars] it   90  steps   375972  return    13.29  eval return    11.24  eval success 100.0 %  (69 s)
+[ars] it   95  steps   395755  return    13.16  eval return    11.24  eval success 100.0 %  (73 s)
+[ars] it  100  steps   415355  return    13.10  eval return    11.24  eval success 100.0 %  (77 s)
+[ars] it  105  steps   435819  return    13.17  eval return    11.23  eval success 100.0 %  (81 s)
+[ars] it  110  steps   455903  return    13.19  eval return    11.22  eval success 100.0 %  (85 s)
+[ars] it  115  steps   476775  return    13.26  eval return    11.20  eval success 100.0 %  (88 s)
+[ars] it  120  steps   496694  return    13.42  eval return    11.22  eval success 100.0 %  (92 s)
+[ars] it  125  steps   519750  return    13.48  eval return    11.20  eval success 100.0 %  (97 s)
+[ars] it  130  steps   541815  return    12.93  eval return    11.20  eval success 100.0 %  (101 s)
+[ars] it  135  steps   563447  return    13.31  eval return    11.22  eval success 100.0 %  (105 s)
+[ars] it  140  steps   587654  return    13.79  eval return    11.23  eval success 100.0 %  (110 s)
+[ars] it  145  steps   610691  return    13.11  eval return    11.23  eval success 100.0 %  (115 s)
+[ars] it  150  steps   635375  return    13.39  eval return    11.22  eval success 100.0 %  (120 s)
+[18:29:12] done  fixed_s0: train door  (2.3 min)
+[18:29:12] start fixed_s0: chain (all test doors)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+  nominal  nominal          reach  100%  handle    0%  door    0%  END-TO-END    0%  time   nan s  recoveries 1.0  grasped  24%  arm-on-door nan%
+  in_dist  in_dist_0        reach  100%  handle   40%  door   40%  END-TO-END   40%  time  10.4 s  recoveries 0.3  grasped  26%  arm-on-door   2%
+  in_dist  in_dist_1        reach  100%  handle   40%  door   40%  END-TO-END   40%  time   9.9 s  recoveries 0.6  grasped  19%  arm-on-door   2%
+  in_dist  in_dist_2        reach  100%  handle   60%  door    0%  END-TO-END    0%  time   nan s  recoveries 0.3  grasped  26%  arm-on-door  90%
+  in_dist  in_dist_3        reach   90%  handle    0%  door    0%  END-TO-END    0%  time   nan s  recoveries 1.0  grasped  16%  arm-on-door nan%
+  in_dist  in_dist_4        reach   90%  handle   10%  door   10%  END-TO-END   10%  time   9.5 s  recoveries 0.8  grasped  28%  arm-on-door   0%
+  in_dist  in_dist_5        reach  100%  handle    0%  door    0%  END-TO-END    0%  time   nan s  recoveries 1.0  grasped  26%  arm-on-door nan%
+  in_dist  in_dist_6        reach   90%  handle   40%  door   30%  END-TO-END   30%  time  10.7 s  recoveries 0.5  grasped  22%  arm-on-door  18%
+  in_dist  in_dist_7        reach  100%  handle   30%  door   30%  END-TO-END   30%  time   9.0 s  recoveries 0.7  grasped  23%  arm-on-door   0%
+  in_dist  in_dist_8        reach  100%  handle   10%  door   10%  END-TO-END   10%  time   8.0 s  recoveries 0.9  grasped  32%  arm-on-door   0%
+  in_dist  in_dist_9        reach  100%  handle   10%  door   10%  END-TO-END   10%  time   9.3 s  recoveries 0.9  grasped  17%  arm-on-door   0%
+  unseen   shifted_side     reach   90%  handle   20%  door   20%  END-TO-END   20%  time  10.6 s  recoveries 0.7  grasped  17%  arm-on-door   0%
+  unseen   handle_high      reach   90%  handle   10%  door   10%  END-TO-END   10%  time   9.9 s  recoveries 0.8  grasped  29%  arm-on-door   0%
+  unseen   handle_low       reach   90%  handle   60%  door    0%  END-TO-END    0%  time   nan s  recoveries 0.2  grasped  27%  arm-on-door  85%
+  unseen   turned_door      reach  100%  handle   10%  door   10%  END-TO-END   10%  time   7.8 s  recoveries 0.7  grasped  21%  arm-on-door   0%
+  unseen   stiff_handle     reach  100%  handle    0%  door    0%  END-TO-END    0%  time   nan s  recoveries 1.0  grasped  24%  arm-on-door nan%
+  unseen   stiff_hinge      reach  100%  handle   70%  door   60%  END-TO-END   60%  time  10.0 s  recoveries 0.2  grasped  27%  arm-on-door  10%
+  unseen   deep_latch       reach  100%  handle   10%  door   10%  END-TO-END   10%  time  10.6 s  recoveries 0.9  grasped  25%  arm-on-door   0%
+  unseen   heavy_slippery   reach  100%  handle   10%  door   10%  END-TO-END   10%  time   8.7 s  recoveries 0.9  grasped  22%  arm-on-door   0%
+  unseen   hard_combo       reach   80%  handle    0%  door    0%  END-TO-END    0%  time   nan s  recoveries 0.8  grasped   9%  arm-on-door nan%
+[chain] mean end-to-end 15 %  -> runs_v4/chain_ars_fixed_s0/chain_eval.csv
+[18:31:51] done  fixed_s0: chain (all test doors)  (2.6 min)
+[18:31:51] start random_s0: train reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] reach_ars_random_design_s0 -> runs_v4\reach_ars_random_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 40/40 succeeded, 2018 labelled samples
+[bc] round 1: cloned policy drove 10/10 succeeded, 2468 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 2925 labelled samples
+[bc] round 3: cloned policy drove 10/10 succeeded, 3408 labelled samples
+[bc] 'direct' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return     2.47  eval success 100.0 %
+[ars] it    5  steps    19287  return    -3.48  eval return     2.84  eval success 100.0 %  (4 s)
+[ars] it   10  steps    36919  return     1.24  eval return     3.06  eval success 100.0 %  (8 s)
+[ars] it   15  steps    57954  return    -2.16  eval return     3.14  eval success 100.0 %  (12 s)
+[ars] it   20  steps    78213  return    -2.34  eval return     3.23  eval success 100.0 %  (15 s)
+[ars] it   25  steps    97210  return     0.03  eval return     3.27  eval success 100.0 %  (19 s)
+[ars] it   30  steps   114932  return    -1.58  eval return     3.30  eval success 100.0 %  (22 s)
+[ars] it   35  steps   131821  return     1.51  eval return     3.47  eval success 100.0 %  (25 s)
+[ars] it   40  steps   147439  return     1.11  eval return     3.60  eval success 100.0 %  (29 s)
+[ars] it   45  steps   162508  return     3.51  eval return     3.57  eval success 100.0 %  (31 s)
+[ars] it   50  steps   178998  return     2.59  eval return     1.97  eval success  95.0 %  (35 s)
+[ars] it   55  steps   194435  return     1.39  eval return     2.18  eval success  95.0 %  (39 s)
+[ars] it   60  steps   210349  return     2.50  eval return     3.86  eval success 100.0 %  (42 s)
+[ars] it   65  steps   225145  return     2.24  eval return     1.19  eval success  95.0 %  (45 s)
+[ars] it   70  steps   241941  return     2.69  eval return     3.69  eval success 100.0 %  (49 s)
+[ars] it   75  steps   258314  return     1.98  eval return     3.87  eval success 100.0 %  (52 s)
+[ars] it   80  steps   276567  return     0.91  eval return     3.84  eval success 100.0 %  (55 s)
+[ars] it   85  steps   293640  return     3.11  eval return     3.89  eval success 100.0 %  (59 s)
+[ars] it   90  steps   310777  return    -0.13  eval return     3.81  eval success 100.0 %  (62 s)
+[ars] it   95  steps   327812  return     0.44  eval return     3.73  eval success 100.0 %  (66 s)
+[ars] it  100  steps   343062  return     2.71  eval return     3.80  eval success 100.0 %  (69 s)
+[ars] it  105  steps   360341  return    -1.05  eval return     3.88  eval success 100.0 %  (72 s)
+[ars] it  110  steps   376772  return     2.07  eval return     3.78  eval success 100.0 %  (76 s)
+[ars] it  115  steps   393101  return     1.26  eval return     3.92  eval success 100.0 %  (79 s)
+[ars] it  120  steps   408911  return     0.09  eval return     4.04  eval success 100.0 %  (83 s)
+[ars] it  125  steps   424017  return     1.72  eval return     3.99  eval success 100.0 %  (85 s)
+[ars] it  130  steps   438608  return     3.48  eval return     4.24  eval success 100.0 %  (87 s)
+[ars] it  135  steps   452936  return     2.18  eval return     4.07  eval success 100.0 %  (89 s)
+[ars] it  140  steps   467441  return     2.49  eval return     4.19  eval success 100.0 %  (91 s)
+[ars] it  145  steps   481250  return     2.11  eval return     4.20  eval success 100.0 %  (93 s)
+[ars] it  150  steps   494882  return     3.74  eval return     4.30  eval success 100.0 %  (94 s)
+[18:33:38] done  random_s0: train reach  (1.8 min)
+[18:33:38] start random_s0: pool after reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/200 episodes, 20 successful end states
+[starts] 40/200 episodes, 40 successful end states
+[starts] 60/200 episodes, 60 successful end states
+[starts] 80/200 episodes, 80 successful end states
+[starts] 100/200 episodes, 100 successful end states
+[starts] 120/200 episodes, 120 successful end states
+[starts] 140/200 episodes, 140 successful end states
+[starts] 160/200 episodes, 160 successful end states
+[starts] 180/200 episodes, 180 successful end states
+[starts] 200/200 episodes, 200 successful end states
+[starts] 200/200 successes (6 s) -> runs_v4/starts/after_reach_design_random_s0.pkl
+         train the next stage from them:  python experiment.py train --task handle --starts runs_v4/starts/after_reach_design_random_s0.pkl ...
+[18:33:44] done  random_s0: pool after reach  (0.1 min)
+[18:33:44] start random_s0: train handle
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] handle_ars_random_design_s0 -> runs_v4\handle_ars_random_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 19/40 succeeded, 7273 labelled samples
+[bc] round 1: cloned policy drove 4/10 succeeded, 9084 labelled samples
+[bc] round 2: cloned policy drove 2/10 succeeded, 11266 labelled samples
+[bc] round 3: cloned policy drove 1/10 succeeded, 13595 labelled samples
+[bc] 'direct' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return   -17.56  eval success  30.0 %
+[ars] it    5  steps    61630  return    -6.63  eval return     7.82  eval success  80.0 %  (8 s)
+[ars] it   10  steps   111136  return    -2.25  eval return     7.50  eval success  80.0 %  (16 s)
+[ars] it   15  steps   157983  return    -0.09  eval return    12.80  eval success  85.0 %  (23 s)
+[ars] it   20  steps   205633  return     2.55  eval return    15.56  eval success  85.0 %  (30 s)
+[ars] it   25  steps   257569  return    -5.47  eval return    12.30  eval success  75.0 %  (38 s)
+[ars] it   30  steps   309931  return    -2.17  eval return    15.77  eval success  75.0 %  (46 s)
+[ars] it   35  steps   362292  return    -1.73  eval return    14.63  eval success  80.0 %  (54 s)
+[ars] it   40  steps   409358  return    -0.09  eval return    13.97  eval success  80.0 %  (62 s)
+[ars] it   45  steps   455250  return     2.22  eval return     6.87  eval success  65.0 %  (69 s)
+[ars] it   50  steps   499250  return     3.55  eval return    20.80  eval success  95.0 %  (76 s)
+[ars] it   55  steps   545049  return    -0.08  eval return    11.56  eval success  75.0 %  (83 s)
+[ars] it   60  steps   594010  return     2.63  eval return    23.18  eval success  90.0 %  (91 s)
+[ars] it   65  steps   638984  return    -1.09  eval return    21.43  eval success  95.0 %  (98 s)
+[ars] it   70  steps   679943  return     6.56  eval return    23.47  eval success  95.0 %  (105 s)
+[ars] it   75  steps   722462  return     1.97  eval return    24.78  eval success  95.0 %  (112 s)
+[ars] it   80  steps   763426  return     7.80  eval return    24.09  eval success  95.0 %  (119 s)
+[ars] it   85  steps   806172  return     8.91  eval return    22.87  eval success  90.0 %  (126 s)
+[ars] it   90  steps   852428  return     1.00  eval return    21.24  eval success  90.0 %  (133 s)
+[ars] it   95  steps   898780  return     1.36  eval return    20.50  eval success  80.0 %  (140 s)
+[ars] it  100  steps   940575  return     3.28  eval return    27.48  eval success 100.0 %  (146 s)
+[ars] it  105  steps   987818  return    -0.11  eval return    13.37  eval success  65.0 %  (154 s)
+[ars] it  110  steps  1031401  return     8.09  eval return    24.37  eval success  90.0 %  (161 s)
+[ars] it  115  steps  1078046  return     4.29  eval return    24.70  eval success  85.0 %  (168 s)
+[ars] it  120  steps  1126270  return     5.79  eval return    25.32  eval success  90.0 %  (176 s)
+[ars] it  125  steps  1168940  return    12.42  eval return    18.51  eval success  80.0 %  (183 s)
+[ars] it  130  steps  1211127  return    12.70  eval return    22.96  eval success  80.0 %  (190 s)
+[ars] it  135  steps  1254705  return    12.80  eval return    20.44  eval success  80.0 %  (197 s)
+[ars] it  140  steps  1299783  return     6.18  eval return    18.29  eval success  75.0 %  (204 s)
+[ars] it  145  steps  1344961  return    12.36  eval return    22.11  eval success  80.0 %  (212 s)
+[ars] it  150  steps  1389662  return    12.51  eval return    14.97  eval success  70.0 %  (219 s)
+[ars] it  155  steps  1431246  return    12.76  eval return    26.22  eval success  95.0 %  (226 s)
+[ars] it  160  steps  1470459  return    16.00  eval return    22.74  eval success  90.0 %  (233 s)
+[ars] it  165  steps  1510818  return    17.45  eval return    16.80  eval success  65.0 %  (240 s)
+[ars] it  170  steps  1558227  return     8.58  eval return    22.64  eval success  65.0 %  (248 s)
+[ars] it  175  steps  1602037  return    10.94  eval return    15.08  eval success  60.0 %  (255 s)
+[ars] it  180  steps  1647548  return     9.12  eval return    26.34  eval success  90.0 %  (263 s)
+[ars] it  185  steps  1691157  return    14.07  eval return    26.95  eval success  85.0 %  (270 s)
+[ars] it  190  steps  1736658  return     9.34  eval return    26.85  eval success  95.0 %  (277 s)
+[ars] it  195  steps  1782381  return     3.89  eval return    20.56  eval success  80.0 %  (285 s)
+[ars] it  200  steps  1823721  return    10.40  eval return    25.09  eval success  90.0 %  (292 s)
+[ars] it  205  steps  1865713  return    12.31  eval return    18.18  eval success  75.0 %  (299 s)
+[ars] it  210  steps  1907798  return    10.90  eval return    21.82  eval success  85.0 %  (306 s)
+[ars] it  215  steps  1951070  return     9.16  eval return    26.49  eval success  95.0 %  (313 s)
+[ars] it  220  steps  1993902  return    17.07  eval return    20.15  eval success  80.0 %  (320 s)
+[ars] it  225  steps  2034517  return    11.23  eval return    18.98  eval success  70.0 %  (328 s)
+[ars] it  230  steps  2075836  return    10.71  eval return    10.31  eval success  60.0 %  (335 s)
+[ars] it  235  steps  2120407  return     8.74  eval return    26.42  eval success  90.0 %  (342 s)
+[ars] it  240  steps  2164600  return    12.92  eval return    21.90  eval success  85.0 %  (349 s)
+[ars] it  245  steps  2205969  return    15.34  eval return    22.58  eval success  85.0 %  (356 s)
+[ars] it  250  steps  2247301  return    14.26  eval return    19.12  eval success  75.0 %  (363 s)
+[ars] it  255  steps  2291088  return    14.49  eval return    17.82  eval success  75.0 %  (370 s)
+[ars] it  260  steps  2338315  return     7.85  eval return    13.03  eval success  70.0 %  (377 s)
+[ars] it  265  steps  2381344  return    10.92  eval return    15.29  eval success  75.0 %  (385 s)
+[ars] it  270  steps  2425170  return    11.75  eval return     1.64  eval success  60.0 %  (392 s)
+[ars] it  275  steps  2469784  return    11.08  eval return    19.99  eval success  80.0 %  (399 s)
+[ars] it  280  steps  2511819  return    13.31  eval return    10.33  eval success  65.0 %  (406 s)
+[ars] it  285  steps  2556236  return    12.54  eval return    19.62  eval success  75.0 %  (414 s)
+[ars] it  290  steps  2596979  return    18.10  eval return    19.83  eval success  80.0 %  (421 s)
+[ars] it  295  steps  2640673  return    18.04  eval return    16.95  eval success  70.0 %  (428 s)
+[ars] it  300  steps  2682344  return    14.88  eval return    11.70  eval success  65.0 %  (435 s)
+[18:41:31] done  random_s0: train handle  (7.8 min)
+[18:41:31] start random_s0: pool after handle
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/200 episodes, 14 successful end states
+[starts] 40/200 episodes, 29 successful end states
+[starts] 60/200 episodes, 46 successful end states
+[starts] 80/200 episodes, 59 successful end states
+[starts] 100/200 episodes, 76 successful end states
+[starts] 120/200 episodes, 91 successful end states
+[starts] 140/200 episodes, 105 successful end states
+[starts] 160/200 episodes, 116 successful end states
+[starts] 180/200 episodes, 129 successful end states
+[starts] 200/200 episodes, 145 successful end states
+[starts] 145/200 successes (33 s) -> runs_v4/starts/after_handle_design_random_s0.pkl
+         train the next stage from them:  python experiment.py train --task door --starts runs_v4/starts/after_handle_design_random_s0.pkl ...
+[18:42:05] done  random_s0: pool after handle  (0.6 min)
+[18:42:05] start random_s0: train door
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] door_ars_random_design_s0 -> runs_v4\door_ars_random_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 31/40 succeeded, 5373 labelled samples
+[bc] round 1: cloned policy drove 9/10 succeeded, 6609 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 7617 labelled samples
+[bc] round 3: cloned policy drove 7/10 succeeded, 9124 labelled samples
+[bc] 'direct' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return    10.38  eval success  95.0 %
+[ars] it    5  steps    42042  return     1.10  eval return     8.58  eval success  90.0 %  (6 s)
+[ars] it   10  steps    83783  return    -9.62  eval return     7.34  eval success  90.0 %  (12 s)
+[ars] it   15  steps   123009  return    -0.43  eval return     9.45  eval success  90.0 %  (18 s)
+[ars] it   20  steps   164074  return    -5.38  eval return    10.68  eval success  95.0 %  (24 s)
+[ars] it   25  steps   206879  return     2.16  eval return    10.26  eval success  95.0 %  (30 s)
+[ars] it   30  steps   250682  return    -5.38  eval return     8.70  eval success  90.0 %  (36 s)
+[ars] it   35  steps   292420  return    -1.73  eval return     8.10  eval success  90.0 %  (43 s)
+[ars] it   40  steps   334330  return    -1.03  eval return     3.74  eval success  75.0 %  (49 s)
+[ars] it   45  steps   375333  return    -0.18  eval return    10.61  eval success  95.0 %  (54 s)
+[ars] it   50  steps   419326  return    -2.62  eval return    11.17  eval success  95.0 %  (60 s)
+[ars] it   55  steps   460157  return     7.13  eval return    10.48  eval success  95.0 %  (66 s)
+[ars] it   60  steps   505741  return    -0.26  eval return    10.53  eval success  95.0 %  (72 s)
+[ars] it   65  steps   550103  return     2.09  eval return     8.45  eval success  85.0 %  (78 s)
+[ars] it   70  steps   594093  return    -0.28  eval return     8.12  eval success  85.0 %  (84 s)
+[ars] it   75  steps   642788  return     2.90  eval return     8.63  eval success  90.0 %  (91 s)
+[ars] it   80  steps   691561  return     5.53  eval return     8.27  eval success  90.0 %  (98 s)
+[ars] it   85  steps   736913  return     3.58  eval return     6.13  eval success  85.0 %  (104 s)
+[ars] it   90  steps   785549  return     4.94  eval return     6.00  eval success  85.0 %  (111 s)
+[ars] it   95  steps   830609  return     3.35  eval return     6.59  eval success  85.0 %  (117 s)
+[ars] it  100  steps   876678  return    -3.75  eval return    10.78  eval success  95.0 %  (123 s)
+[ars] it  105  steps   923494  return     3.30  eval return    11.42  eval success  95.0 %  (130 s)
+[ars] it  110  steps   974454  return    -1.49  eval return    11.13  eval success  95.0 %  (137 s)
+[ars] it  115  steps  1025721  return     8.51  eval return    10.98  eval success  95.0 %  (144 s)
+[ars] it  120  steps  1074542  return    -1.37  eval return    10.91  eval success  95.0 %  (150 s)
+[ars] it  125  steps  1125653  return    -2.97  eval return     8.59  eval success  90.0 %  (157 s)
+[ars] it  130  steps  1177183  return    -9.37  eval return     8.35  eval success  90.0 %  (165 s)
+[ars] it  135  steps  1228934  return     1.74  eval return    14.00  eval success 100.0 %  (172 s)
+[ars] it  140  steps  1278671  return    10.33  eval return    10.53  eval success  90.0 %  (179 s)
+[ars] it  145  steps  1325893  return     2.20  eval return    14.06  eval success 100.0 %  (185 s)
+[ars] it  150  steps  1377032  return    -3.36  eval return    13.71  eval success 100.0 %  (193 s)
+[18:45:42] done  random_s0: train door  (3.6 min)
+[18:45:42] start random_s0: chain (all test doors)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+  nominal  nominal          reach  100%  handle   70%  door   70%  END-TO-END   70%  time   6.7 s  recoveries 0.3  grasped  55%  arm-on-door   0%
+  in_dist  in_dist_0        reach  100%  handle   70%  door   60%  END-TO-END   60%  time   9.3 s  recoveries 0.3  grasped  58%  arm-on-door   6%
+  in_dist  in_dist_1        reach  100%  handle  100%  door  100%  END-TO-END  100%  time   8.2 s  recoveries 0.0  grasped  61%  arm-on-door   1%
+  in_dist  in_dist_2        reach  100%  handle  100%  door    0%  END-TO-END    0%  time   nan s  recoveries 0.0  grasped  59%  arm-on-door  90%
+  in_dist  in_dist_3        reach  100%  handle   20%  door   20%  END-TO-END   20%  time   7.9 s  recoveries 0.8  grasped  56%  arm-on-door   0%
+  in_dist  in_dist_4        reach  100%  handle   90%  door   90%  END-TO-END   90%  time   7.9 s  recoveries 0.1  grasped  67%  arm-on-door   0%
+  in_dist  in_dist_5        reach  100%  handle   70%  door   70%  END-TO-END   70%  time   7.5 s  recoveries 0.3  grasped  60%  arm-on-door   0%
+  in_dist  in_dist_6        reach  100%  handle   90%  door   80%  END-TO-END   80%  time   8.3 s  recoveries 0.1  grasped  66%  arm-on-door   6%
+  in_dist  in_dist_7        reach  100%  handle   90%  door   90%  END-TO-END   90%  time   6.3 s  recoveries 0.1  grasped  50%  arm-on-door   0%
+  in_dist  in_dist_8        reach  100%  handle   90%  door   90%  END-TO-END   90%  time   7.1 s  recoveries 0.1  grasped  57%  arm-on-door   0%
+  in_dist  in_dist_9        reach  100%  handle  100%  door  100%  END-TO-END  100%  time   7.4 s  recoveries 0.0  grasped  62%  arm-on-door   1%
+  unseen   shifted_side     reach  100%  handle   80%  door   80%  END-TO-END   80%  time   7.1 s  recoveries 0.2  grasped  55%  arm-on-door   0%
+  unseen   handle_high      reach   90%  handle   60%  door   60%  END-TO-END   60%  time   6.2 s  recoveries 0.3  grasped  58%  arm-on-door   0%
+  unseen   handle_low       reach  100%  handle   90%  door    0%  END-TO-END    0%  time   nan s  recoveries 0.2  grasped  59%  arm-on-door  85%
+  unseen   turned_door      reach  100%  handle   60%  door   60%  END-TO-END   60%  time   5.7 s  recoveries 0.4  grasped  40%  arm-on-door   0%
+  unseen   stiff_handle     reach  100%  handle   70%  door   70%  END-TO-END   70%  time   6.7 s  recoveries 0.3  grasped  55%  arm-on-door   0%
+  unseen   stiff_hinge      reach  100%  handle   80%  door   80%  END-TO-END   80%  time   9.0 s  recoveries 0.2  grasped  64%  arm-on-door   1%
+  unseen   deep_latch       reach  100%  handle   70%  door   70%  END-TO-END   70%  time   6.7 s  recoveries 0.3  grasped  59%  arm-on-door   1%
+  unseen   heavy_slippery   reach  100%  handle  100%  door  100%  END-TO-END  100%  time   6.5 s  recoveries 0.0  grasped  66%  arm-on-door   0%
+  unseen   hard_combo       reach  100%  handle   40%  door   40%  END-TO-END   40%  time   8.5 s  recoveries 0.6  grasped  30%  arm-on-door   3%
+[chain] mean end-to-end 66 %  -> runs_v4/chain_ars_random_s0/chain_eval.csv
+[18:46:40] done  random_s0: chain (all test doors)  (1.0 min)
+[18:46:40] start evaluate door_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[eval] door_ars_fixed_design_s0 on 'nominal' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  nominal                100%     4.1      60.5         6       69
+  MEAN                   100%
+
+[eval] door_ars_fixed_design_s0 on 'in_dist' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  in_dist_0              100%     4.0      60.3         1       64
+  in_dist_1              100%     4.6      60.4        14       78
+  in_dist_2                0%     nan       1.7         0      282
+  in_dist_3              100%     4.2      60.4         4       58
+  in_dist_4              100%     4.3      60.4         3       85
+  in_dist_5              100%     4.4      60.5         7       72
+  in_dist_6              100%     4.6      60.5         4       81
+  in_dist_7              100%     4.3      60.5         5       81
+  in_dist_8              100%     4.3      60.5         5       70
+  in_dist_9              100%     4.2      60.5         4       62
+  MEAN                    90%
+
+[eval] door_ars_fixed_design_s0 on 'unseen' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  shifted_side           100%     4.1      60.5         5       69
+  handle_high            100%     4.2      60.5         7       70
+  handle_low               0%     nan       2.0        -1      244
+  turned_door            100%     4.2      60.5         5      110
+  stiff_handle           100%     4.1      60.5         6       69
+  stiff_hinge            100%     4.3      60.5         1       83
+  deep_latch             100%     4.1      60.5         6       69
+  heavy_slippery         100%     3.9      60.3         1       98
+  hard_combo             100%     4.0      60.4         2       85
+  MEAN                    89%
+[18:47:08] done  evaluate door_ars_fixed_design_s0  (0.5 min)
+[18:47:08] start evaluate door_ars_random_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[eval] door_ars_random_design_s0 on 'nominal' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  nominal                100%     5.5      60.3         6       65
+  MEAN                   100%
+
+[eval] door_ars_random_design_s0 on 'in_dist' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  in_dist_0              100%     7.8      60.4         5       58
+  in_dist_1              100%     7.1      60.4         3       84
+  in_dist_2                0%     nan       0.8       -10      124
+  in_dist_3              100%     6.0      60.2         4       79
+  in_dist_4              100%     6.2      60.4         3       98
+  in_dist_5              100%     6.5      60.3         7       69
+  in_dist_6              100%     7.0      60.3         7       58
+  in_dist_7              100%     6.7      60.4         4       69
+  in_dist_8              100%     7.2      60.3         5       85
+  in_dist_9              100%     5.8      60.2         6       69
+  MEAN                    90%
+
+[eval] door_ars_random_design_s0 on 'unseen' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  shifted_side           100%     5.3      60.3         6       60
+  handle_high            100%     5.4      60.3         5       64
+  handle_low               0%     nan       0.8        -7      118
+  turned_door            100%     6.0      60.3         1      102
+  stiff_handle           100%     5.5      60.3         6       65
+  stiff_hinge             90%     6.8      59.6         8       65
+  deep_latch             100%     5.5      60.3         6       65
+  heavy_slippery         100%     4.7      60.4         4       69
+  hard_combo             100%     5.8      60.4         2       86
+  MEAN                    88%
+[18:47:48] done  evaluate door_ars_random_design_s0  (0.7 min)
+[18:47:48] start evaluate handle_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[eval] handle_ars_fixed_design_s0 on 'nominal' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  nominal                 50%     6.9      63.5        40       92
+  MEAN                    50%
+
+[eval] handle_ars_fixed_design_s0 on 'in_dist' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  in_dist_0               20%     5.7      61.9        21       78
+  in_dist_1               40%     5.9      51.3        34      108
+  in_dist_2               80%     6.0       0.1        84       94
+  in_dist_3               60%     7.8      57.1        23       92
+  in_dist_4               50%     8.5      53.8         5      111
+  in_dist_5               50%     6.1      61.1        33       95
+  in_dist_6               40%     5.8      47.7        41       88
+  in_dist_7               70%     5.6      38.7        36       96
+  in_dist_8               30%     6.7      70.5        14      109
+  in_dist_9               40%     6.8      71.7        27       81
+  MEAN                    48%
+
+[eval] handle_ars_fixed_design_s0 on 'unseen' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  shifted_side            50%     8.1      78.1        19      114
+  handle_high             30%     7.1      70.7        35       91
+  handle_low              50%     5.3       0.2        96      196
+  turned_door             20%     8.3      49.1        33      213
+  stiff_handle            50%     6.9      63.5        40       92
+  stiff_hinge             50%     5.4      29.2        57       89
+  deep_latch              10%     5.8      73.2        26      126
+  heavy_slippery          60%     7.2      54.1        37       93
+  hard_combo              60%     6.5      52.9        43       87
+  MEAN                    42%
+[18:48:48] done  evaluate handle_ars_fixed_design_s0  (1.0 min)
+[18:48:48] start evaluate handle_ars_random_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[eval] handle_ars_random_design_s0 on 'nominal' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  nominal                 70%     2.9      20.7        64      117
+  MEAN                    70%
+
+[eval] handle_ars_random_design_s0 on 'in_dist' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  in_dist_0               20%     5.7       5.9        15      222
+  in_dist_1              100%     2.7       2.1        74       66
+  in_dist_2               90%     2.6       0.0        71       85
+  in_dist_3               30%     3.0       1.9        41      222
+  in_dist_4               90%     3.2      11.1        83       84
+  in_dist_5               70%     2.6      11.0        52      120
+  in_dist_6               90%     2.9       1.5        82       77
+  in_dist_7              100%     2.4       1.9        70       75
+  in_dist_8               70%     2.4      19.0        49      126
+  in_dist_9               50%     2.6       9.8        53      133
+  MEAN                    71%
+
+[eval] handle_ars_random_design_s0 on 'unseen' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  shifted_side            80%     3.8      20.3        64      101
+  handle_high             80%     2.9      11.4        72      100
+  handle_low              70%     2.9       0.0        60      142
+  turned_door             60%     3.3      11.1        52      125
+  stiff_handle            70%     2.9      20.7        64      117
+  stiff_hinge             80%     2.9       4.1        72       93
+  deep_latch              40%     3.0      18.6        44      174
+  heavy_slippery          60%     3.1      19.5        50      114
+  hard_combo               0%     nan       8.2        19      258
+  MEAN                    60%
+[18:49:22] done  evaluate handle_ars_random_design_s0  (0.6 min)
+[18:49:22] start evaluate reach_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[eval] reach_ars_fixed_design_s0 on 'nominal' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  nominal                100%     1.3       0.1        -0       38
+  MEAN                   100%
+
+[eval] reach_ars_fixed_design_s0 on 'in_dist' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  in_dist_0              100%     1.4       0.1        -0       38
+  in_dist_1              100%     1.4       0.1        -0       39
+  in_dist_2              100%     1.3       0.0        -0       38
+  in_dist_3               80%     1.5       0.1        -2       83
+  in_dist_4              100%     1.6       0.1        -0       39
+  in_dist_5              100%     1.4       0.0        -0       39
+  in_dist_6              100%     1.4       0.1        -0       39
+  in_dist_7              100%     1.4       0.1        -0       39
+  in_dist_8               90%     1.6       0.1        -1       60
+  in_dist_9              100%     1.4       0.1        -0       39
+  MEAN                    97%
+
+[eval] reach_ars_fixed_design_s0 on 'unseen' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  shifted_side           100%     1.6       0.1         0       38
+  handle_high             20%     1.6       0.1        -5      213
+  handle_low             100%     1.4       0.0         0       39
+  turned_door            100%     1.4       0.1         0       39
+  stiff_handle           100%     1.3       0.1        -0       38
+  stiff_hinge            100%     1.3       0.0        -0       38
+  deep_latch             100%     1.3       0.1        -0       38
+  heavy_slippery         100%     1.3       0.0        -0       38
+  hard_combo              40%     2.1       0.1        -3      181
+  MEAN                    84%
+[18:49:31] done  evaluate reach_ars_fixed_design_s0  (0.1 min)
+[18:49:31] start evaluate reach_ars_random_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[eval] reach_ars_random_design_s0 on 'nominal' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  nominal                100%     1.3       0.1        -0       38
+  MEAN                   100%
+
+[eval] reach_ars_random_design_s0 on 'in_dist' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  in_dist_0              100%     1.4       0.1         1       38
+  in_dist_1              100%     1.4       0.1         0       38
+  in_dist_2              100%     1.4       0.0         0       38
+  in_dist_3              100%     1.5       0.0        -0       38
+  in_dist_4              100%     1.6       0.1         0       38
+  in_dist_5              100%     1.4       0.0         0       38
+  in_dist_6              100%     1.4       0.0        -0       39
+  in_dist_7              100%     1.4       0.1         0       39
+  in_dist_8              100%     1.5       0.0         0       39
+  in_dist_9              100%     1.4       0.1         0       38
+  MEAN                   100%
+
+[eval] reach_ars_random_design_s0 on 'unseen' doors (10 episodes each)
+  door                success  time s  door deg  handle %  palm mm
+  shifted_side           100%     1.6       0.0        -0       38
+  handle_high            100%     1.8       0.0        -0       38
+  handle_low             100%     1.4       0.0        -0       38
+  turned_door            100%     1.5       0.1         0       39
+  stiff_handle           100%     1.3       0.1        -0       38
+  stiff_hinge            100%     1.3       0.0         0       39
+  deep_latch             100%     1.3       0.1        -0       38
+  heavy_slippery         100%     1.3       0.0         0       39
+  hard_combo             100%     2.1       0.0        -0       39
+  MEAN                   100%
+[18:49:37] done  evaluate reach_ars_random_design_s0  (0.1 min)
+[18:49:37] start report
+# Results (success rate, mean ± sd over seeds)
+
+| task | algo | training | actions | seeds | nominal | in-distribution | UNSEEN |
+|---|---|---|---|:-:|:-:|:-:|:-:|
+| door | ars | fixed | design | 1 | 100 ± 0 % | 90 ± 0 % | 89 ± 0 % |
+| door | ars | random | design | 1 | 100 ± 0 % | 90 ± 0 % | 88 ± 0 % |
+| handle | ars | fixed | design | 1 | 50 ± 0 % | 48 ± 0 % | 42 ± 0 % |
+| handle | ars | random | design | 1 | 70 ± 0 % | 71 ± 0 % | 60 ± 0 % |
+| reach | ars | fixed | design | 1 | 100 ± 0 % | 97 ± 0 % | 84 ± 0 % |
+| reach | ars | random | design | 1 | 100 ± 0 % | 100 ± 0 % | 100 ± 0 % |
+
+# Chained three-policy runs (reach -> handle -> door)
+
+| run | door set | doors | reach | handle | door | END-TO-END | time (s) | recoveries | grasped (handle stage) | arm on door (door stage) |
+|---|---|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|:-:|
+| chain_ars_fixed_s0 | in_dist | 10 | 97 % | 24 % | 17 % | **17 %** | 9.6 | 0.7 | 24 % | 14 % |
+| chain_ars_fixed_s0 | nominal | 1 | 100 % | 0 % | 0 % | **0 %** | nan | 1.0 | 24 % | - |
+| chain_ars_fixed_s0 | unseen | 9 | 94 % | 21 % | 13 % | **13 %** | 9.6 | 0.7 | 22 % | 13 % |
+| chain_ars_random_s0 | in_dist | 10 | 100 % | 82 % | 70 % | **70 %** | 7.7 | 0.2 | 60 % | 10 % |
+| chain_ars_random_s0 | nominal | 1 | 100 % | 70 % | 70 % | **70 %** | 6.7 | 0.3 | 55 % | 0 % |
+| chain_ars_random_s0 | unseen | 9 | 99 % | 72 % | 62 % | **62 %** | 7.0 | 0.3 | 54 % | 10 % |
+
+# Research questions
+
+## Q1 - fixed vs domain-randomized training (three chained policies, end-to-end success)
+
+| training | seeds | nominal | in-distribution | **unseen** |
+|---|:-:|:-:|:-:|:-:|
+| fixed | 1 | 0 ± 0 % | 17 ± 0 % | 13 ± 0 % |
+| random | 1 | 70 ± 0 % | 70 ± 0 % | 62 ± 0 % |
+
+Unseen doors, randomized minus fixed: **+49 percentage points**, 95 % bootstrap interval [+32, +64] over the 9 doors -> randomized training generalizes BETTER to unseen doors.
+
+| unseen door | fixed | randomized |
+|---|:-:|:-:|
+| deep_latch | 10 % | 70 % |
+| handle_high | 10 % | 60 % |
+| handle_low | 0 % | 0 % |
+| hard_combo | 0 % | 40 % |
+| heavy_slippery | 10 % | 100 % |
+| shifted_side | 20 % | 80 % |
+| stiff_handle | 0 % | 70 % |
+| stiff_hinge | 60 % | 80 % |
+| turned_door | 10 % | 60 % |
+
+## Q2a - action space of the hand (handle stage, randomized training, trained FROM SCRATCH - no cloning, so the learning itself is compared): design = index + thumb independent, middle/ring/little coupled (18 actions); synergy = finger curls (12); full = every joint (24)
+
+(no handle runs for both action modes yet)
+
+## Q2b - three chained policies vs one policy for the whole sequence (randomized training; both cloned from the same hand-written controller with the same budget)
+
+(needs the chained runs and the 'full' baseline)
+
+[report] results_runs_v4/results.md, results.csv, learning_*.png, unseen_*.png
+[18:49:38] done  report  (0.0 min)
+[18:49:38] === finished in 0.80 h: 19 done, 0 skipped, 0 failed 
+[18:49:38] results: results_runs_v4/results.md (tables), results_runs_v4/*.png (plots)
+[23:39:56] === run_all: mode design, conditions ['fixed', 'random'], 5 seed(s), 300 iterations (handle 600), cloning for ['reach', 'handle', 'door'], skills ON, 30 workers
+[23:39:56] start fixed_s0: train reach
+Process SpawnPoolWorker-19:
+Process SpawnPoolWorker-15:
+Process SpawnPoolWorker-26:
+Process SpawnPoolWorker-24:
+Process SpawnPoolWorker-27:
+Process SpawnPoolWorker-20:
+Process SpawnPoolWorker-29:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 683, in __init__
+    dd = mujoco.MjData(m)                                    # palm-side normal, in the palm body's frame
+         ^^^^^^^^^^^^^^^^
+mujoco.FatalError: Could not allocate memory
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 441, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+QH6080 qhull error (qh_memalloc): insufficient memory to allocate short memory buffer (65536 bytes)
+
+While executing:  | qhull Qt
+Options selected for Qhull 2020.2.r 2023/01/02:
+  run-id 1857015535  Qtriangulate  _pre-merge  _zero-centrum  _max-width 0.02
+  Error-roundoff 2.7e-17  _one-merge 1.9e-16  _near-inside 9.3e-16
+  Visible-distance 5.3e-17  U-max-coplanar 5.3e-17  Width-outside 1.1e-16
+  _wide-facet 3.2e-16  _maxoutside 2.1e-16
+Last point added to hull was p624.
+
+At error exit:
+
+Convex hull of 1135 points in 3-d:
+
+  Number of vertices: 238
+  Number of coplanar points: 1
+  Number of facets: 472
+
+Statistics for:  | qhull Qt
+
+  Number of points processed: 238
+  Number of hyperplanes created: 1245
+  Number of distance tests for qhull: 20538
+
+
+precision problems (corrected unless 'Q0' or an error)
+      1 coplanar points during partitioning
+QH6080 qhull error (qh_memalloc): insufficient memory to allocate short memory buffer (131072 bytes)
+
+While executing:  | qhull Qt
+Options selected for Qhull 2020.2.r 2023/01/02:
+  run-id 1857015535  Qtriangulate  _pre-merge  _zero-centrum  _maxoutside  0
+QH6080 qhull error (qh_memalloc): insufficient memory to allocate short memory buffer (65536 bytes)
+
+While executing:  | qhull Qt
+Options selected for Qhull 2020.2.r 2023/01/02:
+  run-id 1857015535  Qtriangulate  _pre-merge  _zero-centrum  _max-width 0.06
+  Error-roundoff 4.2e-17  _one-merge 2.9e-16  _near-inside 1.5e-15
+  Visible-distance 8.3e-17  U-max-coplanar 8.3e-17  Width-outside 1.7e-16
+  _wide-facet 5e-16  _maxoutside 3.3e-16
+Last point added to hull was p8.  Last merge was #8.
+
+At error exit:
+
+Convex hull of 2246 points in 3-d:
+
+  Number of vertices: 1892
+  Number of facets: 3778
+  Number of non-simplicial facets: 2
+
+Statistics for:  | qhull Qt
+
+  Number of points processed: 1891
+  Number of hyperplanes created: 10661
+  Number of distance tests for qhull: 61463
+  Number of distance tests for merging: 42865
+  Number of distance tests for checking: 0
+  Number of merged facets: 8
+
+
+precision problems (corrected unless 'Q0' or an error)
+      8 coplanar horizon facets for new vertices
+OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+Process SpawnPoolWorker-18:
+OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+Process SpawnPoolWorker-25:
+Process SpawnPoolWorker-23:
+Process SpawnPoolWorker-28:
+Process SpawnPoolWorker-16:
+Process SpawnPoolWorker-30:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Traceback (most recent call last):
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 203, in door_geometry
+    pts = geom_points_dense(m, d, g)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_setup.py", line 210, in geom_points_dense
+    v = np.unique(np.round(np.vstack(pts), 5), axis=0)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_arraysetops_impl.py", line 342, in unique
+    output = _unique1d(consolidated, return_index,
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\lib\_arraysetops_impl.py", line 403, in _unique1d
+    ret = (aux[mask],)
+           ~~~^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 152. KiB for an array with shape (6493,) and data type [('f0', '<f8'), ('f1', '<f8'), ('f2', '<f8')]
+Process SpawnPoolWorker-17:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Process SpawnPoolWorker-42:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Process SpawnPoolWorker-38:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 441, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Process SpawnPoolWorker-37:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+Process SpawnPoolWorker-43:
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 441, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Process SpawnPoolWorker-45:
+Traceback (most recent call last):
+Process SpawnPoolWorker-46:
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Process SpawnPoolWorker-49:
+Process SpawnPoolWorker-48:
+Process SpawnPoolWorker-47:
+Process SpawnPoolWorker-52:
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+ValueError: Error: engine error: Could not allocate memory
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Process SpawnPoolWorker-55:
+Process SpawnPoolWorker-53:
+OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 203, in door_geometry
+    pts = geom_points_dense(m, d, g)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_setup.py", line 217, in geom_points_dense
+    return np.array(d.geom_xpos[g]) + v @ R.T
+           ~~~~~~~~~~~~~~~~~~~~~~~~~^~~~~~~~~
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 203, in door_geometry
+    pts = geom_points_dense(m, d, g)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_setup.py", line 217, in geom_points_dense
+    return np.array(d.geom_xpos[g]) + v @ R.T
+                                      ~~^~~~~
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 267. KiB for an array with shape (11398, 3) and data type float64
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 267. KiB for an array with shape (11398, 3) and data type float64
+Process SpawnPoolWorker-59:
+Process SpawnPoolWorker-58:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 147, in hand_geometry
+    m = mujoco.MjModel.from_xml_path(hand_path)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+QH6080 qhull error (qh_memalloc): insufficient memory to allocate short memory buffer (65536 bytes)
+
+While executing:  | qhull Qt
+Options selected for Qhull 2020.2.r 2023/01/02:
+  run-id 1857099570  Qtriangulate  _pre-merge  _zero-centrum  _max-width 0.02
+  Error-roundoff 2.7e-17  _one-merge 1.9e-16  _near-inside 9.3e-16
+  Visible-distance 5.3e-17  U-max-coplanar 5.3e-17  Width-outside 1.1e-16
+  _wide-facet 3.2e-16  _maxoutside 2.1e-16
+Last point added to hull was p1034.  Last merge was #4.
+
+At error exit:
+
+Convex hull of 1135 points in 3-d:
+
+  Number of vertices: 655
+  Number of coplanar points: 2
+  Number of facets: 1304
+  Number of non-simplicial facets: 1
+
+Statistics for:  | qhull Qt
+
+  Number of points processed: 660
+  Number of hyperplanes created: 3649
+  Number of distance tests for qhull: 28440
+  Number of distance tests for merging: 14665
+  Number of distance tests for checking: 0
+  Number of merged facets: 4
+
+
+precision problems (corrected unless 'Q0' or an error)
+      4 coplanar horizon facets for new vertices
+      1 coplanar points during partitioning
+      3 degenerate hyperplanes recomputed with gaussian elimination
+Process SpawnPoolWorker-62:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 329, in build_scene
+    hg, dg = hand_geometry(hand_path, hcfg), door_geometry(door_path, dcfg, door_side)
+                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 203, in door_geometry
+    pts = geom_points_dense(m, d, g)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_setup.py", line 210, in geom_points_dense
+    v = np.unique(np.round(np.vstack(pts), 5), axis=0)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\_core\fromnumeric.py", line 3674, in round
+    return _wrapfunc(a, 'round', decimals=decimals, out=out)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\site-packages\numpy\_core\fromnumeric.py", line 54, in _wrapfunc
+    return bound(*args, **kwds)
+           ^^^^^^^^^^^^^^^^^^^^
+numpy._core._exceptions._ArrayMemoryError: Unable to allocate 449. KiB for an array with shape (19137, 3) and data type float64
+Process SpawnPoolWorker-63:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+Process SpawnPoolWorker-64:
+Process SpawnPoolWorker-65:
+Traceback (most recent call last):
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+MemoryError: bad allocation
+OpenBLAS error: Memory allocation still failed after 10 retries, giving up.
+Process SpawnPoolWorker-67:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Process SpawnPoolWorker-69:
+Process SpawnPoolWorker-68:
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+Traceback (most recent call last):
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 314, in _bootstrap
+    self.run()
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\process.py", line 108, in run
+    self._target(*self._args, **self._kwargs)
+  File "C:\Users\naren\AppData\Local\Programs\Python\Python312\Lib\multiprocessing\pool.py", line 109, in worker
+    initializer(*initargs)
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\ars.py", line 81, in _init_worker
+    _ENV = DoorEnv(**env_kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 575, in __init__
+    self.model, self.hcfg, self.dcfg, self.geo = build_scene(hand_path, door_path, door_side=door_side)
+                                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\naren\Documents\Capstone\Human_Hand_200mm\sw2+mujoko+python\door_env.py", line 407, in build_scene
+    model = mujoco.MjModel.from_xml_string(ET.tostring(scene, encoding="unicode"))
+            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ValueError: Error: engine error: Could not allocate memory
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] reach_ars_fixed_design_s0 -> runs_v5\reach_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 40/40 succeeded, 1973 labelled samples
+[bc] round 1: cloned policy drove 10/10 succeeded, 2403 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 2827 labelled samples
+[bc] round 3: cloned policy drove 10/10 succeeded, 3263 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return     3.64  eval success 100.0 %
+[ars] it    5  steps    21395  return     2.59  eval return     4.19  eval success 100.0 %  (6 s)
+[ars] it   10  steps    41514  return     3.66  eval return     4.50  eval success 100.0 %  (9 s)
+[ars] it   15  steps    61312  return     3.24  eval return     4.51  eval success 100.0 %  (12 s)
+[ars] it   20  steps    80327  return     4.18  eval return     4.69  eval success 100.0 %  (14 s)
+[ars] it   25  steps    99488  return     3.60  eval return     4.85  eval success 100.0 %  (17 s)
+[ars] it   30  steps   119396  return     2.15  eval return     4.86  eval success 100.0 %  (20 s)
+[ars] it   35  steps   140193  return     2.74  eval return     4.87  eval success 100.0 %  (24 s)
+[ars] it   40  steps   160474  return     4.31  eval return     4.90  eval success 100.0 %  (28 s)
+[ars] it   45  steps   179578  return     4.35  eval return     4.95  eval success 100.0 %  (31 s)
+[ars] it   50  steps   198307  return     4.51  eval return     5.03  eval success 100.0 %  (34 s)
+[ars] it   55  steps   217549  return     3.71  eval return     5.08  eval success 100.0 %  (37 s)
+[ars] it   60  steps   235950  return     4.61  eval return     5.11  eval success 100.0 %  (40 s)
+[ars] it   65  steps   254634  return     4.70  eval return     5.16  eval success 100.0 %  (43 s)
+[ars] it   70  steps   273184  return     3.90  eval return     5.19  eval success 100.0 %  (46 s)
+[ars] it   75  steps   291721  return     4.87  eval return     5.22  eval success 100.0 %  (48 s)
+[ars] it   80  steps   311415  return     4.13  eval return     5.27  eval success 100.0 %  (50 s)
+[ars] it   85  steps   329358  return     4.01  eval return     5.29  eval success 100.0 %  (52 s)
+[ars] it   90  steps   347657  return     3.13  eval return     5.29  eval success 100.0 %  (54 s)
+[ars] it   95  steps   365843  return     5.04  eval return     5.32  eval success 100.0 %  (56 s)
+[ars] it  100  steps   383511  return     4.90  eval return     5.33  eval success 100.0 %  (59 s)
+[ars] it  105  steps   402307  return     3.01  eval return     5.32  eval success 100.0 %  (62 s)
+[ars] it  110  steps   420317  return     5.17  eval return     5.35  eval success 100.0 %  (66 s)
+[ars] it  115  steps   438563  return     2.78  eval return     5.35  eval success 100.0 %  (68 s)
+[ars] it  120  steps   456160  return     4.75  eval return     5.37  eval success 100.0 %  (71 s)
+[ars] it  125  steps   474007  return     4.90  eval return     5.39  eval success 100.0 %  (74 s)
+[ars] it  130  steps   491456  return     5.37  eval return     5.41  eval success 100.0 %  (77 s)
+[ars] it  135  steps   509297  return     4.36  eval return     5.41  eval success 100.0 %  (80 s)
+[ars] it  140  steps   526631  return     5.00  eval return     5.43  eval success 100.0 %  (82 s)
+[ars] it  145  steps   544954  return     3.92  eval return     5.45  eval success 100.0 %  (86 s)
+[ars] it  150  steps   563011  return     3.65  eval return     5.45  eval success 100.0 %  (89 s)
+[ars] it  155  steps   580805  return     4.50  eval return     5.46  eval success 100.0 %  (92 s)
+[ars] it  160  steps   598949  return     5.03  eval return     5.47  eval success 100.0 %  (95 s)
+[ars] it  165  steps   617259  return     5.18  eval return     5.47  eval success 100.0 %  (98 s)
+[ars] it  170  steps   636350  return     3.27  eval return     5.49  eval success 100.0 %  (101 s)
+[ars] it  175  steps   653804  return     5.33  eval return     5.49  eval success 100.0 %  (104 s)
+[ars] it  180  steps   671705  return     3.68  eval return     5.49  eval success 100.0 %  (107 s)
+[ars] it  185  steps   689326  return     5.29  eval return     5.49  eval success 100.0 %  (110 s)
+[ars] it  190  steps   708201  return     4.46  eval return     5.51  eval success 100.0 %  (114 s)
+[ars] it  195  steps   726506  return     5.13  eval return     5.51  eval success 100.0 %  (117 s)
+[ars] it  200  steps   743885  return     4.51  eval return     5.51  eval success 100.0 %  (120 s)
+[ars] it  205  steps   761548  return     4.69  eval return     5.52  eval success 100.0 %  (123 s)
+[ars] it  210  steps   779204  return     4.52  eval return     5.53  eval success 100.0 %  (126 s)
+[ars] it  215  steps   797257  return     5.07  eval return     5.54  eval success 100.0 %  (128 s)
+[ars] it  220  steps   814871  return     5.21  eval return     5.53  eval success 100.0 %  (129 s)
+[ars] it  225  steps   833216  return     4.28  eval return     5.53  eval success 100.0 %  (131 s)
+[ars] it  230  steps   851800  return     5.04  eval return     5.54  eval success 100.0 %  (134 s)
+[ars] it  235  steps   870113  return     4.58  eval return     5.56  eval success 100.0 %  (136 s)
+[ars] it  240  steps   887736  return     5.22  eval return     5.56  eval success 100.0 %  (138 s)
+[ars] it  245  steps   905266  return     5.30  eval return     5.57  eval success 100.0 %  (141 s)
+[ars] it  250  steps   923605  return     5.16  eval return     5.57  eval success 100.0 %  (144 s)
+[ars] it  255  steps   941848  return     4.26  eval return     5.59  eval success 100.0 %  (146 s)
+[ars] it  260  steps   961033  return     1.80  eval return     5.57  eval success 100.0 %  (149 s)
+[ars] it  265  steps   978922  return     5.09  eval return     5.61  eval success 100.0 %  (152 s)
+[ars] it  270  steps   997357  return     5.27  eval return     5.63  eval success 100.0 %  (156 s)
+[ars] it  275  steps  1017319  return     1.97  eval return     5.62  eval success 100.0 %  (159 s)
+[ars] it  280  steps  1035477  return     4.77  eval return     5.63  eval success 100.0 %  (161 s)
+[ars] it  285  steps  1053502  return     5.20  eval return     5.63  eval success 100.0 %  (163 s)
+[ars] it  290  steps  1072269  return     3.44  eval return     5.63  eval success 100.0 %  (165 s)
+[ars] it  295  steps  1091663  return     2.86  eval return     5.63  eval success 100.0 %  (168 s)
+[ars] it  300  steps  1109217  return     3.51  eval return     5.64  eval success 100.0 %  (170 s)
+[23:42:56] done  fixed_s0: train reach  (3.0 min)
+[23:42:56] start fixed_s0: pool after reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/400 episodes, 20 successful end states
+[starts] 40/400 episodes, 40 successful end states
+[starts] 60/400 episodes, 60 successful end states
+[starts] 80/400 episodes, 80 successful end states
+[starts] 100/400 episodes, 100 successful end states
+[starts] 120/400 episodes, 120 successful end states
+[starts] 140/400 episodes, 140 successful end states
+[starts] 160/400 episodes, 160 successful end states
+[starts] 180/400 episodes, 180 successful end states
+[starts] 200/400 episodes, 200 successful end states
+[starts] 220/400 episodes, 220 successful end states
+[starts] 240/400 episodes, 240 successful end states
+[starts] 260/400 episodes, 260 successful end states
+[starts] 280/400 episodes, 280 successful end states
+[starts] 300/400 episodes, 300 successful end states
+[starts] 320/400 episodes, 320 successful end states
+[starts] 340/400 episodes, 340 successful end states
+[starts] 360/400 episodes, 360 successful end states
+[starts] 380/400 episodes, 380 successful end states
+[starts] 400/400 episodes, 400 successful end states
+[starts] 400/400 successes (11 s) -> runs_v5/starts/after_reach_design_fixed_s0.pkl
+         train the next stage from them:  python experiment.py train --task handle --starts runs_v5/starts/after_reach_design_fixed_s0.pkl ...
+[23:43:08] done  fixed_s0: pool after reach  (0.2 min)
+[23:43:08] start fixed_s0: train handle
+[train] handle_ars_fixed_design_s0 -> runs_v5\handle_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 8/40 succeeded, 9293 labelled samples
+[bc] round 1: cloned policy drove 0/10 succeeded, 11793 labelled samples
+[bc] round 2: cloned policy drove 0/10 succeeded, 14293 labelled samples
+[bc] round 3: cloned policy drove 3/10 succeeded, 16582 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return   -19.94  eval success  33.3 %
+[ars] it    5  steps   110252  return   -17.63  eval return    -8.41  eval success  56.7 %  (24 s)
+[ars] it   10  steps   213889  return    -6.26  eval return     4.56  eval success  73.3 %  (45 s)
+[ars] it   15  steps   313799  return    -8.28  eval return     8.10  eval success  76.7 %  (66 s)
+[ars] it   20  steps   409464  return    -3.39  eval return     7.83  eval success  63.3 %  (86 s)
+[ars] it   25  steps   500840  return    -0.43  eval return    13.72  eval success  53.3 %  (107 s)
+[ars] it   30  steps   596548  return     1.69  eval return     7.93  eval success  70.0 %  (128 s)
+[ars] it   35  steps   687123  return     0.88  eval return    15.87  eval success  90.0 %  (148 s)
+[ars] it   40  steps   774216  return     1.47  eval return    14.00  eval success  76.7 %  (167 s)
+[ars] it   45  steps   856759  return     3.22  eval return    20.10  eval success  86.7 %  (184 s)
+[ars] it   50  steps   942029  return     4.09  eval return     2.57  eval success  40.0 %  (203 s)
+[ars] it   55  steps  1031236  return     0.79  eval return    20.02  eval success  83.3 %  (222 s)
+[ars] it   60  steps  1119502  return    -0.23  eval return    16.35  eval success  70.0 %  (241 s)
+[ars] it   65  steps  1209169  return    -0.32  eval return    19.33  eval success  83.3 %  (261 s)
+[ars] it   70  steps  1290073  return     2.06  eval return    18.79  eval success  80.0 %  (278 s)
+[ars] it   75  steps  1370124  return     5.06  eval return    13.80  eval success  70.0 %  (296 s)
+[ars] it   80  steps  1448795  return     1.31  eval return    24.00  eval success  90.0 %  (313 s)
+[ars] it   85  steps  1529389  return     4.48  eval return    14.03  eval success  73.3 %  (331 s)
+[ars] it   90  steps  1610017  return     7.06  eval return     4.08  eval success  46.7 %  (349 s)
+[ars] it   95  steps  1690642  return     1.73  eval return    12.26  eval success  66.7 %  (367 s)
+[ars] it  100  steps  1773481  return     4.01  eval return    12.10  eval success  63.3 %  (385 s)
+[ars] it  105  steps  1854224  return    -1.36  eval return     9.54  eval success  56.7 %  (403 s)
+[ars] it  110  steps  1942811  return    -3.43  eval return    16.62  eval success  70.0 %  (423 s)
+[ars] it  115  steps  2024594  return     2.70  eval return     7.54  eval success  60.0 %  (441 s)
+[ars] it  120  steps  2102611  return     4.94  eval return     9.57  eval success  63.3 %  (458 s)
+[ars] it  125  steps  2179647  return     7.42  eval return     9.36  eval success  66.7 %  (476 s)
+[ars] it  130  steps  2253213  return     1.05  eval return     9.86  eval success  73.3 %  (492 s)
+[ars] it  135  steps  2324873  return     8.63  eval return     4.93  eval success  60.0 %  (508 s)
+[ars] it  140  steps  2401702  return     4.28  eval return    14.22  eval success  73.3 %  (525 s)
+[ars] it  145  steps  2475262  return     3.48  eval return    20.61  eval success  83.3 %  (543 s)
+[ars] it  150  steps  2549298  return     9.19  eval return     2.76  eval success  60.0 %  (560 s)
+[ars] it  155  steps  2621770  return     3.87  eval return    20.50  eval success  86.7 %  (577 s)
+[ars] it  160  steps  2696827  return    11.18  eval return    11.29  eval success  70.0 %  (594 s)
+[ars] it  165  steps  2775262  return     9.78  eval return    23.40  eval success  83.3 %  (612 s)
+[ars] it  170  steps  2855928  return     7.70  eval return    19.95  eval success  80.0 %  (631 s)
+[ars] it  175  steps  2937026  return     2.74  eval return    20.08  eval success  76.7 %  (649 s)
+[ars] it  180  steps  3017252  return     6.55  eval return    13.46  eval success  63.3 %  (667 s)
+[ars] it  185  steps  3094967  return     8.66  eval return    26.77  eval success  90.0 %  (686 s)
+[ars] it  190  steps  3176058  return    10.19  eval return    18.45  eval success  70.0 %  (705 s)
+[ars] it  195  steps  3255270  return    10.07  eval return    24.95  eval success  80.0 %  (724 s)
+[ars] it  200  steps  3335701  return     8.22  eval return    16.91  eval success  66.7 %  (744 s)
+[ars] it  205  steps  3414131  return     8.56  eval return    26.94  eval success  83.3 %  (762 s)
+[ars] it  210  steps  3495923  return     9.52  eval return    21.17  eval success  70.0 %  (782 s)
+[ars] it  215  steps  3573166  return    15.71  eval return    16.72  eval success  66.7 %  (800 s)
+[ars] it  220  steps  3651806  return    14.23  eval return    10.22  eval success  53.3 %  (820 s)
+[ars] it  225  steps  3728308  return     9.95  eval return    16.18  eval success  60.0 %  (838 s)
+[ars] it  230  steps  3808855  return     9.29  eval return    23.87  eval success  73.3 %  (858 s)
+[ars] it  235  steps  3898059  return     9.25  eval return    22.91  eval success  73.3 %  (878 s)
+[ars] it  240  steps  3985419  return     6.71  eval return    28.46  eval success  86.7 %  (898 s)
+[ars] it  245  steps  4070719  return     6.21  eval return     6.70  eval success  43.3 %  (919 s)
+[ars] it  250  steps  4155614  return    10.39  eval return    13.54  eval success  60.0 %  (939 s)
+[ars] it  255  steps  4238098  return    13.05  eval return    20.94  eval success  70.0 %  (958 s)
+[ars] it  260  steps  4322799  return    12.24  eval return    20.18  eval success  70.0 %  (978 s)
+[ars] it  265  steps  4402042  return     9.45  eval return    13.79  eval success  60.0 %  (996 s)
+[ars] it  270  steps  4477080  return    11.23  eval return    28.29  eval success  83.3 %  (1013 s)
+[ars] it  275  steps  4554347  return    16.21  eval return    23.80  eval success  83.3 %  (1031 s)
+[ars] it  280  steps  4628899  return    17.22  eval return    28.77  eval success  83.3 %  (1049 s)
+[ars] it  285  steps  4703572  return    15.19  eval return    23.98  eval success  70.0 %  (1066 s)
+[ars] it  290  steps  4779405  return    13.50  eval return    27.77  eval success  83.3 %  (1083 s)
+[ars] it  295  steps  4855831  return    16.37  eval return    23.15  eval success  73.3 %  (1101 s)
+[ars] it  300  steps  4930222  return    14.46  eval return    30.25  eval success  86.7 %  (1118 s)
+[ars] it  305  steps  5007888  return    12.77  eval return    20.06  eval success  63.3 %  (1136 s)
+[ars] it  310  steps  5087912  return    10.49  eval return    30.75  eval success  86.7 %  (1154 s)
+[ars] it  315  steps  5163796  return     8.98  eval return    15.31  eval success  66.7 %  (1188 s)
+[ars] it  320  steps  5238429  return     9.41  eval return    36.44  eval success 100.0 %  (1232 s)
+[ars] it  325  steps  5309916  return    16.04  eval return    20.39  eval success  70.0 %  (1275 s)
+[ars] it  330  steps  5382207  return    14.75  eval return    23.23  eval success  70.0 %  (1318 s)
+[ars] it  335  steps  5456070  return    17.89  eval return    21.55  eval success  73.3 %  (1361 s)
+[ars] it  340  steps  5527541  return    19.76  eval return    31.83  eval success  93.3 %  (1404 s)
+[ars] it  345  steps  5600096  return    15.05  eval return    27.74  eval success  83.3 %  (1447 s)
+[ars] it  350  steps  5673791  return    17.18  eval return    29.46  eval success  83.3 %  (1492 s)
+[ars] it  355  steps  5743985  return    19.50  eval return    32.61  eval success  90.0 %  (1535 s)
+[ars] it  360  steps  5816574  return    21.33  eval return    29.91  eval success  83.3 %  (1579 s)
+[ars] it  365  steps  5892059  return    17.06  eval return    24.96  eval success  76.7 %  (1625 s)
+[ars] it  370  steps  5967432  return    10.08  eval return    33.55  eval success  90.0 %  (1669 s)
+[ars] it  375  steps  6043694  return    15.42  eval return    36.17  eval success  93.3 %  (1714 s)[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+
+[ars] it  380  steps  6122350  return    14.09  eval return    28.93  eval success  70.0 %  (1761 s)
+[ars] it  385  steps  6197870  return    24.96  eval return    31.72  eval success  86.7 %  (1806 s)
+[ars] it  390  steps  6273152  return    18.21  eval return    31.77  eval success  80.0 %  (1852 s)
+[ars] it  395  steps  6348339  return    20.35  eval return    32.63  eval success  86.7 %  (1897 s)
+[ars] it  400  steps  6422966  return    19.73  eval return    30.39  eval success  83.3 %  (1944 s)
+[ars] it  405  steps  6499542  return    20.59  eval return    36.50  eval success  90.0 %  (1990 s)
+[ars] it  410  steps  6576992  return    22.87  eval return    34.73  eval success  83.3 %  (2037 s)
+[ars] it  415  steps  6657788  return    17.44  eval return    35.08  eval success  83.3 %  (2086 s)
+[ars] it  420  steps  6741818  return    16.35  eval return    38.75  eval success  93.3 %  (2136 s)
+[ars] it  425  steps  6823751  return    23.69  eval return    36.27  eval success  83.3 %  (2185 s)
+[ars] it  430  steps  6906463  return    20.98  eval return    35.59  eval success  80.0 %  (2235 s)
+[ars] it  435  steps  6985630  return    25.66  eval return    35.39  eval success  83.3 %  (2282 s)
+[ars] it  440  steps  7063029  return    26.94  eval return    26.84  eval success  66.7 %  (2330 s)
+[ars] it  445  steps  7138646  return    24.51  eval return    37.14  eval success  86.7 %  (2377 s)
+[ars] it  450  steps  7216574  return    27.98  eval return    24.61  eval success  56.7 %  (2425 s)
+[ars] it  455  steps  7295893  return    24.66  eval return    33.48  eval success  70.0 %  (2474 s)
+[ars] it  460  steps  7377298  return    26.51  eval return    32.76  eval success  66.7 %  (2525 s)
+[ars] it  465  steps  7458809  return    30.57  eval return    43.59  eval success  86.7 %  (2577 s)
+[ars] it  470  steps  7543880  return    25.60  eval return    37.94  eval success  63.3 %  (2630 s)
+[ars] it  475  steps  7635742  return    22.50  eval return    34.10  eval success  63.3 %  (2686 s)
+[ars] it  480  steps  7727582  return    24.35  eval return    35.10  eval success  63.3 %  (2742 s)
+[ars] it  485  steps  7818548  return    22.14  eval return    32.50  eval success  43.3 %  (2799 s)
+[ars] it  490  steps  7915659  return    28.79  eval return    49.70  eval success  70.0 %  (2858 s)
+[ars] it  495  steps  8017748  return    27.27  eval return    44.12  eval success  50.0 %  (2922 s)
+[ars] it  500  steps  8117486  return    31.68  eval return    49.33  eval success  56.7 %  (2985 s)
+[ars] it  505  steps  8222716  return    29.08  eval return    49.13  eval success  63.3 %  (3052 s)
+[ars] it  510  steps  8330579  return    30.61  eval return    46.84  eval success  46.7 %  (3120 s)
+[ars] it  515  steps  8436368  return    30.62  eval return    51.43  eval success  53.3 %  (3187 s)
+[ars] it  520  steps  8546470  return    35.82  eval return    53.57  eval success  33.3 %  (3257 s)
+[ars] it  525  steps  8657342  return    33.40  eval return    59.58  eval success  40.0 %  (3329 s)
+[ars] it  530  steps  8768789  return    32.37  eval return    39.29  eval success  20.0 %  (3401 s)
+[ars] it  535  steps  8882707  return    41.14  eval return    57.16  eval success  20.0 %  (3476 s)
+[ars] it  540  steps  8998547  return    36.39  eval return    60.71  eval success  20.0 %  (3553 s)
+[ars] it  545  steps  9114037  return    42.53  eval return    58.72  eval success  13.3 %  (3629 s)
+[ars] it  550  steps  9230406  return    36.99  eval return    55.91  eval success  10.0 %  (3705 s)
+[ars] it  555  steps  9346580  return    42.01  eval return    66.85  eval success   6.7 %  (3783 s)
+[ars] it  560  steps  9464531  return    41.69  eval return    68.45  eval success   0.0 %  (3863 s)
+[ars] it  565  steps  9582386  return    37.81  eval return    67.18  eval success   6.7 %  (3942 s)
+[ars] it  570  steps  9699937  return    43.74  eval return    62.55  eval success   3.3 %  (4022 s)
+[ars] it  575  steps  9817238  return    45.94  eval return    71.90  eval success   3.3 %  (4102 s)
+[ars] it  580  steps  9935412  return    47.67  eval return    65.55  eval success   0.0 %  (4183 s)
+[ars] it  585  steps 10053565  return    47.23  eval return    71.82  eval success   3.3 %  (4264 s)
+[ars] it  590  steps 10170404  return    50.74  eval return    70.98  eval success   0.0 %  (4345 s)
+[ars] it  595  steps 10288349  return    54.95  eval return    64.78  eval success   6.7 %  (4426 s)
+[ars] it  600  steps 10405918  return    52.63  eval return    65.85  eval success   0.0 %  (4507 s)
+[00:59:18] done  fixed_s0: train handle  (76.2 min)
+[00:59:18] start fixed_s0: pool after handle
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/400 episodes, 16 successful end states
+[starts] 40/400 episodes, 34 successful end states
+[starts] 60/400 episodes, 51 successful end states
+[starts] 80/400 episodes, 68 successful end states
+[starts] 100/400 episodes, 84 successful end states
+[starts] 120/400 episodes, 101 successful end states
+[starts] 140/400 episodes, 115 successful end states
+[starts] 160/400 episodes, 131 successful end states
+[starts] 180/400 episodes, 146 successful end states
+[starts] 200/400 episodes, 163 successful end states
+[starts] 220/400 episodes, 179 successful end states
+[starts] 240/400 episodes, 195 successful end states
+[starts] 260/400 episodes, 209 successful end states
+[starts] 280/400 episodes, 222 successful end states
+[starts] 300/400 episodes, 235 successful end states
+[starts] 320/400 episodes, 250 successful end states
+[starts] 340/400 episodes, 267 successful end states
+[starts] 360/400 episodes, 282 successful end states
+[starts] 380/400 episodes, 299 successful end states
+[starts] 400/400 episodes, 314 successful end states
+[starts] 314/400 successes (351 s) -> runs_v5/starts/after_handle_design_fixed_s0.pkl
+         train the next stage from them:  python experiment.py train --task door --starts runs_v5/starts/after_handle_design_fixed_s0.pkl ...
+[01:05:12] done  fixed_s0: pool after handle  (5.9 min)
+[01:05:12] start fixed_s0: train door
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] door_ars_fixed_design_s0 -> runs_v5\door_ars_fixed_design_s0
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 32/40 succeeded, 4743 labelled samples
+[bc] round 1: cloned policy drove 8/10 succeeded, 5896 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 6599 labelled samples
+[bc] round 3: cloned policy drove 10/10 succeeded, 7379 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return     1.21  eval success  76.7 %
+[ars] it    5  steps    48698  return    10.46  eval return     3.90  eval success  83.3 %  (19 s)
+[ars] it   10  steps    90928  return    10.74  eval return     5.30  eval success  83.3 %  (39 s)
+[ars] it   15  steps   131238  return    11.65  eval return     7.02  eval success  86.7 %  (59 s)
+[ars] it   20  steps   167088  return     8.43  eval return     9.18  eval success  90.0 %  (77 s)
+[ars] it   25  steps   202823  return    13.39  eval return    12.13  eval success  96.7 %  (96 s)
+[ars] it   30  steps   243081  return    12.06  eval return    10.18  eval success  93.3 %  (115 s)
+[ars] it   35  steps   279883  return    11.06  eval return     7.10  eval success  86.7 %  (134 s)
+[ars] it   40  steps   319912  return    12.28  eval return    10.60  eval success  93.3 %  (153 s)
+[ars] it   45  steps   359234  return    12.12  eval return    13.59  eval success 100.0 %  (171 s)
+[ars] it   50  steps   396441  return    13.03  eval return    13.70  eval success 100.0 %  (189 s)
+[ars] it   55  steps   436905  return    13.17  eval return    13.57  eval success 100.0 %  (210 s)
+[ars] it   60  steps   478818  return    13.97  eval return    13.47  eval success 100.0 %  (229 s)
+[ars] it   65  steps   517763  return    12.61  eval return    13.58  eval success 100.0 %  (246 s)
+[ars] it   70  steps   560995  return    13.57  eval return    13.61  eval success 100.0 %  (265 s)
+[ars] it   75  steps   602916  return    14.02  eval return    13.63  eval success 100.0 %  (283 s)
+[ars] it   80  steps   647537  return    12.65  eval return    13.50  eval success 100.0 %  (303 s)
+[ars] it   85  steps   692353  return    14.03  eval return    13.70  eval success 100.0 %  (322 s)
+[ars] it   90  steps   737873  return    13.32  eval return    13.68  eval success 100.0 %  (341 s)
+[ars] it   95  steps   787775  return    14.81  eval return    13.64  eval success 100.0 %  (362 s)
+[ars] it  100  steps   834814  return    12.64  eval return    13.26  eval success 100.0 %  (382 s)
+[ars] it  105  steps   881778  return    14.64  eval return    13.38  eval success 100.0 %  (402 s)
+[ars] it  110  steps   931109  return    14.72  eval return    13.75  eval success 100.0 %  (423 s)
+[ars] it  115  steps   979963  return    14.33  eval return    13.82  eval success 100.0 %  (444 s)
+[ars] it  120  steps  1028544  return    12.90  eval return    13.63  eval success 100.0 %  (465 s)
+[ars] it  125  steps  1079745  return    14.24  eval return    13.62  eval success 100.0 %  (486 s)
+[ars] it  130  steps  1131148  return    14.62  eval return    13.56  eval success 100.0 %  (508 s)
+[ars] it  135  steps  1181046  return    15.27  eval return    13.58  eval success 100.0 %  (529 s)
+[ars] it  140  steps  1229926  return    14.70  eval return    13.55  eval success 100.0 %  (550 s)
+[ars] it  145  steps  1284753  return    12.12  eval return    13.37  eval success 100.0 %  (573 s)
+[ars] it  150  steps  1338916  return    13.67  eval return    12.18  eval success  96.7 %  (596 s)
+[ars] it  155  steps  1392032  return    15.46  eval return    12.25  eval success  96.7 %  (618 s)
+[ars] it  160  steps  1443828  return    14.08  eval return    12.21  eval success  96.7 %  (640 s)
+[ars] it  165  steps  1499469  return    14.87  eval return    13.67  eval success 100.0 %  (663 s)
+[ars] it  170  steps  1556174  return    14.08  eval return    12.32  eval success  96.7 %  (686 s)
+[ars] it  175  steps  1610093  return    13.62  eval return    12.40  eval success  96.7 %  (709 s)
+[ars] it  180  steps  1667123  return    15.12  eval return    13.51  eval success 100.0 %  (732 s)
+[ars] it  185  steps  1723659  return    14.59  eval return    13.83  eval success 100.0 %  (754 s)
+[ars] it  190  steps  1783352  return    15.28  eval return    12.42  eval success  96.7 %  (779 s)
+[ars] it  195  steps  1844096  return    13.30  eval return    12.18  eval success  96.7 %  (803 s)
+[ars] it  200  steps  1903571  return    14.53  eval return    12.16  eval success  96.7 %  (828 s)
+[ars] it  205  steps  1961560  return    12.45  eval return    12.18  eval success  96.7 %  (852 s)
+[ars] it  210  steps  2026283  return    13.67  eval return    12.17  eval success  96.7 %  (879 s)
+[ars] it  215  steps  2081649  return    14.41  eval return    12.20  eval success  96.7 %  (902 s)
+[ars] it  220  steps  2138570  return    14.61  eval return    13.35  eval success 100.0 %  (925 s)
+[ars] it  225  steps  2194440  return    13.38  eval return    12.43  eval success  96.7 %  (949 s)
+[ars] it  230  steps  2251402  return    15.31  eval return    12.37  eval success  96.7 %  (972 s)
+[ars] it  235  steps  2311217  return    13.16  eval return    12.10  eval success  96.7 %  (997 s)
+[ars] it  240  steps  2372534  return    13.58  eval return    12.31  eval success  96.7 %  (1023 s)
+[ars] it  245  steps  2430898  return    14.97  eval return    13.64  eval success 100.0 %  (1046 s)
+[ars] it  250  steps  2493929  return    14.52  eval return    12.13  eval success  96.7 %  (1072 s)
+[ars] it  255  steps  2551232  return    15.04  eval return    12.17  eval success  96.7 %  (1096 s)
+[ars] it  260  steps  2608588  return    15.30  eval return    12.18  eval success  96.7 %  (1120 s)
+[ars] it  265  steps  2671839  return    14.74  eval return    13.66  eval success 100.0 %  (1145 s)
+[ars] it  270  steps  2734059  return    15.69  eval return    13.64  eval success 100.0 %  (1171 s)
+[ars] it  275  steps  2788606  return    14.39  eval return    13.67  eval success 100.0 %  (1193 s)
+[ars] it  280  steps  2845175  return    15.76  eval return    13.46  eval success 100.0 %  (1216 s)
+[ars] it  285  steps  2908301  return    13.73  eval return    13.62  eval success 100.0 %  (1242 s)
+[ars] it  290  steps  2972640  return    14.99  eval return    13.67  eval success 100.0 %  (1267 s)
+[ars] it  295  steps  3028322  return    15.11  eval return    11.89  eval success  96.7 %  (1290 s)
+[ars] it  300  steps  3084674  return    14.66  eval return    13.59  eval success 100.0 %  (1313 s)
+[01:27:51] done  fixed_s0: train door  (22.7 min)
+[01:27:51] start fixed_s0: chain (all test doors)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+  nominal  nominal          reach  100%  handle   80%  door   80%  END-TO-END   80%  time   5.9 s  recoveries 0.2  grasped  84%  arm-on-door   0%
+  in_dist  in_dist_0        reach  100%  handle   85%  door   65%  END-TO-END   65%  time   9.1 s  recoveries 0.1  grasped  81%  arm-on-door  12%
+  in_dist  in_dist_1        reach  100%  handle   90%  door   90%  END-TO-END   90%  time   8.3 s  recoveries 0.1  grasped  80%  arm-on-door   1%
+  in_dist  in_dist_2        reach  100%  handle   50%  door   45%  END-TO-END   45%  time   6.2 s  recoveries 0.5  grasped  70%  arm-on-door   4%
+  in_dist  in_dist_3        reach   95%  handle   65%  door   65%  END-TO-END   65%  time   7.3 s  recoveries 0.3  grasped  65%  arm-on-door   0%
+  in_dist  in_dist_4        reach   85%  handle   55%  door   40%  END-TO-END   40%  time   7.0 s  recoveries 0.3  grasped  77%  arm-on-door  12%
+  in_dist  in_dist_5        reach  100%  handle   95%  door   95%  END-TO-END   95%  time   7.9 s  recoveries 0.1  grasped  83%  arm-on-door   0%
+  in_dist  in_dist_6        reach  100%  handle   80%  door   70%  END-TO-END   70%  time   9.0 s  recoveries 0.2  grasped  76%  arm-on-door   7%
+  in_dist  in_dist_7        reach  100%  handle   75%  door   75%  END-TO-END   75%  time   6.5 s  recoveries 0.2  grasped  72%  arm-on-door   1%
+  in_dist  in_dist_8        reach   90%  handle   75%  door   75%  END-TO-END   75%  time   7.2 s  recoveries 0.1  grasped  77%  arm-on-door   0%
+  in_dist  in_dist_9        reach  100%  handle   75%  door   75%  END-TO-END   75%  time   6.9 s  recoveries 0.2  grasped  74%  arm-on-door   0%
+  unseen   shifted_side     reach  100%  handle   60%  door   60%  END-TO-END   60%  time   7.1 s  recoveries 0.4  grasped  66%  arm-on-door   0%
+  unseen   handle_high      reach   75%  handle   65%  door   65%  END-TO-END   65%  time   7.1 s  recoveries 0.1  grasped  80%  arm-on-door   1%
+  unseen   handle_low       reach   95%  handle   45%  door   40%  END-TO-END   40%  time   6.3 s  recoveries 0.5  grasped  64%  arm-on-door   5%
+  unseen   turned_door      reach  100%  handle   30%  door   25%  END-TO-END   25%  time   5.9 s  recoveries 0.7  grasped  70%  arm-on-door   7%
+  unseen   stiff_handle     reach  100%  handle   80%  door   80%  END-TO-END   80%  time   5.9 s  recoveries 0.2  grasped  84%  arm-on-door   0%
+  unseen   stiff_hinge      reach  100%  handle   85%  door   60%  END-TO-END   60%  time   9.2 s  recoveries 0.1  grasped  80%  arm-on-door  17%
+  unseen   deep_latch       reach  100%  handle   75%  door   60%  END-TO-END   60%  time   6.6 s  recoveries 0.2  grasped  85%  arm-on-door  10%
+  unseen   heavy_slippery   reach  100%  handle   90%  door   85%  END-TO-END   85%  time   6.2 s  recoveries 0.1  grasped  77%  arm-on-door   3%
+  unseen   hard_combo       reach   85%  handle   15%  door   15%  END-TO-END   15%  time   9.3 s  recoveries 0.7  grasped  20%  arm-on-door   0%
+[chain] mean end-to-end 63 %  -> runs_v5/chain_ars_fixed_s0/chain_eval.csv
+[01:34:56] done  fixed_s0: chain (all test doors)  (7.1 min)
+[01:34:56] start fixed_s1: train reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[train] reach_ars_fixed_design_s1 -> runs_v5\reach_ars_fixed_design_s1
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 40/40 succeeded, 1970 labelled samples
+[bc] round 1: cloned policy drove 10/10 succeeded, 2391 labelled samples
+[bc] round 2: cloned policy drove 10/10 succeeded, 2816 labelled samples
+[bc] round 3: cloned policy drove 10/10 succeeded, 3218 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return     3.60  eval success 100.0 %
+[ars] it    5  steps    21261  return     2.94  eval return     4.26  eval success 100.0 %  (6 s)
+[ars] it   10  steps    41474  return     3.41  eval return     4.43  eval success 100.0 %  (12 s)
+[ars] it   15  steps    61148  return     3.59  eval return     4.46  eval success 100.0 %  (18 s)
+[ars] it   20  steps    80702  return     4.08  eval return     4.61  eval success 100.0 %  (23 s)
+[ars] it   25  steps   100141  return     3.35  eval return     4.73  eval success 100.0 %  (29 s)
+[ars] it   30  steps   120162  return     2.24  eval return     4.81  eval success 100.0 %  (35 s)
+[ars] it   35  steps   140216  return     2.14  eval return     4.89  eval success 100.0 %  (43 s)
+[ars] it   40  steps   160644  return     1.94  eval return     4.91  eval success 100.0 %  (50 s)
+[ars] it   45  steps   182279  return     1.23  eval return     4.88  eval success 100.0 %  (58 s)
+[ars] it   50  steps   202875  return     4.32  eval return     4.87  eval success 100.0 %  (65 s)
+[ars] it   55  steps   224506  return     2.06  eval return     4.85  eval success 100.0 %  (73 s)
+[ars] it   60  steps   245272  return     2.80  eval return     4.90  eval success 100.0 %  (82 s)
+[ars] it   65  steps   266032  return     3.66  eval return     4.95  eval success 100.0 %  (90 s)
+[ars] it   70  steps   285140  return     4.46  eval return     5.01  eval success 100.0 %  (97 s)
+[ars] it   75  steps   306064  return     3.94  eval return     4.97  eval success 100.0 %  (105 s)
+[ars] it   80  steps   325381  return     4.06  eval return     5.02  eval success 100.0 %  (112 s)
+[ars] it   85  steps   344397  return     4.30  eval return     5.06  eval success 100.0 %  (119 s)
+[ars] it   90  steps   362871  return     3.79  eval return     5.11  eval success 100.0 %  (125 s)
+[ars] it   95  steps   381770  return     4.89  eval return     5.12  eval success 100.0 %  (133 s)
+[ars] it  100  steps   399546  return     3.34  eval return     5.15  eval success 100.0 %  (138 s)
+[ars] it  105  steps   420217  return     2.91  eval return     5.18  eval success 100.0 %  (147 s)
+[ars] it  110  steps   439866  return     3.65  eval return     5.21  eval success 100.0 %  (155 s)
+[ars] it  115  steps   459239  return     3.50  eval return     5.23  eval success 100.0 %  (164 s)
+[ars] it  120  steps   479320  return     2.73  eval return     5.24  eval success 100.0 %  (174 s)
+[ars] it  125  steps   499386  return     3.61  eval return     5.29  eval success 100.0 %  (183 s)
+[ars] it  130  steps   518909  return     3.51  eval return     5.29  eval success 100.0 %  (192 s)
+[ars] it  135  steps   537660  return     4.88  eval return     5.31  eval success 100.0 %  (201 s)
+[ars] it  140  steps   555424  return     3.89  eval return     5.33  eval success 100.0 %  (207 s)
+[ars] it  145  steps   573501  return     4.81  eval return     5.35  eval success 100.0 %  (215 s)
+[ars] it  150  steps   591081  return     4.53  eval return     5.35  eval success 100.0 %  (223 s)
+[ars] it  155  steps   609118  return     4.34  eval return     5.38  eval success 100.0 %  (231 s)
+[ars] it  160  steps   627315  return     3.97  eval return     5.41  eval success 100.0 %  (240 s)
+[ars] it  165  steps   646023  return     3.26  eval return     5.42  eval success 100.0 %  (249 s)
+[ars] it  170  steps   664509  return     4.88  eval return     5.45  eval success 100.0 %  (257 s)
+[ars] it  175  steps   681622  return     5.33  eval return     5.47  eval success 100.0 %  (262 s)
+[ars] it  180  steps   699343  return     4.95  eval return     5.48  eval success 100.0 %  (269 s)
+[ars] it  185  steps   717777  return     2.93  eval return     5.47  eval success 100.0 %  (276 s)
+[ars] it  190  steps   736127  return     4.35  eval return     5.47  eval success 100.0 %  (285 s)
+[ars] it  195  steps   753369  return     4.23  eval return     5.49  eval success 100.0 %  (290 s)
+[ars] it  200  steps   772221  return     3.06  eval return     5.50  eval success 100.0 %  (299 s)
+[ars] it  205  steps   790618  return     5.08  eval return     5.50  eval success 100.0 %  (307 s)
+[ars] it  210  steps   808107  return     5.20  eval return     5.51  eval success 100.0 %  (313 s)
+[ars] it  215  steps   826199  return     5.32  eval return     5.51  eval success 100.0 %  (321 s)
+[ars] it  220  steps   844662  return     2.83  eval return     5.54  eval success 100.0 %  (329 s)
+[ars] it  225  steps   862914  return     5.07  eval return     5.53  eval success 100.0 %  (337 s)
+[ars] it  230  steps   880134  return     4.46  eval return     5.54  eval success 100.0 %  (344 s)
+[ars] it  235  steps   897433  return     4.75  eval return     5.54  eval success 100.0 %  (350 s)
+[ars] it  240  steps   915065  return     5.29  eval return     5.54  eval success 100.0 %  (358 s)
+[ars] it  245  steps   932720  return     5.29  eval return     5.54  eval success 100.0 %  (363 s)
+[ars] it  250  steps   950232  return     5.11  eval return     5.55  eval success 100.0 %  (369 s)
+[ars] it  255  steps   968285  return     4.94  eval return     5.54  eval success 100.0 %  (376 s)
+[ars] it  260  steps   985214  return     5.33  eval return     5.55  eval success 100.0 %  (383 s)
+[ars] it  265  steps  1002427  return     4.51  eval return     5.57  eval success 100.0 %  (388 s)
+[ars] it  270  steps  1019966  return     4.46  eval return     5.58  eval success 100.0 %  (396 s)
+[ars] it  275  steps  1037287  return     4.93  eval return     5.59  eval success 100.0 %  (402 s)
+[ars] it  280  steps  1054173  return     5.24  eval return     5.59  eval success 100.0 %  (409 s)
+[ars] it  285  steps  1071580  return     4.05  eval return     5.60  eval success 100.0 %  (415 s)
+[ars] it  290  steps  1089022  return     5.19  eval return     5.62  eval success 100.0 %  (422 s)
+[ars] it  295  steps  1106955  return     5.23  eval return     5.61  eval success 100.0 %  (431 s)
+[ars] it  300  steps  1124777  return     4.54  eval return     5.62  eval success 100.0 %  (440 s)
+[01:42:37] done  fixed_s1: train reach  (7.7 min)
+[01:42:37] start fixed_s1: pool after reach
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[starts] 20/400 episodes, 20 successful end states
+[starts] 40/400 episodes, 40 successful end states
+[starts] 60/400 episodes, 60 successful end states
+[starts] 80/400 episodes, 80 successful end states
+[starts] 100/400 episodes, 100 successful end states
+[starts] 120/400 episodes, 120 successful end states
+[starts] 140/400 episodes, 140 successful end states
+[starts] 160/400 episodes, 160 successful end states
+[starts] 180/400 episodes, 180 successful end states
+[starts] 200/400 episodes, 200 successful end states
+[starts] 220/400 episodes, 220 successful end states
+[starts] 240/400 episodes, 240 successful end states
+[starts] 260/400 episodes, 260 successful end states
+[starts] 280/400 episodes, 280 successful end states
+[starts] 300/400 episodes, 300 successful end states
+[starts] 320/400 episodes, 320 successful end states
+[starts] 340/400 episodes, 340 successful end states
+[starts] 360/400 episodes, 360 successful end states
+[starts] 380/400 episodes, 380 successful end states
+[starts] 400/400 episodes, 400 successful end states
+[starts] 400/400 successes (46 s) -> runs_v5/starts/after_reach_design_fixed_s1.pkl
+         train the next stage from them:  python experiment.py train --task handle --starts runs_v5/starts/after_reach_design_fixed_s1.pkl ...
+[01:43:25] done  fixed_s1: pool after reach  (0.8 min)
+[01:43:25] start fixed_s1: train handle
+[train] handle_ars_fixed_design_s1 -> runs_v5\handle_ars_fixed_design_s1
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 3/40 succeeded, 9732 labelled samples
+[bc] round 1: cloned policy drove 2/10 succeeded, 12150 labelled samples
+[bc] round 2: cloned policy drove 0/10 succeeded, 14650 labelled samples
+[bc] round 3: cloned policy drove 0/10 succeeded, 17150 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return   -21.71  eval success  26.7 %
+[ars] it    5  steps   113161  return   -13.94  eval return    -6.01  eval success  50.0 %  (51 s)
+[ars] it   10  steps   221658  return    -6.96  eval return     3.52  eval success  50.0 %  (109 s)
+[ars] it   15  steps   326044  return    -4.17  eval return     7.84  eval success  46.7 %  (164 s)
+[ars] it   20  steps   428363  return    -6.09  eval return    12.05  eval success  60.0 %  (217 s)
+[ars] it   25  steps   526918  return    -1.53  eval return    21.64  eval success  93.3 %  (269 s)
+[ars] it   30  steps   619153  return     2.72  eval return    20.06  eval success  70.0 %  (318 s)
+[ars] it   35  steps   711290  return    -0.57  eval return    25.80  eval success  96.7 %  (367 s)
+[ars] it   40  steps   805767  return     1.79  eval return    15.02  eval success  63.3 %  (418 s)
+[ars] it   45  steps   898686  return     1.08  eval return    22.14  eval success  93.3 %  (469 s)
+[ars] it   50  steps   985643  return     6.74  eval return    13.93  eval success  70.0 %  (517 s)
+[ars] it   55  steps  1073627  return     4.69  eval return    22.38  eval success  86.7 %  (565 s)
+[ars] it   60  steps  1161790  return     5.77  eval return    26.38  eval success  80.0 %  (613 s)
+[ars] it   65  steps  1254537  return     2.46  eval return    20.40  eval success  63.3 %  (663 s)
+[ars] it   70  steps  1341072  return     2.58  eval return    31.17  eval success  90.0 %  (710 s)
+[ars] it   75  steps  1430436  return     2.40  eval return    29.27  eval success  80.0 %  (758 s)
+[ars] it   80  steps  1520666  return     4.02  eval return    11.69  eval success  43.3 %  (807 s)
+[ars] it   85  steps  1609103  return    10.24  eval return    14.14  eval success  46.7 %  (858 s)
+[ars] it   90  steps  1702110  return     6.94  eval return    22.25  eval success  63.3 %  (909 s)
+[ars] it   95  steps  1795434  return     5.55  eval return    10.78  eval success  36.7 %  (961 s)
+[ars] it  100  steps  1891265  return     8.50  eval return    21.53  eval success  53.3 %  (1015 s)
+[ars] it  105  steps  1982532  return     5.11  eval return    24.07  eval success  53.3 %  (1066 s)
+[ars] it  110  steps  2078069  return     6.09  eval return    21.15  eval success  53.3 %  (1121 s)
+[ars] it  115  steps  2172129  return    10.54  eval return    26.65  eval success  56.7 %  (1175 s)
+[ars] it  120  steps  2269897  return     8.32  eval return    36.06  eval success  70.0 %  (1230 s)
+[ars] it  125  steps  2368370  return    12.71  eval return    28.54  eval success  43.3 %  (1287 s)
+[ars] it  130  steps  2468332  return     8.98  eval return    34.03  eval success  46.7 %  (1345 s)
+[ars] it  135  steps  2572101  return    16.55  eval return    36.32  eval success  60.0 %  (1407 s)
+[ars] it  140  steps  2676613  return    16.42  eval return    29.34  eval success  46.7 %  (1469 s)
+[ars] it  145  steps  2788539  return    21.47  eval return    39.14  eval success  20.0 %  (1537 s)
+[ars] it  150  steps  2905198  return    24.02  eval return    44.57  eval success  13.3 %  (1608 s)
+[ars] it  155  steps  3021438  return    28.31  eval return    55.15  eval success   3.3 %  (1680 s)
+[ars] it  160  steps  3137475  return    20.41  eval return    49.03  eval success  10.0 %  (1751 s)
+[ars] it  165  steps  3254451  return    25.00  eval return    54.16  eval success   3.3 %  (1825 s)
+[ars] it  170  steps  3372183  return    23.47  eval return    53.00  eval success  10.0 %  (1898 s)
+[ars] it  175  steps  3490367  return    30.40  eval return    58.56  eval success   6.7 %  (1971 s)
+[ars] it  180  steps  3609011  return    26.73  eval return    60.87  eval success   0.0 %  (2046 s)
+[ars] it  185  steps  3727134  return    35.40  eval return    60.73  eval success   0.0 %  (2122 s)
+[ars] it  190  steps  3845217  return    35.52  eval return    60.97  eval success   3.3 %  (2198 s)
+[ars] it  195  steps  3962141  return    34.50  eval return    60.48  eval success   3.3 %  (2273 s)
+[ars] it  200  steps  4079837  return    37.91  eval return    60.40  eval success   0.0 %  (2349 s)
+[ars] it  205  steps  4198966  return    36.58  eval return    57.59  eval success   0.0 %  (2426 s)
+[ars] it  210  steps  4317753  return    42.02  eval return    62.45  eval success   3.3 %  (2504 s)
+[ars] it  215  steps  4436078  return    41.01  eval return    61.45  eval success   6.7 %  (2583 s)
+[ars] it  220  steps  4554946  return    41.27  eval return    67.53  eval success   0.0 %  (2661 s)
+[ars] it  225  steps  4674424  return    46.36  eval return    66.23  eval success   0.0 %  (2740 s)
+[ars] it  230  steps  4794085  return    50.39  eval return    69.06  eval success   0.0 %  (2820 s)
+[ars] it  235  steps  4913695  return    40.01  eval return    68.51  eval success   0.0 %  (2899 s)
+[ars] it  240  steps  5032950  return    42.26  eval return    66.69  eval success   0.0 %  (2978 s)
+[ars] it  245  steps  5152009  return    49.43  eval return    69.50  eval success   3.3 %  (3057 s)
+[ars] it  250  steps  5270445  return    47.29  eval return    70.72  eval success   0.0 %  (3136 s)
+[ars] it  255  steps  5389976  return    51.98  eval return    71.17  eval success   0.0 %  (3217 s)
+[ars] it  260  steps  5509202  return    49.92  eval return    70.17  eval success   0.0 %  (3297 s)
+[ars] it  265  steps  5628558  return    53.84  eval return    70.16  eval success   3.3 %  (3378 s)
+[ars] it  270  steps  5747118  return    52.67  eval return    70.30  eval success   0.0 %  (3459 s)
+[ars] it  275  steps  5865503  return    57.63  eval return    73.64  eval success   0.0 %  (3540 s)
+[ars] it  280  steps  5983088  return    54.46  eval return    71.85  eval success   0.0 %  (3620 s)
+[ars] it  285  steps  6102004  return    50.81  eval return    74.25  eval success   0.0 %  (3702 s)
+[ars] it  290  steps  6221029  return    54.61  eval return    74.50  eval success   6.7 %  (3781 s)
+[ars] it  295  steps  6339502  return    56.71  eval return    71.13  eval success   0.0 %  (3861 s)
+[ars] it  300  steps  6458029  return    57.64  eval return    77.09  eval success   0.0 %  (3941 s)
+[ars] it  305  steps  6576778  return    56.81  eval return    72.72  eval success   6.7 %  (4022 s)
+[ars] it  310  steps  6695679  return    56.27  eval return    72.62  eval success   3.3 %  (4104 s)
+[ars] it  315  steps  6814925  return    57.33  eval return    77.62  eval success   0.0 %  (4186 s)
+[ars] it  320  steps  6934307  return    59.31  eval return    76.29  eval success   0.0 %  (4268 s)
+[ars] it  325  steps  7053527  return    64.03  eval return    76.60  eval success   3.3 %  (4348 s)
+[ars] it  330  steps  7172619  return    57.56  eval return    76.61  eval success   0.0 %  (4425 s)
+[ars] it  335  steps  7292077  return    63.93  eval return    77.59  eval success   0.0 %  (4505 s)
+[ars] it  340  steps  7411264  return    62.58  eval return    76.40  eval success   0.0 %  (4587 s)
+[ars] it  345  steps  7529821  return    62.94  eval return    77.95  eval success   0.0 %  (4668 s)
+[ars] it  350  steps  7648451  return    60.48  eval return    77.64  eval success   6.7 %  (4744 s)
+[ars] it  355  steps  7767690  return    62.94  eval return    74.97  eval success   0.0 %  (4827 s)
+[ars] it  360  steps  7886962  return    61.05  eval return    76.31  eval success   0.0 %  (4906 s)
+[ars] it  365  steps  8006012  return    61.71  eval return    76.89  eval success   0.0 %  (4985 s)
+[ars] it  370  steps  8124740  return    67.58  eval return    79.36  eval success   0.0 %  (5058 s)
+[ars] it  375  steps  8243555  return    63.59  eval return    72.38  eval success   0.0 %  (5140 s)[04:11:02] FAIL  fixed_s1: train handle  (exit 1073807364) - see run_all.log; continuing
+[04:11:02] start fixed_s1: pool after handle
+[07:55:45] === run_all: mode design, conditions ['fixed', 'random'], 5 seed(s), 300 iterations (handle 600), cloning for ['reach', 'handle', 'door'], skills ON, 16 workers
+[07:55:45] skip  fixed_s0: train reach  (already done: runs_v5/reach_ars_fixed_design_s0/DONE)
+[07:55:45] skip  fixed_s0: pool after reach  (already done: runs_v5/starts/after_reach_design_fixed_s0.pkl)
+[07:55:45] skip  fixed_s0: train handle  (already done: runs_v5/handle_ars_fixed_design_s0/DONE)
+[07:55:45] skip  fixed_s0: pool after handle  (already done: runs_v5/starts/after_handle_design_fixed_s0.pkl)
+[07:55:45] skip  fixed_s0: train door  (already done: runs_v5/door_ars_fixed_design_s0/DONE)
+[07:55:45] skip  fixed_s0: chain (all test doors)  (already done: runs_v5/chain_ars_fixed_s0/chain_eval.csv)
+[07:55:45] skip  fixed_s1: train reach  (already done: runs_v5/reach_ars_fixed_design_s1/DONE)
+[07:55:45] skip  fixed_s1: pool after reach  (already done: runs_v5/starts/after_reach_design_fixed_s1.pkl)
+[07:55:45] start fixed_s1: train handle
+[train] handle_ars_fixed_design_s1 -> runs_v5\handle_ars_fixed_design_s1
+[door_env] handle collision: 6 boxes fitted to its shape (instead of one convex hull)
+[bc] round 0: demonstrations 3/40 succeeded, 9732 labelled samples
+[bc] round 1: cloned policy drove 2/10 succeeded, 12150 labelled samples
+[bc] round 2: cloned policy drove 0/10 succeeded, 14650 labelled samples
+[bc] round 3: cloned policy drove 0/10 succeeded, 17150 labelled samples
+[bc] 'wrap' controller, 3 DAgger rounds -> linear policy fitted
+[ars] it    0  (start = behaviour cloning)  eval return   -21.71  eval success  26.7 %
+[ars] it    5  steps   113161  return   -13.94  eval return    -6.01  eval success  50.0 %  (55 s)
+[ars] it   10  steps   221658  return    -6.96  eval return     3.52  eval success  50.0 %  (106 s)
+[ars] it   15  steps   326044  return    -4.17  eval return     7.84  eval success  46.7 %  (155 s)
+[ars] it   20  steps   428363  return    -6.09  eval return    12.05  eval success  60.0 %  (202 s)
+[ars] it   25  steps   526918  return    -1.53  eval return    21.64  eval success  93.3 %  (247 s)
+[ars] it   30  steps   619153  return     2.72  eval return    20.06  eval success  70.0 %  (292 s)
+[ars] it   35  steps   711290  return    -0.57  eval return    25.80  eval success  96.7 %  (338 s)
+[ars] it   40  steps   805767  return     1.79  eval return    15.02  eval success  63.3 %  (385 s)
+[ars] it   45  steps   898686  return     1.08  eval return    22.14  eval success  93.3 %  (432 s)
+[ars] it   50  steps   985643  return     6.74  eval return    13.93  eval success  70.0 %  (476 s)
+[ars] it   55  steps  1073627  return     4.69  eval return    22.38  eval success  86.7 %  (519 s)
+[ars] it   60  steps  1161790  return     5.77  eval return    26.38  eval success  80.0 %  (563 s)
+[ars] it   65  steps  1254537  return     2.46  eval return    20.40  eval success  63.3 %  (608 s)
+[ars] it   70  steps  1341072  return     2.58  eval return    31.17  eval success  90.0 %  (650 s)
+[ars] it   75  steps  1430436  return     2.40  eval return    29.27  eval success  80.0 %  (694 s)
+[ars] it   80  steps  1520666  return     4.02  eval return    11.69  eval success  43.3 %  (739 s)
+[ars] it   85  steps  1609103  return    10.24  eval return    14.14  eval success  46.7 %  (784 s)
+[ars] it   90  steps  1702110  return     6.94  eval return    22.25  eval success  63.3 %  (831 s)
+[ars] it   95  steps  1795434  return     5.55  eval return    10.78  eval success  36.7 %  (879 s)
+[ars] it  100  steps  1891265  return     8.50  eval return    21.53  eval success  53.3 %  (927 s)
+[ars] it  105  steps  1982532  return     5.11  eval return    24.07  eval success  53.3 %  (973 s)
+[ars] it  110  steps  2078069  return     6.09  eval return    21.15  eval success  53.3 %  (1023 s)
+[ars] it  115  steps  2172129  return    10.54  eval return    26.65  eval success  56.7 %  (1071 s)
+[ars] it  120  steps  2269897  return     8.32  eval return    36.06  eval success  70.0 %  (1121 s)
+[ars] it  125  steps  2368370  return    12.71  eval return    28.54  eval success  43.3 %  (1172 s)
+[ars] it  130  steps  2468332  return     8.98  eval return    34.03  eval success  46.7 %  (1224 s)
+[ars] it  135  steps  2572101  return    16.55  eval return    36.32  eval success  60.0 %  (1279 s)
+[ars] it  140  steps  2676613  return    16.42  eval return    29.34  eval success  46.7 %  (1334 s)
+[ars] it  145  steps  2788539  return    21.47  eval return    39.14  eval success  20.0 %  (1392 s)
+[ars] it  150  steps  2905198  return    24.02  eval return    44.57  eval success  13.3 %  (1453 s)
+[ars] it  155  steps  3021438  return    28.31  eval return    55.15  eval success   3.3 %  (1515 s)
+[ars] it  160  steps  3137475  return    20.41  eval return    49.03  eval success  10.0 %  (1576 s)
+[ars] it  165  steps  3254451  return    25.00  eval return    54.16  eval success   3.3 %  (1639 s)
+[ars] it  170  steps  3372183  return    23.47  eval return    53.00  eval success  10.0 %  (1702 s)
+[ars] it  175  steps  3490367  return    30.40  eval return    58.56  eval success   6.7 %  (1766 s)
+[ars] it  180  steps  3609011  return    26.73  eval return    60.87  eval success   0.0 %  (1831 s)
+[ars] it  185  steps  3727134  return    35.40  eval return    60.73  eval success   0.0 %  (1896 s)
+[ars] it  190  steps  3845217  return    35.52  eval return    60.97  eval success   3.3 %  (1961 s)
+[ars] it  195  steps  3962141  return    34.50  eval return    60.48  eval success   3.3 %  (2025 s)
+[ars] it  200  steps  4079837  return    37.91  eval return    60.40  eval success   0.0 %  (2090 s)
+[ars] it  205  steps  4198966  return    36.58  eval return    57.59  eval success   0.0 %  (2154 s)
+[ars] it  210  steps  4317753  return    42.02  eval return    62.45  eval success   3.3 %  (2219 s)
+[ars] it  215  steps  4436078  return    41.01  eval return    61.45  eval success   6.7 %  (2287 s)
+[ars] it  220  steps  4554946  return    41.27  eval return    67.53  eval success   0.0 %  (2353 s)
+[ars] it  225  steps  4674424  return    46.36  eval return    66.23  eval success   0.0 %  (2419 s)
+[ars] it  230  steps  4794085  return    50.39  eval return    69.06  eval success   0.0 %  (2487 s)
+[ars] it  235  steps  4913695  return    40.01  eval return    68.51  eval success   0.0 %  (2553 s)
+[ars] it  240  steps  5032950  return    42.26  eval return    66.69  eval success   0.0 %  (2619 s)
+[ars] it  245  steps  5152009  return    49.43  eval return    69.50  eval success   3.3 %  (2686 s)
+[ars] it  250  steps  5270445  return    47.29  eval return    70.72  eval success   0.0 %  (2753 s)
+[ars] it  255  steps  5389976  return    51.98  eval return    71.17  eval success   0.0 %  (2821 s)
+[ars] it  260  steps  5509202  return    49.92  eval return    70.17  eval success   0.0 %  (2889 s)
+[ars] it  265  steps  5628558  return    53.84  eval return    70.16  eval success   3.3 %  (2956 s)
+[ars] it  270  steps  5747118  return    52.67  eval return    70.30  eval success   0.0 %  (3023 s)
+[ars] it  275  steps  5865503  return    57.63  eval return    73.64  eval success   0.0 %  (3092 s)
+[ars] it  280  steps  5983088  return    54.46  eval return    71.85  eval success   0.0 %  (3159 s)
+[ars] it  285  steps  6102004  return    50.81  eval return    74.25  eval success   0.0 %  (3231 s)
+[ars] it  290  steps  6221029  return    54.61  eval return    74.50  eval success   6.7 %  (3299 s)
+[ars] it  295  steps  6339502  return    56.71  eval return    71.13  eval success   0.0 %  (3368 s)
+[ars] it  300  steps  6458029  return    57.64  eval return    77.09  eval success   0.0 %  (3435 s)
+[ars] it  305  steps  6576778  return    56.81  eval return    72.72  eval success   6.7 %  (3503 s)
+[ars] it  310  steps  6695679  return    56.27  eval return    72.62  eval success   3.3 %  (3572 s)
+[ars] it  315  steps  6814925  return    57.33  eval return    77.62  eval success   0.0 %  (3640 s)
+[ars] it  320  steps  6934307  return    59.31  eval return    76.29  eval success   0.0 %  (3709 s)
+[ars] it  325  steps  7053527  return    64.03  eval return    76.60  eval success   3.3 %  (3780 s)
+[ars] it  330  steps  7172619  return    57.56  eval return    76.61  eval success   0.0 %  (3848 s)
+[ars] it  335  steps  7292077  return    63.93  eval return    77.59  eval success   0.0 %  (3916 s)
+[ars] it  340  steps  7411264  return    62.58  eval return    76.40  eval success   0.0 %  (3984 s)
+[ars] it  345  steps  7529821  return    62.94  eval return    77.95  eval success   0.0 %  (4052 s)
+[ars] it  350  steps  7648451  return    60.48  eval return    77.64  eval success   6.7 %  (4121 s)
+[ars] it  355  steps  7767690  return    62.94  eval return    74.97  eval success   0.0 %  (4191 s)
+[ars] it  360  steps  7886962  return    61.05  eval return    76.31  eval success   0.0 %  (4261 s)
+[ars] it  365  steps  8006012  return    61.71  eval return    76.89  eval success   0.0 %  (4330 s)
+[ars] it  370  steps  8124740  return    67.58  eval return    79.36  eval success   0.0 %  (15285 s)
+[ars] it  375  steps  8243555  return    63.59  eval return    72.38  eval success   0.0 %  (17156 s)

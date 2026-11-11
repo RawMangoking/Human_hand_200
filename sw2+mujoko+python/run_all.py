@@ -8,7 +8,9 @@ run_all.py - runs the WHOLE three-policy experiment unattended (e.g. overnight),
   python run_all.py --no-baselines        # only the three-policy pipeline
 
 RESUMABLE: every step checks for its output first (policy / start pool / chain result / evaluation) and is
-skipped if it is already there - after a crash, a reboot or Ctrl+C just run the same command again.
+skipped if it is already there - after a crash, a reboot or Ctrl+C just run the same command again. Training
+also saves a checkpoint every 5 iterations, so a training step stopped half-way continues where it stopped
+(e.g. run it only at night: stop it in the morning, start the same command in the evening).
 A failing step is logged and the rest continues. Everything is logged to run_all.log.
 
 Order per condition (fixed / random) and seed, in the planned hand's action space (design):
@@ -42,7 +44,7 @@ class Runner:
         self.log_f.write(line + "\n")
         self.log_f.flush()
 
-    def step(self, name, args, output):
+    def step(self, name, args, output, force=False):
         """Run `experiment.py args` unless `output` exists. A training step counts as done only when its DONE
         marker exists (written after the LAST iteration) - a run cut off half-way is trained again from the start.
         Runs from before DONE existed count as done if their progress.csv reached the final iteration."""
@@ -53,23 +55,51 @@ class Runner:
                 rows = [l.split(",")[0] for l in open(prog).read().splitlines()[1:] if l.strip()]
                 if rows and rows[-1] == want:
                     open(os.path.join(HERE, output), "w").write("finished (older run, from progress.csv)\n")
-        if output and os.path.exists(os.path.join(HERE, output)):
+        if output and os.path.exists(os.path.join(HERE, output)) and not force:
             self.skipped += 1
             self.log(f"skip  {name}  (already done: {output})")
-            return True
+            return "skipped"
+        if force and output and output.endswith("/DONE"):          # out of date: no resuming from its checkpoint
+            ck = os.path.join(HERE, os.path.dirname(output), "checkpoint.npz")
+            if os.path.exists(ck):
+                os.remove(ck)
+        if force and output and os.path.exists(os.path.join(HERE, output)):
+            self.log(f"redo  {name}  (an earlier step of this seed was redone, so this one is out of date)")
+            if output.endswith("/DONE"):
+                os.remove(os.path.join(HERE, output))
+        if "--workers" in args:                                    # use the (possibly reduced) worker count
+            args = list(args)
+            args[args.index("--workers") + 1] = str(self.a.workers)
         uses_models = args[0] in ("train", "starts")              # the others read paths from the runs
         cmd = [sys.executable, os.path.join(HERE, "experiment.py")] + args + (self.a.model_args if uses_models else [])
         self.log(f"start {name}")
         if self.a.dry_run:
             self.log("      " + " ".join(cmd))
-            return True
+            return "ran"
         t = time.time()
-        with open(os.path.join(HERE, "run_all.log"), "a") as out:
-            res = subprocess.run(cmd, cwd=HERE, stdout=out, stderr=subprocess.STDOUT)
-        if res.returncode == 0 and (not output or os.path.exists(os.path.join(HERE, output))):
-            self.done += 1
-            self.log(f"done  {name}  ({(time.time() - t) / 60:.1f} min)")
-            return True
+        while True:
+            log_path = os.path.join(HERE, "run_all.log")
+            start = os.path.getsize(log_path) if os.path.exists(log_path) else 0
+            with open(log_path, "a") as out:
+                res = subprocess.run(cmd, cwd=HERE, stdout=out, stderr=subprocess.STDOUT)
+            if res.returncode == 0 and (not output or os.path.exists(os.path.join(HERE, output))):
+                self.done += 1
+                self.log(f"done  {name}  ({(time.time() - t) / 60:.1f} min)")
+                return "ran"
+            # out of memory (every worker holds a copy of the simulation): retry with half the workers
+            with open(log_path, errors="ignore") as f:
+                f.seek(start)
+                tail = f.read()
+            oom = ("allocate memory" in tail or "MemoryError" in tail or "paging file" in tail.lower())
+            if oom and "--workers" in cmd:
+                k = cmd.index("--workers") + 1
+                w = int(cmd[k])
+                if w > 2:
+                    cmd[k] = str(max(2, w // 2))
+                    self.a.workers = int(cmd[k])                 # and for every later step
+                    self.log(f"      out of memory with {w} workers - retrying {name} with {cmd[k]}")
+                    continue
+            break
         self.failed.append(name)
         self.log(f"FAIL  {name}  (exit {res.returncode}) - see run_all.log; continuing")
         return False
@@ -95,7 +125,9 @@ def main():
     ap.add_argument("--train-eval-episodes", type=int, default=20, help="evaluation episodes during training")
     ap.add_argument("--dirs", type=int, default=32, help="ARS directions per iteration (default 32)")
     ap.add_argument("--bc", type=int, default=40, help="behaviour-cloning demonstrations (default 40)")
-    ap.add_argument("--workers", type=int, default=max(1, min(30, (os.cpu_count() or 2) - 2)))
+    ap.add_argument("--workers", type=int, default=max(1, min(16, (os.cpu_count() or 2) - 2)),
+                    help="parallel simulation copies (default 16; each holds the whole scene in memory - if a "
+                         "step runs out of memory it is retried with half as many)")
     ap.add_argument("--pool-episodes", type=int, default=200, help="episodes for each start-state pool")
     ap.add_argument("--eval-episodes", type=int, default=10, help="episodes per test door")
     ap.add_argument("--no-baselines", action="store_true")
@@ -124,22 +156,31 @@ def main():
             run = {t: f"{R}/{t}_ars_{cond}_{M}{tag(t)}_s{sd}" for t in ("reach", "handle", "door")}
             pool_r, pool_h = f"{R}/starts/after_reach_{M}_{tg}.pkl", f"{R}/starts/after_handle_{M}_{tg}.pkl"
             base = ["--condition", cond, "--seed", str(sd), "--action-mode", M, "--runs", R]
-            r.step(f"{tg}: train reach", ["train", "--task", "reach", "--iters", iters("reach")] + base + tr + bc("reach"),
-                   run["reach"] + "/DONE")
-            r.step(f"{tg}: pool after reach", ["starts", "--task", "reach", "--policy", run["reach"], "--action-mode", M,
-                                               "--condition", cond, "--episodes", str(a.pool_episodes),
-                                               "--out", pool_r], pool_r)
-            r.step(f"{tg}: train handle", ["train", "--task", "handle", "--iters", iters("handle")] + base + tr +
-                   bc("handle") + ["--starts", pool_r], run["handle"] + "/DONE")
-            r.step(f"{tg}: pool after handle", ["starts", "--task", "handle", "--policy", run["handle"],
-                                                "--action-mode", M, "--condition", cond,
-                                                "--episodes", str(a.pool_episodes), "--out", pool_h], pool_h)
-            r.step(f"{tg}: train door", ["train", "--task", "door", "--iters", iters("door")] + base + tr + bc("door") +
-                   ["--starts", pool_h], run["door"] + "/DONE")
-            r.step(f"{tg}: chain (all test doors)",
-                   ["chain", "--reach", run["reach"], "--handle", run["handle"], "--door", run["door"],
-                    "--doors", "all", "--episodes", str(a.eval_episodes), "--out", f"{R}/chain_ars_{tg}"],
-                   f"{R}/chain_ars_{tg}/chain_eval.csv")
+            steps = [
+                (f"{tg}: train reach", ["train", "--task", "reach", "--iters", iters("reach")] + base + tr + bc("reach"),
+                 run["reach"] + "/DONE"),
+                (f"{tg}: pool after reach", ["starts", "--task", "reach", "--policy", run["reach"], "--action-mode", M,
+                                             "--condition", cond, "--episodes", str(a.pool_episodes), "--out", pool_r],
+                 pool_r),
+                (f"{tg}: train handle", ["train", "--task", "handle", "--iters", iters("handle")] + base + tr +
+                 bc("handle") + ["--starts", pool_r], run["handle"] + "/DONE"),
+                (f"{tg}: pool after handle", ["starts", "--task", "handle", "--policy", run["handle"], "--action-mode", M,
+                                              "--condition", cond, "--episodes", str(a.pool_episodes), "--out", pool_h],
+                 pool_h),
+                (f"{tg}: train door", ["train", "--task", "door", "--iters", iters("door")] + base + tr + bc("door") +
+                 ["--starts", pool_h], run["door"] + "/DONE"),
+                (f"{tg}: chain (all test doors)",
+                 ["chain", "--reach", run["reach"], "--handle", run["handle"], "--door", run["door"], "--doors", "all",
+                  "--episodes", str(a.eval_episodes), "--out", f"{R}/chain_ars_{tg}"],
+                 f"{R}/chain_ars_{tg}/chain_eval.csv"),
+            ]
+            dirty = False                       # once a step really runs, every later step of this seed is redone
+            for name_, args_, out_ in steps:
+                res = r.step(name_, args_, out_, force=dirty)
+                if res is False:                # failed: the rest of this seed would be built on nothing
+                    r.log(f"      the remaining steps of {tg} are left for the next start (run the same command)")
+                    break
+                dirty = dirty or res == "ran"
 
     if not a.no_baselines:
         for sd in range(a.seeds):
@@ -165,8 +206,10 @@ def main():
         names = sorted(d for d in (os.listdir(runs_dir) if os.path.isdir(runs_dir) else [])
                        if not d.startswith("chain") and os.path.exists(os.path.join(runs_dir, d, "config.json")))
         for d in names:
+            ev, done = os.path.join(runs_dir, d, "eval_unseen.csv"), os.path.join(runs_dir, d, "DONE")
+            stale = os.path.exists(ev) and os.path.exists(done) and os.path.getmtime(ev) < os.path.getmtime(done)
             r.step(f"evaluate {d}", ["eval", "--run", f"{R}/{d}", "--doors", "all",
-                                     "--episodes", str(a.eval_episodes)], f"{R}/{d}/eval_unseen.csv")
+                                     "--episodes", str(a.eval_episodes)], f"{R}/{d}/eval_unseen.csv", force=stale)
     res = a.results_dir or ("results" if R == "runs" else f"results_{os.path.basename(R)}")
     r.step("report", ["report", "--runs", R, "--out", res], None)
     r.log(f"=== finished in {(time.time() - r.t0) / 3600:.2f} h: {r.done} done, {r.skipped} skipped, "

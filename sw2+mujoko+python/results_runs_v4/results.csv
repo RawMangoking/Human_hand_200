@@ -1,0 +1,7 @@
+action_mode,algo,condition,in_dist,nominal,seeds,task,unseen
+design,ars,fixed,0.9,1.0,1,door,0.8888888888888888
+design,ars,random,0.9,1.0,1,door,0.8777777777777778
+design,ars,fixed,0.48,0.5,1,handle,0.4222222222222223
+design,ars,random,0.7100000000000001,0.7,1,handle,0.6000000000000001
+design,ars,fixed,0.97,1.0,1,reach,0.8444444444444446
+design,ars,random,1.0,1.0,1,reach,1.0

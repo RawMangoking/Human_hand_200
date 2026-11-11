@@ -2854,3 +2854,12 @@ python run_all.py --runs-dir runs_v5 --no-baselines --seeds 5 --iters 300 --hand
 ```powershell
 python run_all.py --runs-dir runs_v5 --seeds 5 --iters 300 --handle-iters 600 --dirs 48 --pool-episodes 400 --eval-episodes 20 --train-eval-episodes 30
 ```
+
+
+# 46. The real cause of `handle_low`: the door rested on the ground
+
+`trace.py --door-contacts` (new: lists everything touching the door leaf / handle that is NOT the hand) showed on the low door, from step 0: `door_1[door_1_collision0]~WORLD[ground]` — the door model's exported `ground` plane. Moving the door 10 cm down (door_dz) put the leaf ON the ground, so no hand and no policy could open it. That is why `handle_low` (and `in_dist_2`, 5.3 cm down) failed in v2, v3 and v4. The nominal door has no such contact.
+
+The v5 rule "world geoms collide with the hand only" did not catch it because the exported leaf's contype includes bit 2. Fix: world geoms get their **own bit 4**, which only the hand carries (hand contype 2|4 = 6, world contype 0 / conaffinity 4) — no door part can match it, whatever bits the exporter used. Test: "a lowered door does not rest on the ground". Stand-in with a ground plane and a leaf with contype 3: 4 leaf–ground contacts before, 0 after; the hand is still stopped by the ground.
+
+**Door stage: catch the handle and push** (default again). Watching the palm push, its fingers poked the handle's rose instead of catching the handle; the v4 catch-and-push had 0 % forearm on the real door, and its only failure (the low door) was the ground. Stand-in with ground: 12/12 on nominal, in_dist_2, handle_low, turned_door, hard_combo, shifted_side — forearm 0 % every time. The palm push stays as an option (`env.door_variant = "palm"`); the door stage keeps the v5 arm-rotation and wrist channels so RL can use them.

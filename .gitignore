@@ -16,3 +16,8 @@ Mujoko/Hand_Door_env/
 sw2+mujoko+python/runs/
 sw2+mujoko+python/results/
 sw2+mujoko+python/videos/
+
+sw2+mujoko+python/run_all.lock
+sw2+mujoko+python/STOP
+**/checkpoint*.npz
+**/__pycache__/

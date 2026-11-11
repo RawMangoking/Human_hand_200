@@ -18,7 +18,7 @@ import time
 import mujoco
 import numpy as np
 
-from door_env import DEFAULT_DOOR, DEFAULT_HAND, DoorEnv
+from door_env import DEFAULT_DOOR, DEFAULT_HAND, DoorEnv, door_set
 
 RESULTS = []
 
@@ -219,6 +219,19 @@ def t_collisions(H, D):
         through = max(through, hand_behind_door(env))
     report("collisions", "hand is stopped by the door", touched > 0 and deepest < 0.02,
            f"hand<->door contacts {touched}, deepest overlap {deepest * 1000:.1f} mm")
+    # a door moved DOWN (door_dz) must not rest on the ground / world geoms - only the hand collides with them
+    import mujoco
+    env_g = DoorEnv(task="door", hand_path=H, door_path=D, randomize=False)
+    low = dict(door_set("all"))["handle_low"]
+    env_g.reset(seed=0, options={"physics": low})
+    mujoco.mj_forward(env_g.model, env_g.data)
+    mg, dg = env_g.model, env_g.data
+    leaf_world = [mg.geom(c.geom1 if mg.geom_bodyid[c.geom2] == 0 else c.geom2).name.split("/")[-1]
+                  for c in dg.contact[:dg.ncon]
+                  if 0 in (mg.geom_bodyid[c.geom1], mg.geom_bodyid[c.geom2])
+                  and ({mg.geom_bodyid[c.geom1], mg.geom_bodyid[c.geom2]} & {env_g.door_body, env_g.handle_body})]
+    report("collisions", "a lowered door does not rest on the ground", not leaf_world,
+           f"handle_low (door 10 cm lower): door leaf / handle touching world geoms: {leaf_world or 'none'}")
     report("collisions", "no hand part ever gets behind the door", through < 0,
            f"door faces {front * 1000:+.0f} / {back * 1000:+.0f} mm from the handle; "
            f"deepest hand part stayed {-through * 1000:.0f} mm in front of the back face")

@@ -242,8 +242,10 @@ def refresh_body_masks(model):
 
 def set_collisions(model, hand_self=False, hand_door=True):
     """Collision rules with MuJoCo bitmasks (a pair collides if contype1 & conaffinity2 or contype2 & conaffinity1):
-       hand geoms: contype 2, conaffinity 1  -> hand-hand: 2&1 = 0 -> no self-collision
-       other geoms: conaffinity |= 2         -> hand-door / hand-floor: 2&(..|2) -> collide
+       hand geoms : contype 2|4, conaffinity 1 -> hand-hand: 6&1 = 0 -> no self-collision
+       door geoms : conaffinity |= 2           -> hand-door: 6&(..|2) -> collide
+       world geoms: contype 0, conaffinity 4   -> ONLY the hand (bit 4) - never a door part, whatever bits the
+                    exporter gave them (a door shifted down must not rest on the ground)
        Geoms that never collided (visual meshes) are left alone."""
     hand_b = {b for b in range(model.nbody) if model.body(b).name.startswith("hand/")}
     n_hand = n_other = 0
@@ -254,15 +256,15 @@ def set_collisions(model, hand_self=False, hand_door=True):
             if not hand_door:
                 model.geom_contype[g], model.geom_conaffinity[g] = (1, 1) if hand_self else (0, 0)
             elif hand_self:
-                model.geom_contype[g], model.geom_conaffinity[g] = 3, 3
+                model.geom_contype[g], model.geom_conaffinity[g] = 7, 3
             else:
-                model.geom_contype[g], model.geom_conaffinity[g] = 2, 1
+                model.geom_contype[g], model.geom_conaffinity[g] = 6, 1
             n_hand += 1
         elif model.geom_bodyid[g] == 0:
             # world geoms (a floor, or parts the exporter put in the world): they stop the HAND, but never the
             # door leaf / handle - a door shifted down (door_dz) must not jam on them (real doors have clearance)
             if hand_door:
-                model.geom_contype[g], model.geom_conaffinity[g] = 0, 2
+                model.geom_contype[g], model.geom_conaffinity[g] = 0, 4
             n_other += 1
         else:
             if hand_door:
@@ -578,7 +580,7 @@ class DoorEnv(gym.Env):
             hb = {b for b in range(self.model.nbody) if self.model.body(b).name.startswith("hand/")}
             for g in range(self.model.ngeom):
                 if self.model.geom_bodyid[g] in hb:
-                    self.model.geom_contype[g], self.model.geom_conaffinity[g] = 2, 1
+                    self.model.geom_contype[g], self.model.geom_conaffinity[g] = 6, 1
             n_hand = sum(1 for g in range(self.model.ngeom) if self.model.geom_bodyid[g] in hb)
             if "nohand" not in _PRINTED:
                 _PRINTED.add("nohand")
@@ -683,6 +685,7 @@ class DoorEnv(gym.Env):
         root = mujoco.mj_name2id(m, mujoco.mjtObj.mjOBJ_BODY, "hand/" + self.geo["hand"]["root"])
         P_w = np.array(dd.xmat[root]).reshape(3, 3) @ np.asarray(self.geo["hand"]["P"], float)
         self._palm_n_local = np.array(dd.xmat[self.palm]).reshape(3, 3).T @ (P_w / (np.linalg.norm(P_w) + 1e-12))
+        del dd                                                   # free it (one copy per training worker adds up)
         mujoco.mj_forward(m, self.data)
         self.geo["door"]["grasp"] = self.grasp_point()
         self._grasp0 = self.geo["door"]["grasp"].copy()
@@ -754,7 +757,7 @@ class DoorEnv(gym.Env):
         self._set_spaces(task)
         self.steps = 0
         self._grasp_run, self._arm_touch_steps = 0, 0
-        self._palm_pushing = False
+        self._palm_pushing, self._palm_lift = False, 0.0
         self._prev = self._progress()
         return self._obs()
 
@@ -1103,6 +1106,7 @@ class DoorEnv(gym.Env):
                  "door": (0.05 + 0.3 * along, 0.3 * lateral, 0.3 * yaw)}[self.task]
         self._latched = self.task != "door"                     # door task: the handle is already turned
         self._scripted_grip = self._palm_pushing = False
+        self._palm_lift = 0.0
         self._grasp_run, self._arm_touch_steps, self._gs = 0, 0, None
         self._place_clear(*start, at_handle=at_handle)
         self._arm_start = self.data.mocap_pos[self.mid].copy()
@@ -1448,7 +1452,8 @@ def scripted_action(env):
                                 **_close(env, 1.0))
         move = (tang / (n + 1e-9) if n > 1e-6 else 0) + 0.5 * lat + inward
         return named_action(env, arm_pos=np.clip(move, -1, 1), **_close(env, 1.0))
-    # push perpendicular to the door's CURRENT face, while gripping the lever and holding it turned
+    # default door stage ("grip"): CATCH the handle and push the door perpendicular to its CURRENT face while
+    # holding the handle turned - like a person (the palm-push variant above is an option)
     # (letting go of a turned handle before the door moves re-engages the latch - like a real door)
     ang = float(d.qpos[env.qh] - env.h0)
     q = np.zeros(4)
@@ -1456,8 +1461,8 @@ def scripted_action(env):
     nrm_now = np.zeros(3)
     mujoco.mju_rotVecQuat(nrm_now, env.geo["door"]["normal"], q)
     push = -nrm_now * env.door_goal_sign * env.geo["door"]["push_sign"]
-    if env.task == "door" and env.palm_push:
-        # PALM PUSH: the latch is released, so open the door with a flat hand on the leaf (not via the lever);
+    if env.task == "door" and env.palm_push and getattr(env, "door_variant", "grip") == "palm":
+        # PALM PUSH (option, env.door_variant = "palm"): the latch is released, so open the door with a flat hand on the leaf (not via the lever);
         # the spot moves with the door and the hand follows it, the wrist keeps the palm flat on the leaf
         piv = np.array(d.xanchor[env.jd])
         # spot BELOW the lever and to the side away from where the lever points: the hand's fingers stay clear of
@@ -1466,7 +1471,11 @@ def scripted_action(env):
         ld -= nrm_now * float(ld @ nrm_now)
         ld[2] = 0.0
         ld /= np.linalg.norm(ld) + 1e-9
-        spot = piv + np.array([0.0, 0.0, -0.18]) - ld * 0.04
+        # how far the (open) fingertips reach above the palm centre: the palm goes low enough that they stay 4 cm
+        # below the lever and its rose (measured on THIS hand - long fingers need a lower spot)
+        reach = max([float(d.xpos[t][2] - palm_c[2]) for t in env.tips] + [0.10])
+        lift = getattr(env, "_palm_lift", 0.0)                      # raised if the forearm keeps touching
+        spot = piv + np.array([0.0, 0.0, -(reach + 0.04) + lift]) - ld * 0.04
         rel = spot - palm_c
         lat = rel - nrm_now * float(rel @ nrm_now)                  # offset along the door face
         depth = float((palm_c - spot) @ nrm_now)                    # how far the palm is in front of the face
@@ -1495,20 +1504,32 @@ def scripted_action(env):
                 jv = np.array(fingers["joints"], dtype=float)
                 jv[env.joint_names.index(wf)] = w0
                 fingers = dict(fingers, joints=jv)
-        comp = np.zeros(3)
-        if "arm_rot" in names:                                      # turn about the vertical with the door
+        comp, away = np.zeros(3), np.zeros(3)
+        if "arm_rot" in names:
             ph = pn - np.array([0, 0, 1.0]) * pn[2]
             wh = want - np.array([0, 0, 1.0]) * want[2]
             yaw = float(np.arctan2(np.cross(ph, wh)[2], ph @ wh)) if np.linalg.norm(ph) > 1e-3 else 0.0
-            k = float(np.clip(yaw / math.radians(3.0), -1, 1))
-            extra["arm_rot"] = np.array([0.0, 0.0, k])
-            qr = np.zeros(4)
-            mujoco.mju_axisAngle2Quat(qr, np.array([0, 0, 1.0]), math.radians(3.0) * k)
-            Rr = np.zeros(9)
-            mujoco.mju_quat2Mat(Rr, qr)
-            v = palm_c - np.array(d.mocap_pos[env.mid])
-            comp = -((Rr.reshape(3, 3) - np.eye(3)) @ v) / 0.01         # turn about the palm, not the arm base
-        return named_action(env, arm_pos=np.clip(push + 0.5 * np.clip(lat / 0.01, -1, 1) + comp, -1, 1),
+            rot = np.array([0.0, 0.0, float(np.clip(yaw / math.radians(3.0), -1, 1))])   # turn with the door
+            if getattr(env, "palm_react", False) and env.skill_contacts()["arm_touch"]:
+                # forearm on the door: lean it further AWAY (top of the arm toward the door; the wrist keeps the
+                # palm flat), ease back a little, and use a slightly higher spot from now on
+                side = np.cross(nrm_now, [0.0, 0.0, 1.0])
+                side /= np.linalg.norm(side) + 1e-9
+                sgn = float(np.sign(np.cross(side, [0.0, 0.0, 1.0]) @ want)) or 1.0
+                rot = rot + side * sgn * 0.6
+                away = nrm_now * 0.4
+                env._palm_lift = min(getattr(env, "_palm_lift", 0.0) + 0.002, 0.06)
+            rot = np.clip(rot, -1, 1)
+            extra["arm_rot"] = rot
+            ang = float(np.linalg.norm(rot)) * math.radians(3.0)
+            if ang > 1e-9:
+                qr = np.zeros(4)
+                mujoco.mju_axisAngle2Quat(qr, rot / np.linalg.norm(rot), ang)
+                Rr = np.zeros(9)
+                mujoco.mju_quat2Mat(Rr, qr)
+                v = palm_c - np.array(d.mocap_pos[env.mid])
+                comp = -((Rr.reshape(3, 3) - np.eye(3)) @ v) / 0.01     # turn about the palm, not the arm base
+        return named_action(env, arm_pos=np.clip(push + 0.5 * np.clip(lat / 0.01, -1, 1) + comp + away, -1, 1),
                             **extra, **fingers)
     if np.linalg.norm(grasp - palm_c) > 0.07:                       # get (back) to the lever first
         return named_action(env, arm_pos=to, **_close(env, -1.0))

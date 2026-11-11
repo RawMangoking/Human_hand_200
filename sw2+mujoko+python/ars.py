@@ -170,10 +170,11 @@ def train(args, log=print):
     obs_dim, act_dim = probe.observation_space.shape[0], probe.action_space.shape[0]
     probe.close()
     pol = LinearPolicy(obs_dim, act_dim, n_rff=getattr(args, "rff", 0), seed=args.seed)
-    if getattr(args, "bc_episodes", 0):
+    rng = np.random.default_rng(args.seed)
+    ck = load_checkpoint(args.out, pol, rng) if not os.path.exists(os.path.join(args.out, "DONE")) else None
+    if ck is None and getattr(args, "bc_episodes", 0):
         bc_init(pol, kw, args.bc_episodes, getattr(args, "bc_noise", 0.3), args.seed,
                 dagger_rounds=getattr(args, "dagger", 3), log=log)
-    rng = np.random.default_rng(args.seed)
     noise, step = args.noise, args.step
     if getattr(args, "bc_episodes", 0):                     # fine-tuning a good policy: small, careful steps
         noise *= getattr(args, "finetune_scale", 0.25)
@@ -181,9 +182,10 @@ def train(args, log=print):
     os.makedirs(args.out, exist_ok=True)
     json.dump(dict(vars(args), algo="ars", obs_dim=obs_dim, act_dim=act_dim),
               open(os.path.join(args.out, "config.json"), "w"), indent=2)
-    log_f = open(os.path.join(args.out, "progress.csv"), "w", newline="")
+    log_f = open(os.path.join(args.out, "progress.csv"), "a" if ck else "w", newline="")
     wr = csv.writer(log_f)
-    wr.writerow(["iteration", "env_steps", "mean_return", "eval_return", "eval_success", "seconds"])
+    if not ck:
+        wr.writerow(["iteration", "env_steps", "mean_return", "eval_return", "eval_success", "seconds"])
     pool = mp.Pool(args.workers, initializer=_init_worker, initargs=(kw,)) if args.workers > 1 else None
     if pool is None:
         _init_worker(kw)
@@ -192,18 +194,25 @@ def train(args, log=print):
     env_steps, t0, best = 0, time.time(), (-np.inf, -np.inf)
     seed_ctr = int(args.seed) * 1_000_000
     eval_start = "pool" if kw.get("start_states") else None
+    start_it = 1
+    if ck:                                                   # continue exactly where the last run stopped
+        start_it, env_steps, best, seed_ctr = ck["it"] + 1, ck["env_steps"], ck["best"], ck["seed_ctr"]
+        t0 = time.time() - ck["elapsed"]
+        log(f"[ars] resuming from the checkpoint at iteration {ck['it']} of {args.iters} "
+            f"(best eval success so far {best[0] * 100:.1f} %)")
 
     def evaluate_now():
         ev = run([(pol.W, pol.mean, pol.var, 10_000_000 + i, False, pol.Omega, pol.b, eval_start)
                   for i in range(args.eval_episodes)])
         return float(np.mean([x[0] for x in ev])), float(np.mean([x[2] for x in ev]))
-    ev_ret, ev_succ = evaluate_now()
-    wr.writerow([0, 0, "", f"{ev_ret:.4f}", f"{ev_succ:.3f}", "0"])
-    log(f"[ars] it    0  (start{' = behaviour cloning' if getattr(args, 'bc_episodes', 0) else ''})  "
-        f"eval return {ev_ret:8.2f}  eval success {ev_succ * 100:5.1f} %")
-    pol.save(os.path.join(args.out, "best.npz"))
-    best = (ev_succ, ev_ret)                               # best = highest success, then highest return
-    for it in range(1, args.iters + 1):
+    if not ck:
+        ev_ret, ev_succ = evaluate_now()
+        wr.writerow([0, 0, "", f"{ev_ret:.4f}", f"{ev_succ:.3f}", "0"])
+        log(f"[ars] it    0  (start{' = behaviour cloning' if getattr(args, 'bc_episodes', 0) else ''})  "
+            f"eval return {ev_ret:8.2f}  eval success {ev_succ * 100:5.1f} %")
+        pol.save(os.path.join(args.out, "best.npz"))
+        best = (ev_succ, ev_ret)                           # best = highest success, then highest return
+    for it in range(start_it, args.iters + 1):
         deltas = rng.standard_normal((args.dirs,) + pol.W.shape)
         jobs = []
         for k in range(args.dirs):
@@ -235,6 +244,7 @@ def train(args, log=print):
             if (ev_succ, ev_ret) > best:
                 best = (ev_succ, ev_ret)
                 pol.save(os.path.join(args.out, "best.npz"))
+            save_checkpoint(args.out, pol, rng, it, env_steps, best, seed_ctr, time.time() - t0)
     if pool:
         pool.close()
         pool.join()
@@ -242,7 +252,35 @@ def train(args, log=print):
     with open(os.path.join(args.out, "DONE"), "w") as f:     # written only when ALL iterations finished
         f.write(f"finished {args.iters} iterations, {env_steps} env steps, {time.time() - t0:.0f} s, "
                 f"best eval success {best[0] * 100:.1f} %\n")
+    if os.path.exists(os.path.join(args.out, "checkpoint.npz")):
+        os.remove(os.path.join(args.out, "checkpoint.npz"))
     return pol
+
+
+def save_checkpoint(out, pol, rng, it, env_steps, best, seed_ctr, elapsed):
+    """Everything needed to continue training exactly (atomic: a stop while saving keeps the old one)."""
+    tmp = os.path.join(out, "checkpoint.tmp.npz")
+    np.savez(tmp, W=pol.W, mean=pol.mean, var=pol.var, n=pol.n, Omega=pol.Omega, b=pol.b, it=it,
+             env_steps=env_steps, best=np.array(best, dtype=float), seed_ctr=seed_ctr, elapsed=elapsed,
+             rng=json.dumps(rng.bit_generator.state))
+    os.replace(tmp, os.path.join(out, "checkpoint.npz"))
+
+
+def load_checkpoint(out, pol, rng):
+    path = os.path.join(out, "checkpoint.npz")
+    if not os.path.exists(path):
+        return None
+    try:
+        z = np.load(path, allow_pickle=False)
+        if z["W"].shape != pol.W.shape:                     # a different set-up: start fresh
+            return None
+        pol.W, pol.mean, pol.var, pol.n = z["W"], z["mean"], z["var"], int(z["n"])
+        pol.Omega, pol.b = z["Omega"], z["b"]
+        rng.bit_generator.state = json.loads(str(z["rng"]))
+        return dict(it=int(z["it"]), env_steps=int(z["env_steps"]), best=tuple(float(x) for x in z["best"]),
+                    seed_ctr=int(z["seed_ctr"]), elapsed=float(z["elapsed"]))
+    except Exception:
+        return None
 
 
 def play(path, episodes=5):
